@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Hyperlink?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.RadioButton?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Logic.Control.GraphicControl.LoginGraphicControllerColored">
+    <children>
+        <!-- Contenitore principale verticale -->
+        <VBox alignment="CENTER" layoutX="90.0" layoutY="14.0" prefHeight="182.0" prefWidth="400.0" spacing="15.0">
+            <!-- Titolo -->
+            <Label style="-fx-font-size: 24px; -fx-font-weight: bold;" text="Log in" />
+
+            <!-- Sottotitolo -->
+            <Label style="-fx-font-size: 12px;" text="Please insert your credentials in order to access to our services" wrapText="true" />
+
+            <!-- Email -->
+            <VBox spacing="5.0">
+                <Label style="-fx-font-weight: bold;" text="Email address" />
+                <TextField fx:id="emailField" promptText="Enter your email address" />
+            </VBox>
+
+            <!-- Password -->
+            <VBox spacing="5.0">
+                <Label style="-fx-font-weight: bold;" text="Password" />
+                <PasswordField fx:id="passwordField" promptText="Enter your password" />
+            </VBox>
+
+            <!-- Link Registrazione -->
+            <HBox prefHeight="0.0" prefWidth="400.0" spacing="5.0" />
+
+            <!-- Icone Google e Facebook -->
+            <HBox alignment="CENTER" spacing="20.0" />
+        </VBox>
+      <ImageView layoutX="337.0" layoutY="336.0">
+         <image>
+            <Image url="@../images/iconaGoogle.png" />
+         </image>
+      </ImageView>
+      <ImageView fitHeight="55.0" fitWidth="55.0" layoutX="411.0" layoutY="333.0">
+         <image>
+            <Image url="@../images/iconaFacebook.png" />
+         </image>
+      </ImageView>
+
+         <!-- Linea di separazione -->
+         <Label layoutX="90.0" layoutY="351.0" style="-fx-alignment: center;" text="or alternatively you can use one of these:" />
+          <Label layoutX="90.0" layoutY="312.0" prefHeight="24.0" prefWidth="147.0" text="Don’t you have an account?" />
+          <Hyperlink fx:id="signUpLink" layoutX="237.0" layoutY="312.0" onAction="#goToSignUp" prefHeight="6.0" prefWidth="50.0" text="Sign up" />
+      <RadioButton fx:id="studentButton" layoutX="139.0" layoutY="231.0" mnemonicParsing="false" text="Student">
+         <toggleGroup>
+            <ToggleGroup fx:id="roleToggleGroup" />
+         </toggleGroup></RadioButton>
+      <Label layoutX="90.0" layoutY="231.0" style="-fx-font-weight: bold;" text="Role" />
+      <RadioButton fx:id="tutorButton" layoutX="223.0" layoutY="231.0" mnemonicParsing="false" text="Tutor" toggleGroup="$roleToggleGroup" />
+      <Button fx:id="loginButton" layoutX="90.0" layoutY="268.0" mnemonicParsing="false" onAction="#handleLogin" prefHeight="26.0" prefWidth="70.0" text="Log In" />
+    </children>
+</AnchorPane>
