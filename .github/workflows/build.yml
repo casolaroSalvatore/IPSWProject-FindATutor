@@ -9,7 +9,7 @@ on:
 jobs:
   build:
     name: Build and analyze
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     
     steps:
       - uses: actions/checkout@v4
@@ -36,4 +36,4 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=casolaroSalvatore_IPSWProject-FindATutor_b0c7b4da-8573-4803-834e-6b816e3a13b3 -Dsonar.projectName='IPSWProject-FindATutor'
+        run: mvn clean verify sonar:sonar
