@@ -9,135 +9,126 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.VBox?>
 <?import javafx.scene.shape.Circle?>
 <?import javafx.scene.shape.Line?>
-<?import javafx.scene.shape.Rectangle?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="864.0" prefWidth="1536.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="logic.control.graphiccontrol.colored.HomeGraphicControllerColored">
+<AnchorPane fx:id="root" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="logic.control.graphiccontrol.colored.HomeGraphicControllerColored">
 
-   <!-- 1) Barra blu in alto, full-width -->
-   <Rectangle arcHeight="5" arcWidth="5" fill="#0e3aa1" height="60" stroke="BLACK" strokeType="INSIDE" strokeWidth="0" width="1536.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="37.0" AnchorPane.topAnchor="0.0" />
+   <!-- 1) Barra blu in alto, full‑width -->
+   <Pane prefHeight="60.0" style="-fx-background-color:#0e3aa1;" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
 
    <!-- Logo a sinistra -->
-   <Label text="FindATutor" textFill="WHITE" AnchorPane.leftAnchor="14" AnchorPane.topAnchor="14">
+   <Label prefHeight="60.0" prefWidth="96.0" text="FindATutor" textFill="WHITE" AnchorPane.leftAnchor="14.0" AnchorPane.topAnchor="0.0">
       <font><Font name="System Bold" size="18" /></font>
    </Label>
 
    <!-- 2) SignUp / LogIn / LogOut in alto a destra -->
-   <HBox alignment="CENTER_RIGHT" layoutX="1322.4" layoutY="15.2" prefHeight="26.0" prefWidth="200.0" spacing="10">
-      <Button fx:id="signUpButton" mnemonicParsing="false" onAction="#goToSignUp" text="Sign up" />
-      <Button fx:id="logInButton" mnemonicParsing="false" onAction="#goToLogin" prefHeight="26" prefWidth="54" text="Log In" />
+   <HBox alignment="CENTER_RIGHT" prefHeight="60.0" prefWidth="126.0" spacing="10" AnchorPane.rightAnchor="11.0" AnchorPane.topAnchor="0.0">
+      <Button fx:id="signUpButton" onAction="#goToSignUp" text="Sign up" />
+      <Button fx:id="logInButton" onAction="#goToLogin" prefHeight="26.0" prefWidth="59.0" text="Log In" />
    </HBox>
-   <Button fx:id="logOutButton" layoutX="1452.0" layoutY="16.0" mnemonicParsing="false" onAction="#handleLogOut" prefHeight="26" prefWidth="69.0" text="Log Out" visible="false" />
+   <Button fx:id="logOutButton" layoutY="16.0" onAction="#handleLogOut" prefHeight="26.0" prefWidth="59.0" text="Log Out" visible="false" AnchorPane.rightAnchor="11.0" AnchorPane.topAnchor="16.0" />
 
    <!-- Messaggio di benvenuto -->
-   <Label fx:id="welcomeLabel" alignment="CENTER_RIGHT" layoutX="1099.0" layoutY="20.0" prefHeight="20.0" prefWidth="300.0" textAlignment="RIGHT" textFill="WHITE" visible="false">
+   <Label fx:id="welcomeLabel" alignment="CENTER_RIGHT" contentDisplay="RIGHT" prefHeight="20.0" prefWidth="232.0" textAlignment="RIGHT" textFill="WHITE" visible="false" AnchorPane.rightAnchor="110.0" AnchorPane.topAnchor="20.0">
       <font><Font size="14" /></font>
    </Label>
 
-   <!-- 3) HBox con tre pulsanti, centrato orizzontalmente -->
-   <HBox alignment="CENTER" prefHeight="47.0" prefWidth="1536.0" spacing="20" style="-fx-border-width:2; -fx-background-radius:8; -fx-border-radius:8; -fx-padding:6;" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="70.0">
-      <Button mnemonicParsing="false" prefHeight="34" prefWidth="276" text="Return to Home">
-         <graphic>
-            <ImageView fitHeight="26" fitWidth="26"><Image url="@../images/home.png" /></ImageView>
-         </graphic>
+   <!-- 3) HBox con tre pulsanti, full‑width e centrato -->
+   <HBox alignment="CENTER" layoutX="-4.0" layoutY="83.0" prefHeight="34.0" prefWidth="1030.0" spacing="20" AnchorPane.leftAnchor="-4.0" AnchorPane.rightAnchor="-1.599999999999909" AnchorPane.topAnchor="83.0">
+      <Button prefWidth="250.0" text="Return to Home">
+         <graphic><ImageView fitHeight="26" fitWidth="26"><Image url="@../images/home.png" /></ImageView></graphic>
       </Button>
-      <Button fx:id="manageNoticeBoardButton" mnemonicParsing="false" onAction="#goToManageNoticeBoard" prefHeight="34" prefWidth="276" text="Manage Notice Board">
-         <graphic>
-            <ImageView fitHeight="26" fitWidth="26"><Image url="@../images/modify-calendar.png" /></ImageView>
-         </graphic>
+
+      <Button fx:id="manageNoticeBoardButton" onAction="#goToManageNoticeBoard" prefWidth="250.0" text="Manage Notice Board">
+         <graphic><ImageView fitHeight="26" fitWidth="26"><Image url="@../images/modify-calendar.png" /></ImageView></graphic>
       </Button>
-      <Button fx:id="leaveASharedReviewButton" mnemonicParsing="false" onAction="#goToLeaveASharedReview" prefHeight="34" prefWidth="276" text="Leave a Shared Review">
-         <graphic>
-            <ImageView fitHeight="26" fitWidth="26"><Image url="@../images/review.png" /></ImageView>
-         </graphic>
+
+      <Button fx:id="leaveASharedReviewButton" onAction="#goToLeaveASharedReview" prefWidth="250.0" text="Leave a Shared Review">
+         <graphic><ImageView fitHeight="26" fitWidth="26"><Image url="@../images/review.png" /></ImageView></graphic>
       </Button>
    </HBox>
 
-   <!-- 4) Titolo centrale -->
-   <Label alignment="CENTER" layoutY="132.0" prefHeight="30.0" prefWidth="1536.0" text="Welcome on FindATutor!">
-      <font><Font size="20" /></font>
+   <Circle fx:id="redCircle1" fill="RED" layoutX="670.0" layoutY="78.0" pickOnBounds="false" radius="8" stroke="RED" visible="false" />
+
+   <Label fx:id="redDotLabel1" alignment="CENTER" layoutX="664.0" layoutY="71.0" mouseTransparent="true" textFill="WHITE" visible="false">
+      <font><Font name="System Bold" size="10" /></font>
    </Label>
 
-   <!-- 5) Sottotitolo centrato -->
-   <HBox alignment="CENTER" layoutX="1.0" layoutY="161.0" prefHeight="18.0" prefWidth="1536.0" spacing="5">
-      <Label text="Find the" />
-      <Label text="best tutor" textFill="#0e3aa1">
-         <font><Font name="System Bold" size="12" /></font>
+   <!-- ▸ Badge per “Leave a Shared Review” -->
+   <Circle fx:id="redCircle2" fill="RED" layoutX="940.0" layoutY="78.0" pickOnBounds="false" radius="8" stroke="RED" visible="false" />
+
+   <Label fx:id="redDotLabel2" alignment="CENTER" layoutX="934.0" layoutY="71.0" mouseTransparent="true" textFill="WHITE" visible="false">
+      <font><Font name="System Bold" size="10" /></font>
+   </Label>
+
+   <!-- 4‑5) Titolo e sottotitolo centrali -->
+   <VBox alignment="TOP_CENTER" spacing="8" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="132.0">
+      <Label text="Welcome on FindATutor!">
+         <font><Font size="20" /></font>
       </Label>
-      <Label text="for you:" />
+      <HBox alignment="CENTER" spacing="5">
+         <Label text="Find the" />
+         <Label text="best tutor" textFill="#0e3aa1">
+            <font><Font name="System Bold" size="12" /></font>
+         </Label>
+         <Label text="for you:" />
+      </HBox>
+   </VBox>
+
+   <!-- 6) Barra di ricerca – max 1000 px ma centrata e fluida -->
+   <HBox alignment="CENTER" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="210.0">
+      <HBox alignment="CENTER_LEFT" maxWidth="1000" spacing="10" style="-fx-background-color:#f5f5f5; -fx-border-color:#0e3aa1; -fx-border-width:2; -fx-background-radius:8; -fx-border-radius:8; -fx-padding:6;">
+         <!-- Where -->
+         <HBox alignment="CENTER_LEFT" spacing="5">
+            <ImageView fitHeight="26" fitWidth="26"><Image url="@../images/location.png" /></ImageView>
+            <TextField fx:id="locationField" promptText="Where do you live?" style="-fx-background-color:transparent; -fx-border-width:0; -fx-font-size:12px;" HBox.hgrow="ALWAYS" />
+         </HBox>
+         <Line endY="35" stroke="#0e3aa1" strokeWidth="2" />
+         <!-- Date From/To -->
+         <HBox alignment="CENTER_LEFT" spacing="5">
+            <ImageView fitHeight="26" fitWidth="26"><Image url="@../images/calendar.png" /></ImageView>
+            <Label text="From" />
+            <DatePicker fx:id="startDatePicker" style="-fx-font-size:12px;" />
+            <Label text="To" />
+            <DatePicker fx:id="endDatePicker" style="-fx-font-size:12px;" />
+         </HBox>
+         <Line endY="35" stroke="#0e3aa1" strokeWidth="2" />
+         <!-- Subject -->
+         <HBox alignment="CENTER_LEFT" spacing="5">
+            <ImageView fitHeight="26" fitWidth="26"><Image url="@../images/education.png" /></ImageView>
+            <TextField fx:id="subjectField" promptText="Need help with?" style="-fx-background-color:transparent; -fx-border-width:0; -fx-font-size:12px;" HBox.hgrow="ALWAYS" />
+         </HBox>
+         <Line endY="35" stroke="#0e3aa1" strokeWidth="2" />
+         <!-- Search -->
+         <Button onAction="#handleSearch" style="-fx-background-color:transparent;">
+            <graphic><ImageView fitHeight="26" fitWidth="29" preserveRatio="true">
+               <Image url="@../images/icon-search.png" /></ImageView></graphic>
+         </Button>
+      </HBox>
    </HBox>
 
-   <!-- 6) Barra di ricerca FISSA a 1000px, centrata -->
-   <HBox alignment="CENTER" layoutX="268.0" layoutY="282.0" />
-
-   <!-- 7) Frequenza e giorni FISSA a 800px, centrata -->
-   <HBox alignment="CENTER" layoutX="368.0" />
-
-   <!-- 8) Cerchietti rossi -->
-   <Circle fx:id="redCircle1" fill="RED" layoutX="904.0" layoutY="77.0" radius="8" stroke="RED" strokeType="INSIDE" visible="false" />
-   <Label fx:id="redDotLabel1" layoutX="896.0" layoutY="71.0" prefHeight="15.0" prefWidth="14.0" textFill="WHITE" visible="false">
-      <font><Font name="System Bold" size="10" /></font>
-   </Label>
-   <Circle fx:id="redCircle2" fill="RED" layoutX="1200.0" layoutY="78.0" radius="8" smooth="false" stroke="RED" strokeType="INSIDE" visible="false" />
-   <Label fx:id="redDotLabel2" layoutX="1197.0" layoutY="69.0" prefHeight="15.0" prefWidth="16.0" textFill="WHITE" visible="false">
-      <font><Font name="System Bold" size="10" /></font>
-   </Label>
-   <HBox alignment="CENTER_LEFT" layoutX="361.0" layoutY="282.0" prefHeight="42" prefWidth="800" spacing="10" style="-fx-background-color:#f5f5f5;                    -fx-border-color:#0e3aa1;                    -fx-border-width:2;                    -fx-background-radius:8;                    -fx-border-radius:8;                    -fx-padding:6;">
-      <HBox alignment="CENTER_LEFT" spacing="5">
-         <ImageView fitHeight="26" fitWidth="26">
-            <Image url="@../images/calendar.png" />
-         </ImageView>
-         <TextField fx:id="frequencyField" promptText="Times/week" style="-fx-background-color:transparent;                               -fx-border-width:0;                               -fx-font-size:12px;" />
+   <!-- 7) Frequenza e giorni – max 800 px centrato -->
+   <HBox alignment="CENTER" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="282.0">
+      <HBox alignment="CENTER_LEFT" maxWidth="900" spacing="10" style="-fx-background-color:#f5f5f5; -fx-border-color:#0e3aa1; -fx-border-width:2; -fx-background-radius:8; -fx-border-radius:8; -fx-padding:6;">
+         <HBox alignment="CENTER_LEFT" spacing="5">
+            <ImageView fitHeight="26" fitWidth="26"><Image url="@../images/calendar.png" /></ImageView>
+            <TextField fx:id="frequencyField" maxWidth="78.0" prefHeight="26.0" prefWidth="78.0" promptText="Times/week" style="-fx-background-color:transparent; -fx-border-width:0; -fx-font-size:12px;" />
+         </HBox>
+         <HBox alignment="CENTER_LEFT" spacing="8">
+            <Label style="-fx-font-size:12px; -fx-text-fill:#0e3aa1;" text="Days:" />
+            <CheckBox fx:id="mondayCheck" text="Mon" />
+            <CheckBox fx:id="tuesdayCheck" text="Tue" />
+            <CheckBox fx:id="wednesdayCheck" text="Wed" />
+            <CheckBox fx:id="thursdayCheck" text="Thu" />
+            <CheckBox fx:id="fridayCheck" text="Fri" />
+            <CheckBox fx:id="saturdayCheck" text="Sat" />
+            <CheckBox fx:id="sundayCheck" text="Sun" />
+         </HBox>
       </HBox>
-      <HBox alignment="CENTER_LEFT" spacing="8">
-         <Label style="-fx-font-size:12px; -fx-text-fill:#0e3aa1;" text="Days:" />
-         <CheckBox fx:id="mondayCheck" text="Mon" />
-         <CheckBox fx:id="tuesdayCheck" text="Tue" />
-         <CheckBox fx:id="wednesdayCheck" text="Wed" />
-         <CheckBox fx:id="thursdayCheck" text="Thu" />
-         <CheckBox fx:id="fridayCheck" text="Fri" />
-         <CheckBox fx:id="saturdayCheck" text="Sat" />
-         <CheckBox fx:id="sundayCheck" text="Sun" />
-      </HBox>
-   </HBox>
-   <HBox alignment="CENTER_LEFT" layoutX="261.0" layoutY="210.0" prefHeight="54" prefWidth="1000.0" spacing="10" style="-fx-background-color:#f5f5f5;                    -fx-border-color:#0e3aa1;                    -fx-border-width:2;                    -fx-background-radius:8;                    -fx-border-radius:8;                    -fx-padding:6;">
-      <!-- Where -->
-      <HBox alignment="CENTER_LEFT" spacing="5">
-         <ImageView fitHeight="26" fitWidth="26">
-            <Image url="@../images/location.png" />
-         </ImageView>
-         <TextField fx:id="locationField" promptText="Where do you live?" style="-fx-background-color:transparent;                               -fx-border-width:0;                               -fx-font-size:12px;" />
-      </HBox>
-      <Line endY="35" stroke="#0e3aa1" strokeWidth="2" />
-      <!-- Date From/To -->
-      <HBox alignment="CENTER_LEFT" spacing="5">
-         <ImageView fitHeight="26" fitWidth="26">
-            <Image url="@../images/calendar.png" />
-         </ImageView>
-         <Label text="From" />
-         <DatePicker fx:id="startDatePicker" style="-fx-font-size:12px;" />
-         <Label text="To" />
-         <DatePicker fx:id="endDatePicker" style="-fx-font-size:12px;" />
-      </HBox>
-      <Line endY="35" stroke="#0e3aa1" strokeWidth="2" />
-      <!-- Subject -->
-      <HBox alignment="CENTER_LEFT" spacing="5">
-         <ImageView fitHeight="26" fitWidth="26">
-            <Image url="@../images/education.png" />
-         </ImageView>
-         <TextField fx:id="subjectField" promptText="Need help with?" style="-fx-background-color:transparent;                               -fx-border-width:0;                               -fx-font-size:12px;" />
-      </HBox>
-      <Line endY="35" stroke="#0e3aa1" strokeWidth="2" />
-      <!-- Search button -->
-      <Button mnemonicParsing="false" onAction="#handleSearch" style="-fx-background-color:transparent;">
-         <graphic>
-            <ImageView fitHeight="26" fitWidth="29" preserveRatio="true">
-               <Image url="@../images/icon-search.png" />
-            </ImageView>
-         </graphic>
-      </Button>
    </HBox>
 
 </AnchorPane>

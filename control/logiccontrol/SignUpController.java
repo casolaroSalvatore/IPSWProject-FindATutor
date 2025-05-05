@@ -113,4 +113,17 @@ public class SignUpController {
 
         return true;
     }
+
+    /* Cache parziale del Tutor – l’unico punto che tocca il Model, in maniera tale che il
+       Controller grafico non interagisca direttamente con il SessionManager
+     */
+    public void cachePartialTutor(UserBean bean) {
+        SessionManager.setUserBean(bean);
+    }
+    public UserBean retrievePartialTutor() {
+        return SessionManager.getUserBean();
+    }
+    public void clearPartialTutor() {
+        SessionManager.clearUserBean();
+    }
 }

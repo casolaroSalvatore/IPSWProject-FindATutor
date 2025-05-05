@@ -1,13 +1,15 @@
 package logic.control.graphiccontrol.bw;
 
 import logic.bean.AccountBean;
-import logic.model.domain.SessionManager;
+import logic.control.logiccontrol.HomeController;
+
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class HomeGraphicControllerBW extends BaseCLIControllerBW {
 
     private static final Logger LOGGER = Logger.getLogger(HomeGraphicControllerBW.class.getName());
+    private HomeController homeController = new HomeController();
 
     static {
         SystemOutConsoleHandler handler = new SystemOutConsoleHandler();
@@ -22,7 +24,7 @@ public class HomeGraphicControllerBW extends BaseCLIControllerBW {
         while (true) {
             LOGGER.info("\n=== HOME ===");
 
-            if (SessionManager.getLoggedUser() == null) {
+            if (homeController.getLoggedUser() == null) {
                 LOGGER.info("1) Log In");
                 LOGGER.info("2) Sign Up");
                 LOGGER.info("0) Exit");
@@ -38,7 +40,7 @@ public class HomeGraphicControllerBW extends BaseCLIControllerBW {
                 String role = null;
 
                 // Ciclo tra gli account e scelgo il ruolo corretto
-                for (AccountBean account : SessionManager.getLoggedUser().getAccounts()) {
+                for (AccountBean account : homeController.getLoggedUser().getAccounts()) {
                     if ("Student".equalsIgnoreCase(account.getRole())) {
                         role = "Student";
                         break;
@@ -49,7 +51,7 @@ public class HomeGraphicControllerBW extends BaseCLIControllerBW {
                 }
 
                 LOGGER.log(Level.INFO, "Logged in as: {0} ({1})",
-                        new Object[]{SessionManager.getLoggedUser().getUsername(),
+                        new Object[]{homeController.getLoggedUser().getUsername(),
                                 role});
 
                 LOGGER.info("1) Book a Tutoring Session");
@@ -63,7 +65,7 @@ public class HomeGraphicControllerBW extends BaseCLIControllerBW {
                     case 2 -> new ManageNoticeBoardGraphicControllerBW().start();
                     case 3 -> new LeaveASharedReviewGraphicControllerBW().start();
                     case 4 -> {
-                        SessionManager.logout();
+                        homeController.logout();
                         LOGGER.info("Logged out successfully.");
                     }
                     case 0 -> { return; }

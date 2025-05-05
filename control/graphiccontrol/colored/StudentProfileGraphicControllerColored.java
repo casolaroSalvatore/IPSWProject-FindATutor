@@ -4,13 +4,9 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.stage.Stage;
-import logic.model.dao.AccountDAO;
-import logic.model.dao.DaoFactory;
-import logic.model.domain.Account;
-import logic.model.domain.Student;
-
-import java.io.File;
+import logic.bean.AccountBean;
+import logic.control.logiccontrol.StudentProfileController;
+import java.time.Period;
 
 public class StudentProfileGraphicControllerColored {
 
@@ -25,51 +21,29 @@ public class StudentProfileGraphicControllerColored {
     @FXML
     private Label profileCommentLabel;
 
-    private String studentAccountId;
+    private StudentProfileController logic = new StudentProfileController();
 
     public void setStudentData(String studentAccountId) {
-        this.studentAccountId = studentAccountId;
-        loadStudentInfo();
-    }
 
-    private void loadStudentInfo() {
-        AccountDAO accountDAO = DaoFactory.getInstance().getAccountDAO();
-        Account acc = accountDAO.load(studentAccountId);
-        if (!(acc instanceof Student student)) {
-            nameLabel.setText("Error: not a student account");
-            return;
-        }
+        AccountBean b = logic.loadStudentBean(studentAccountId);
 
-        String fullName = student.getName() + " " + student.getSurname();
-        nameLabel.setText("Student: " + fullName);
-        instituteLabel.setText("Institute: " + student.getInstitute());
-        ageLabel.setText("Age: " + student.getAge());
+        nameLabel.setText("Student: "+b.getName()+" "+b.getSurname());
+        instituteLabel.setText("Institute: "+b.getInstitute());
 
-        if (student.getProfilePicturePath() != null && !student.getProfilePicturePath().isEmpty()) {
-            File file = new File(student.getProfilePicturePath());
-            if (file.exists()) {
-                Image img = new Image(file.toURI().toString());
-                profilePictureView.setImage(img);
-            } else {
-                // Se il file non esiste, puoi mettere un’immagine di default o lasciare vuoto
-                profilePictureView.setImage(null);
-            }
+        int age = (b.getBirthday()==null)? 0 :
+                Period.between(b.getBirthday(), java.time.LocalDate.now()).getYears();
+        ageLabel.setText("Age: "+age);
+
+        if(b.getProfilePicturePath()!=null && !b.getProfilePicturePath().isBlank()
+                && new java.io.File(b.getProfilePicturePath()).exists()){
+            profilePictureView.setImage(
+                    new Image(new java.io.File(b.getProfilePicturePath()).toURI().toString()));
         } else {
             profilePictureView.setImage(null);
         }
 
-        // Commento profilo
-        if (student.getProfileComment() != null && !student.getProfileComment().isEmpty()) {
-            profileCommentLabel.setText(student.getProfileComment());
-        } else {
-            profileCommentLabel.setText("");
-        }
-    }
-
-    @FXML
-    private void handleClose() {
-        Stage stage = (Stage) nameLabel.getScene().getWindow();
-        stage.close();
+        profileCommentLabel.setText(
+                (b.getProfileComment()==null)? "" : b.getProfileComment());
     }
 }
 

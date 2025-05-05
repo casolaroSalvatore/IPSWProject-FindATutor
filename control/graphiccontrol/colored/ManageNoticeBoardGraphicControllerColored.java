@@ -20,13 +20,11 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.stage.Stage;
-import logic.bean.SignUpBean;
 import logic.bean.TutoringSessionBean;
 import logic.bean.UserBean;
 import logic.control.logiccontrol.ManageNoticeBoardController;
 import logic.model.domain.SessionManager;
-import logic.model.domain.TutoringSession;
-
+import logic.model.domain.state.TutoringSessionStatus;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -40,9 +38,6 @@ public class ManageNoticeBoardGraphicControllerColored {
 
     private static final String ROLE_TUTOR   = "Tutor";
     private static final String ROLE_STUDENT = "Student";
-    private static final String STATUS_ACCEPTED = "ACCEPTED";
-    private static final String STATUS_CANCEL_REQUEST = "CANCEL_REQUESTED";
-    private static final String STATUS_MOD_REQUEST = "MOD_REQUESTED";
     private static final String ERROR = "Error";
 
     private static final Logger LOGGER = Logger.getLogger(ManageNoticeBoardGraphicControllerColored.class.getName());
@@ -68,10 +63,10 @@ public class ManageNoticeBoardGraphicControllerColored {
     private AnchorPane bookingSessionPane; // un contenitore definito in ManageNoticeBoard.fxml
 
     @FXML
-    private TableView<TutoringSession> sessionTable;
+    private TableView<TutoringSessionBean> sessionTable;
 
     @FXML
-    private TableColumn<TutoringSession, Void> modCancelActionColumn;
+    private TableColumn<TutoringSessionBean, Void> modCancelActionColumn;
 
     // Campi FXML per la tabella daySessionTable
     @FXML
@@ -297,7 +292,7 @@ public class ManageNoticeBoardGraphicControllerColored {
         for (TutoringSessionBean s : allSessions) {
             if (s.getDate() != null
                     && s.getDate().equals(date)
-                    && STATUS_ACCEPTED.equalsIgnoreCase(s.getStatus())) {
+                    && s.getStatus() == TutoringSessionStatus.ACCEPTED) {
                 filtered.add(s);
             }
         }
@@ -321,7 +316,7 @@ public class ManageNoticeBoardGraphicControllerColored {
             showAlert(ERROR, "No session selected!");
             return;
         }
-        if (!STATUS_ACCEPTED.equalsIgnoreCase(s.getStatus())) {
+        if (s.getStatus() != TutoringSessionStatus.ACCEPTED) {
             showAlert(ERROR, "You can only request a modification on an ACCEPTED session!");
             return;
         }
@@ -353,7 +348,7 @@ public class ManageNoticeBoardGraphicControllerColored {
             showAlert(ERROR, "No session selected");
             return;
         }
-        if (!STATUS_ACCEPTED.equalsIgnoreCase(selected.getStatus())) {
+        if (selected.getStatus() != TutoringSessionStatus.ACCEPTED) {
             showAlert(ERROR, "You can only request a cancellation on an ACCEPTED session");
             return;
         }
@@ -392,7 +387,7 @@ public class ManageNoticeBoardGraphicControllerColored {
                     return;
                 }
 
-                if (STATUS_MOD_REQUEST.equalsIgnoreCase(s.getStatus())) {
+                if (s.getStatus() == TutoringSessionStatus.MOD_REQUESTED) {
                     setGraphic(new HBox(5, acceptBtn, refuseBtn));
                     acceptBtn.setText("Accept Modif");
                     refuseBtn.setText("Refuse Modif");
@@ -400,7 +395,7 @@ public class ManageNoticeBoardGraphicControllerColored {
                     acceptBtn.setDisable(!enable);
                     refuseBtn.setDisable(!enable); */
 
-                } else if (STATUS_CANCEL_REQUEST.equalsIgnoreCase(s.getStatus())) {
+                } else if (s.getStatus() == TutoringSessionStatus.CANCEL_REQUESTED) {
                     setGraphic(new HBox(5, acceptBtn, refuseBtn));
                     acceptBtn.setText("Accept Canc");
                     refuseBtn.setText("Refuse Canc");
@@ -416,24 +411,24 @@ public class ManageNoticeBoardGraphicControllerColored {
             /* click-handler sul bean */
             private void handleAcceptClicked() {
                 TutoringSessionBean s = getTableView().getItems().get(getIndex());
-                if (STATUS_MOD_REQUEST.equalsIgnoreCase(s.getStatus())) {
+                if (s.getStatus() == TutoringSessionStatus.MOD_REQUESTED) {
                     manageController.acceptModification(s);
-                } else if (STATUS_CANCEL_REQUEST.equalsIgnoreCase(s.getStatus())) {
+                } else if (s.getStatus() == TutoringSessionStatus.CANCEL_REQUESTED) {
                     manageController.acceptCancellation(s);
                 }
-                s.setStatus("ACCEPTED");
+                s.setStatus(TutoringSessionStatus.ACCEPTED);
                 getTableView().refresh();
                 refreshCalendarAndTable();
             }
 
             private void handleRefuseClicked() {
                 TutoringSessionBean s = getTableView().getItems().get(getIndex());
-                if (STATUS_MOD_REQUEST.equalsIgnoreCase(s.getStatus())) {
+                if (s.getStatus() == TutoringSessionStatus.MOD_REQUESTED) {
                     manageController.refuseModification(s);
-                } else if (STATUS_CANCEL_REQUEST.equalsIgnoreCase(s.getStatus())) {
+                } else if (s.getStatus() == TutoringSessionStatus.CANCEL_REQUESTED) {
                     manageController.refuseCancellation(s);
                 }
-                s.setStatus("ACCEPTED");
+                s.setStatus(TutoringSessionStatus.ACCEPTED);
                 getTableView().refresh();
                 refreshCalendarAndTable();
             }
@@ -484,19 +479,6 @@ public class ManageNoticeBoardGraphicControllerColored {
     private void nextMonth(ActionEvent event) {
         currentYearMonth = currentYearMonth.plusMonths(1);
         populateCalendar(currentYearMonth);
-    }
-
-    @FXML
-    private void handleViewStudentProfile() {
-        // Recupero la TutoringSession selezionata
-        TutoringSession sel = sessionTable.getSelectionModel().getSelectedItem();
-        if (sel == null) {
-            showAlert("No selection", "Please select a tutoring session first!");
-            return;
-        }
-        String studentId = sel.getStudentId();
-        // Ora apriamo la nuova finestra con i dettagli dello studente
-        showStudentProfile(studentId);
     }
 
     @FXML
@@ -553,7 +535,7 @@ public class ManageNoticeBoardGraphicControllerColored {
     }
 
     @FXML
-    private void goToLeaveASharedReview(ActionEvent event) {
+    public void goToLeaveASharedReview(ActionEvent event) {
         // 1) Verifichiamo se l’utente è loggato (SessionManager.getLoggedUser() != null)
         if (SessionManager.getLoggedUser() == null) {
             // Utente NON loggato: reindirizziamo alla form di accesso (o Login)

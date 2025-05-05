@@ -4,12 +4,10 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
-
-import logic.bean.AccountBean;
 import logic.bean.TutoringSessionBean;
+import logic.bean.AccountBean;
 import logic.control.logiccontrol.ManageNoticeBoardController;
-import logic.control.logiccontrol.BookingTutoringSessionController;
-import logic.model.domain.SessionManager;
+import logic.model.domain.state.TutoringSessionStatus;
 
 public class ManageNoticeBoardGraphicControllerBW extends BaseCLIControllerBW {
 
@@ -18,6 +16,8 @@ public class ManageNoticeBoardGraphicControllerBW extends BaseCLIControllerBW {
     private static final String LABEL_CHOICE = "Choice:";
     private static final String STATUS_MOD_REQUESTED = "MOD_REQUESTED";
     private static final String STATUS_CANCEL_REQUESTED = "CANCEL_REQUESTED";
+
+    private ManageNoticeBoardController manageNoticeBoardController = new ManageNoticeBoardController();
 
     static {
         SystemOutConsoleHandler handler = new SystemOutConsoleHandler();
@@ -29,29 +29,16 @@ public class ManageNoticeBoardGraphicControllerBW extends BaseCLIControllerBW {
     }
 
     private final ManageNoticeBoardController manageController = new ManageNoticeBoardController();
-    private final BookingTutoringSessionController bookingLogic = new BookingTutoringSessionController();
 
     public void start() {
-        if (SessionManager.getLoggedUser() == null) {
+        if (manageNoticeBoardController.getLoggedUser() == null) {
             LOGGER.warning("Please log in first!");
             pressEnter();
             return;
         }
 
-        String role = null;
-        String userId = null;
-
-        for (AccountBean account : SessionManager.getLoggedUser().getAccounts()) {
-            if ("Student".equalsIgnoreCase(account.getRole())) {
-                role = "Student";
-                userId = account.getAccountId();
-                break;
-            } else if ("Tutor".equalsIgnoreCase(account.getRole())) {
-                role = "Tutor";
-                userId = account.getAccountId();
-                break;
-            }
-        }
+        String role = manageController.getLoggedRole();
+        String userId = manageController.getLoggedAccountId();
 
         if (role == null || userId == null) {
             throw new IllegalStateException("No valid account (Student or Tutor) found for logged user.");
@@ -62,10 +49,7 @@ public class ManageNoticeBoardGraphicControllerBW extends BaseCLIControllerBW {
         final String fixedUserId = userId;
 
         while (true) {
-        List<TutoringSessionBean> sessions =
-        ROLE_TUTOR.equals(role)
-                ? bookingLogic.loadAllSessionsForTutor(fixedUserId)
-                : bookingLogic.loadAllSessionsForStudent(fixedUserId);
+            List<TutoringSessionBean> sessions = manageController.loadSessionsForLoggedUser();
             LOGGER.info("\n=== MANAGE NOTICE BOARD ===");
             if (sessions.isEmpty()) {
                 LOGGER.info("No tutoring sessions found.");
@@ -104,7 +88,7 @@ public class ManageNoticeBoardGraphicControllerBW extends BaseCLIControllerBW {
 
     private void handlePendingBookings(List<TutoringSessionBean> sessions) {
         List<TutoringSessionBean> pending = sessions.stream()
-                .filter(s -> "PENDING".equalsIgnoreCase(s.getStatus()))
+                .filter(s -> s.getStatus() == TutoringSessionStatus.PENDING)
                 .toList();
 
         if (pending.isEmpty()) {
@@ -126,10 +110,10 @@ public class ManageNoticeBoardGraphicControllerBW extends BaseCLIControllerBW {
         LOGGER.info("[1] Accept   [2] Refuse   [Enter] Back");
         String choice = ask(LABEL_CHOICE);
         if ("1".equals(choice)) {
-            bookingLogic.acceptSession(sel.getSessionId());
+            manageController.acceptSession(sel.getSessionId());
             LOGGER.info("Booking accepted.");
         } else if ("2".equals(choice)) {
-            bookingLogic.refuseSession(sel.getSessionId());
+            manageController.refuseSession(sel.getSessionId());
             LOGGER.info("Booking refused.");
         }
         pressEnter();
@@ -140,7 +124,7 @@ public class ManageNoticeBoardGraphicControllerBW extends BaseCLIControllerBW {
         if (idx < 0 || idx >= sessions.size()) return;
 
         TutoringSessionBean sel = sessions.get(idx);
-        if (!"ACCEPTED".equalsIgnoreCase(sel.getStatus())) {
+         if (sel.getStatus() != TutoringSessionStatus.ACCEPTED) {
             LOGGER.warning("Only ACCEPTED sessions can be modified or cancelled.");
             pressEnter();
             return;
@@ -164,14 +148,7 @@ public class ManageNoticeBoardGraphicControllerBW extends BaseCLIControllerBW {
 
     private void handleIncomingModOrCancRequests(List<TutoringSessionBean> sessions) {
 
-        String myId = null;
-
-        for (AccountBean account : SessionManager.getLoggedUser().getAccounts()) {
-            if ("Student".equalsIgnoreCase(account.getRole()) || "Tutor".equalsIgnoreCase(account.getRole())) {
-                myId = account.getAccountId();
-                break;
-            }
-        }
+        String myId = manageController.getLoggedAccountId();
 
         if (myId == null) {
             throw new IllegalStateException("No valid Student or Tutor account found for logged user.");
@@ -180,9 +157,10 @@ public class ManageNoticeBoardGraphicControllerBW extends BaseCLIControllerBW {
         final String finalMyId = myId;
 
         List<TutoringSessionBean> incoming = sessions.stream()
-                .filter(s -> (STATUS_MOD_REQUESTED.equalsIgnoreCase(s.getStatus())
-                        ||  STATUS_CANCEL_REQUESTED.equalsIgnoreCase(s.getStatus()))
-                        && (finalMyId.equals(s.getModifiedTo()) || s.getModifiedTo() == null))
+                .filter(s ->
+                        (s.getStatus() == TutoringSessionStatus.MOD_REQUESTED ||
+                                s.getStatus() == TutoringSessionStatus.CANCEL_REQUESTED)
+                                && (finalMyId.equals(s.getModifiedTo()) || s.getModifiedTo() == null))
                 .toList();
 
         if (incoming.isEmpty()) {
@@ -196,6 +174,20 @@ public class ManageNoticeBoardGraphicControllerBW extends BaseCLIControllerBW {
 
         int idx = askInt("\nSelect a request (0 = back):") - 1;
         if (idx < 0 || idx >= incoming.size()) return;
+
+        TutoringSessionBean selected = incoming.get(idx);
+
+        if (ROLE_TUTOR.equalsIgnoreCase(manageController.getLoggedRole())) {
+            LOGGER.info("[1] View Student Profile   [2] Continue to decision   [Enter] Back");
+            String viewChoice = ask(LABEL_CHOICE);
+            if ("1".equals(viewChoice)) {
+                new StudentProfileGraphicControllerBW().show(selected.getStudentId());
+                pressEnter();
+                return;
+            } else if (!"2".equals(viewChoice)) {
+                return;
+            }
+        }
 
         manageModOrCancDecision(incoming.get(idx));
     }
@@ -213,14 +205,14 @@ public class ManageNoticeBoardGraphicControllerBW extends BaseCLIControllerBW {
         }
 
         TutoringSessionBean sel = all.get(idx);
-        if (STATUS_MOD_REQUESTED.equalsIgnoreCase(sel.getStatus()) || STATUS_CANCEL_REQUESTED.equalsIgnoreCase(sel.getStatus())) {
+        if (sel.getStatus() == TutoringSessionStatus.MOD_REQUESTED || sel.getStatus() == TutoringSessionStatus.CANCEL_REQUESTED) {
             manageModOrCancDecision(sel);
         }
     }
 
     private void manageModOrCancDecision(TutoringSessionBean s) {
 
-        if (STATUS_MOD_REQUESTED.equalsIgnoreCase(s.getStatus())) {
+        if (s.getStatus() == TutoringSessionStatus.MOD_REQUESTED) {
             LOGGER.info("[1] Accept modification  [2] Refuse modification  [Enter] Back");
             String choice = ask(LABEL_CHOICE);
             if ("1".equals(choice)) {
@@ -230,7 +222,7 @@ public class ManageNoticeBoardGraphicControllerBW extends BaseCLIControllerBW {
                 manageController.refuseModification(s);
                 LOGGER.info("Modification refused.");
             }
-        } else if (STATUS_CANCEL_REQUESTED.equalsIgnoreCase(s.getStatus())) {
+        } else if (s.getStatus() == TutoringSessionStatus.CANCEL_REQUESTED) {
             LOGGER.info("[1] Accept cancellation  [2] Refuse cancellation  [Enter] Back");
             String choice = ask(LABEL_CHOICE);
             if ("1".equals(choice)) {
@@ -248,7 +240,7 @@ public class ManageNoticeBoardGraphicControllerBW extends BaseCLIControllerBW {
 
         String role = null;
 
-        for (AccountBean account : SessionManager.getLoggedUser().getAccounts()) {
+        for (AccountBean account : manageNoticeBoardController.getLoggedUser().getAccounts()) {
             if ("Student".equalsIgnoreCase(account.getRole())) {
                 role = "Student";
                 break;

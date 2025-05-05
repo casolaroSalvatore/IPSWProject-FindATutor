@@ -19,13 +19,10 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
-import logic.bean.AccountBean;
 import logic.bean.SharedReviewBean;
 import logic.bean.UserBean;
 import logic.control.logiccontrol.LeaveASharedReviewController;
-import logic.model.dao.AccountDAO;
-import logic.model.dao.DaoFactory;
-import logic.model.domain.*;
+import logic.model.domain.ReviewStatus;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -150,7 +147,7 @@ public class LeaveASharedReviewGraphicControllerColored {
     @FXML
     public void initialize() {
 
-        UserBean user = SessionManager.getLoggedUser();
+        UserBean user = leaveASharedReviewController.getLoggedUser();
         if (user == null) {
             showLoggedOutUI();
             return;                              // fine: nessun utente loggato
@@ -254,20 +251,8 @@ public class LeaveASharedReviewGraphicControllerColored {
 
     private void showPaneByRoleAndLoadData(UserBean user) {
 
-        String role = null;
-        String accountId = null;
-
-        for (AccountBean account : user.getAccounts()) {
-            if ("Student".equalsIgnoreCase(account.getRole())) {
-                role = "Student";
-                accountId = account.getAccountId();
-                break;
-            } else if ("Tutor".equalsIgnoreCase(account.getRole())) {
-                role = "Tutor";
-                accountId = account.getAccountId();
-                break;
-            }
-        }
+        String role     = leaveASharedReviewController.getLoggedRole();
+        String accountId = leaveASharedReviewController.getLoggedAccountId();
 
         if (role == null || accountId == null) {
             throw new IllegalStateException("No valid account found for logged user.");
@@ -282,21 +267,6 @@ public class LeaveASharedReviewGraphicControllerColored {
             studentPane.setVisible(false); studentPane.setManaged(false);
             loadStudentListAndBuildReviews(accountId);
         }
-    }
-
-    private String buildNameAgeLabel(Account acc) {
-        if (acc == null) return "";
-        return acc.getName() + " " + acc.getSurname() + " (" + acc.getAge() + ")";
-    }
-
-    private String getTutorSubject(String tutorId, AccountDAO dao) {
-        Account acc = dao.load(tutorId);
-        return (acc instanceof Tutor t) ? t.getSubject() : "";
-    }
-
-    private String getTutorLocation(String tutorId, AccountDAO dao) {
-        Account acc = dao.load(tutorId);
-        return (acc instanceof Tutor t) ? t.getLocation() : "";
     }
 
     // Esempio: "Studente" => carico i tutor con findAllTutorsForStudent, trovo/creo le review
@@ -554,7 +524,7 @@ public class LeaveASharedReviewGraphicControllerColored {
     @FXML
     private void goToManageNoticeBoard(ActionEvent event) {
         // 1) Verifichiamo se l’utente è loggato
-        if (SessionManager.getLoggedUser() == null) {
+        if (leaveASharedReviewController.getLoggedUser() == null) {
             // Utente NON loggato: reindirizziamo alla form di accesso (o Login)
             showAlert("Booking", "You must be logged in to manage the notice board.");
             try {
@@ -590,7 +560,7 @@ public class LeaveASharedReviewGraphicControllerColored {
         // Se l'utente ha premuto OK, effettuiamo il logout
         if (result.isPresent() && result.get() == ButtonType.OK) {
             // 1) Azzeri la sessione, se hai un SessionManager
-            SessionManager.logout();
+            leaveASharedReviewController.logout();
 
             goToHome(event);
 

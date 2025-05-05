@@ -7,13 +7,10 @@ import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
-
-import logic.bean.AccountBean;
+import logic.bean.AvailabilityBean;
+import logic.bean.TutorBean;
 import logic.bean.TutoringSessionBean;
 import logic.control.logiccontrol.BookingTutoringSessionController;
-import logic.model.domain.*;
-import logic.model.dao.AccountDAO;
-import logic.model.dao.DaoFactory;
 
 public class BookingSessionGraphicControllerBW extends BaseCLIControllerBW {
 
@@ -30,7 +27,6 @@ public class BookingSessionGraphicControllerBW extends BaseCLIControllerBW {
     }
 
     private final BookingTutoringSessionController logic = new BookingTutoringSessionController();
-    private final AccountDAO accountDAO = DaoFactory.getInstance().getAccountDAO();
 
     public void start() {
         LOGGER.log(Level.INFO, "\n=== BOOK A TUTORING SESSION ===");
@@ -38,14 +34,16 @@ public class BookingSessionGraphicControllerBW extends BaseCLIControllerBW {
         String subject = ask("Subject (leave empty to search all):");
         String location = ask("Location (leave empty to search all):");
 
-        askDate("Start Date:");
-        askDate("End Date:");
+        LocalDate startDate = askDate("Start Date:");
+        LocalDate endDate   = askDate("End Date:");
 
-        List<Tutor> tutors = accountDAO.loadAllAccountsOfType("Tutor").stream()
-                .map(a -> (Tutor) a)
-                .filter(t -> (subject.isBlank() || subject.equalsIgnoreCase(t.getSubject()))
-                        && (location.isBlank() || location.equalsIgnoreCase(t.getLocation())))
-                .toList();
+        AvailabilityBean av = new AvailabilityBean();
+        av.setStartDate(startDate);
+        av.setEndDate(endDate);
+
+        List<TutorBean> tutors = logic.searchTutors(
+                subject, location, av,
+                false, false, false, false, false, null);
 
         if (tutors.isEmpty()) {
             LOGGER.info("No tutors found.");
@@ -55,7 +53,7 @@ public class BookingSessionGraphicControllerBW extends BaseCLIControllerBW {
 
         LOGGER.info("\nAvailable Tutors:");
         IntStream.range(0, tutors.size()).forEach(i -> {
-            Tutor t = tutors.get(i);
+            TutorBean t = tutors.get(i);
             String tutorInfo = String.format("%2d) %s %s – Subject: %s – Hourly Rate: €%.2f – Rating: %.1f",
                     i + 1, t.getName(), t.getSurname(),
                     Optional.ofNullable(t.getSubject()).orElse("N/A"), t.getHourlyRate(), t.getRating());
@@ -66,12 +64,27 @@ public class BookingSessionGraphicControllerBW extends BaseCLIControllerBW {
         if (choice < 0 || choice >= tutors.size()) {
             return;
         }
-        Tutor selectedTutor = tutors.get(choice);
+        TutorBean selectedTutor = tutors.get(choice);
 
-        if (SessionManager.getLoggedUser() == null) {
+        if (logic.getLoggedUser() == null) {
             LOGGER.info("Please log in first!");
             pressEnter();
             return;
+        }
+
+        label:
+        while(true){
+            LOGGER.info("\n[V] View tutor profile   [C] Continue to booking   [0] Cancel");
+            String in = ask("Choose:").trim().toUpperCase();
+            switch (in) {
+                case "0":
+                    return;
+                case "V":
+                    new TutorProfileGraphicControllerBW().show(selectedTutor.getAccountId());
+                    break;
+                case "C":
+                    break label;
+            }
         }
 
         LocalDate sessionDate = askDate("Enter the date for the session:");
@@ -79,33 +92,21 @@ public class BookingSessionGraphicControllerBW extends BaseCLIControllerBW {
         LocalTime endTime = askTime("Enter the end time:");
         String comment = ask("Comment (optional):");
 
-        TutoringSessionBean bean = new TutoringSessionBean();
-        bean.setTutorId(selectedTutor.getAccountId());
+        try {
 
-        // Cerco manualmente l'account Studente
-        String studentId = null;
-        for (AccountBean account : SessionManager.getLoggedUser().getAccounts()) {
-            if ("Student".equalsIgnoreCase(account.getRole())) {
-                studentId = account.getAccountId();
-                break;
-            }
+            logic.getStudentAccountId();
+
+            TutoringSessionBean bean = logic.buildBookingBean(
+                    selectedTutor,
+                    sessionDate, startTime, endTime,
+                    location, subject, comment);
+
+            logic.bookSession(bean);
+            LOGGER.info("Booking sent successfully! Please wait for the tutor's confirmation.");
+        } catch (IllegalArgumentException ex) {
+            LOGGER.warning("Booking error: " + ex.getMessage());
         }
 
-        if (studentId == null) {
-            throw new IllegalStateException("No student account found for the logged user.");
-        }
-
-        bean.setStudentId(studentId);
-        bean.setDate(sessionDate);
-        bean.setStartTime(startTime);
-        bean.setEndTime(endTime);
-        bean.setLocation(location);
-        bean.setSubject(subject);
-        bean.setComment(comment);
-
-        logic.bookSession(bean);
-
-        LOGGER.info("Booking sent successfully! Please wait for the tutor's confirmation.");
         pressEnter();
     }
 }

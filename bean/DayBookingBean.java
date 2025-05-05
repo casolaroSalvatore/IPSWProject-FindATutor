@@ -5,6 +5,7 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
@@ -45,6 +46,21 @@ public class DayBookingBean {
 
     public boolean missingTimes(){
         return getStartTime()==null || getEndTime()==null || getStartTime().isBlank() || getEndTime().isBlank();
+    }
+
+    public void checkSyntax() {
+        if (date.get() == null || date.get().isBefore(LocalDate.now()))
+            throw new IllegalArgumentException("Date must be today or later.");
+        if (missingTimes())
+            throw new IllegalArgumentException("Start/End time required.");
+        LocalTime s = getStartTimeParsed();
+        LocalTime e = getEndTimeParsed();
+        if (s == null || e == null || !s.isBefore(e))
+            throw new IllegalArgumentException("Start must be before End.");
+        if (Duration.between(s, e).toMinutes() < 60)
+            throw new IllegalArgumentException("Minimum slot 1 hour.");
+        if (s.isBefore(LocalTime.of(7,0)) || e.isAfter(LocalTime.of(22,0)))
+            throw new IllegalArgumentException("Time must be between 07:00 and 22:00.");
     }
 }
 

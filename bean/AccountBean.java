@@ -1,6 +1,7 @@
 package logic.bean;
 
 import java.time.LocalDate;
+import java.time.Period;
 
 public class AccountBean {
 
@@ -92,18 +93,32 @@ public class AccountBean {
 
     // Validazione sintattica e semantica incapsulata
     public void checkBasicSyntax() {
-        if (name == null || name.isBlank())
-            throw new IllegalArgumentException("Name is required.");
-        if (surname == null || surname.isBlank())
-            throw new IllegalArgumentException("Surname is required.");
-        if (birthday == null || birthday.isAfter(LocalDate.now()))
-            throw new IllegalArgumentException("Invalid birth date.");
+        if (name == null || !name.matches("[A-Za-zÀ-ÖØ-öø-ÿ' -]{2,30}"))
+            throw new IllegalArgumentException("Name must be alphabetic (2‑30 chars).");
+        if (surname == null || !surname.matches("[A-Za-zÀ-ÖØ-öø-ÿ' -]{2,30}"))
+            throw new IllegalArgumentException("Surname must be alphabetic (2‑30 chars).");
+        if (birthday == null || birthday.isAfter(LocalDate.now()) ||
+                Period.between(birthday, LocalDate.now()).getYears() < 13)
+            throw new IllegalArgumentException("Invalid birth date (min 13 years).");
+        if (role == null || role.isBlank())
+            throw new IllegalArgumentException("Role required.");
+        if (profileComment != null && profileComment.length() > 250)
+            throw new IllegalArgumentException("Comment max 250 characters.");
+        if (profilePicturePath != null &&
+                !profilePicturePath.matches(".*\\.(png|jpg|jpeg)$"))
+            throw new IllegalArgumentException("Profile picture must be PNG/JPG.");
     }
 
     public void checkPasswordSyntax() {
         if (password == null || password.isBlank())
             throw new IllegalArgumentException("Password is required.");
-        if (!password.equals(confirmPassword))
+        // ≥10 caratteri con almeno 1 maiuscola, 1 minuscola, 1 cifra, 1 simbolo; no spazi
+        if (!password.matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z\\d\\s]).{10,}$"))
+            throw new IllegalArgumentException(
+                    "Password ≥10 chars with upper, lower, digit & symbol – no spaces.");
+        if (password.contains(" "))
+            throw new IllegalArgumentException("Password cannot contain spaces.");
+        if (confirmPassword != null && !password.equals(confirmPassword) )
             throw new IllegalArgumentException("Password and confirmation do not match.");
     }
 
@@ -113,6 +128,8 @@ public class AccountBean {
         checkPasswordSyntax();
         if (institute == null || institute.isBlank())
             throw new IllegalArgumentException("Institute is required for students.");
+        if (!institute.matches("[A-Za-z0-9' .-]{2,50}"))
+            throw new IllegalArgumentException("Institute name is invalid.");
     }
 
     // TUTOR-specific checks
@@ -128,6 +145,10 @@ public class AccountBean {
             throw new IllegalArgumentException("Educational title is required.");
         if (hourlyRate <= 0)
             throw new IllegalArgumentException("Hourly rate must be positive.");
+        if (location == null || location.isBlank())
+            throw new IllegalArgumentException("Location is required for tutors.");
+        if (hourlyRate < 5 || hourlyRate > 200)
+            throw new IllegalArgumentException("Hourly rate must be between 5$ and 200$.");
     }
 }
 

@@ -1,27 +1,29 @@
 package logic.control.logiccontrol;
 
-import logic.bean.TutorBean;
-import logic.bean.TutoringSessionBean;
-import logic.bean.DayBookingBean;
+import logic.bean.*;
 import logic.model.dao.AccountDAO;
 import logic.model.dao.DaoFactory;
 import logic.model.dao.TutoringSessionDAO;
 import logic.model.domain.*;
+import logic.model.domain.state.TutoringSession;
+import logic.model.domain.state.TutoringSessionStatus;
 
 import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
 public class BookingTutoringSessionController {
 
-    private static final String STATUS_PENDING = "PENDING";
+    private static final TutoringSessionStatus STATUS_PENDING = TutoringSessionStatus.PENDING;
     private static final String ROLE_TUTOR     = "Tutor";
 
     // Ricerca del tutor a seconda dei filtri applicati
     public List<TutorBean> searchTutors(String subject,
                                     String location,
-                                    Availability userAv,
+                                    AvailabilityBean userAv,
                                     boolean inPerson, boolean online, boolean group,
                                     boolean rating4Plus, boolean firstLessonFree,
                                     String orderCriteria) {
@@ -71,6 +73,20 @@ public class BookingTutoringSessionController {
         b.setComment   (row.getComment());
         return b;
     }
+    public TutoringSessionBean buildBookingBean(
+            TutorBean tutor,
+            LocalDate date, LocalTime start, LocalTime end,
+            String location, String subject, String comment) {
+
+        // ri‑usa la logica esistente basata su DayBookingBean
+        DayBookingBean row = new DayBookingBean(date);
+        row.setStartTime(start.toString());
+        row.setEndTime(end.toString());
+        row.setComment(comment);
+
+        return buildBookingBean(tutor, row, getStudentAccountId(), location, subject);
+    }
+
 
     // >>> Mapping Tutor → TutorBean
     private TutorBean toTutorBean(Tutor t) {
@@ -111,8 +127,9 @@ public class BookingTutoringSessionController {
 
     public void bookSession(TutoringSessionBean bean) {
 
-        TutoringSession tutoringSession = new TutoringSession();
+        bean.checkSyntax();
 
+        TutoringSession tutoringSession = new TutoringSession();
         tutoringSession.setTutorId(bean.getTutorId());
         tutoringSession.setStudentId(bean.getStudentId());
 
@@ -134,10 +151,8 @@ public class BookingTutoringSessionController {
         tutoringSession.setLocation(bean.getLocation());
         tutoringSession.setSubject(bean.getSubject());
         tutoringSession.setComment(bean.getComment());
-        tutoringSession.setStatus(STATUS_PENDING);
-
-        // Alla prenotazione da parte dello studente, il tutor non ha ancora visto la richiesta
-        tutoringSession.setStatus(STATUS_PENDING);
+        // Evento FSM: passa allo stato PENDING
+        tutoringSession.book();
         tutoringSession.setTutorSeen(false);
         tutoringSession.setStudentSeen(true);
 
@@ -169,7 +184,7 @@ public class BookingTutoringSessionController {
         TutoringSessionDAO dao = DaoFactory.getInstance().getTutoringSessionDAO();
         TutoringSession tutoringSession = dao.load(sessionId);
         if (tutoringSession != null) {
-            tutoringSession.setStatus("ACCEPTED");
+            tutoringSession.tutorAccept();
             dao.store(tutoringSession); // store per aggiornare
         }
     }
@@ -178,13 +193,13 @@ public class BookingTutoringSessionController {
         TutoringSessionDAO dao = DaoFactory.getInstance().getTutoringSessionDAO();
         TutoringSession tutoringSession = dao.load(sessionId);
         if (tutoringSession != null) {
-            tutoringSession.setStatus("REFUSED");
+            tutoringSession.tutorRefuse();
             dao.store(tutoringSession); // store per aggiornare
         }
     }
 
     private boolean matchesBasicFilters(Tutor t, String subject,
-                                        String location, Availability reqAv) {
+                                        String location, AvailabilityBean reqAv) {
         boolean matchLoc  = location == null || location.isBlank()
                 || location.equalsIgnoreCase(t.getLocation());
 
@@ -194,7 +209,7 @@ public class BookingTutoringSessionController {
         return matchLoc && matchSubj && checkTutorAvailability(t, reqAv);
     }
 
-    private boolean checkTutorAvailability(Tutor tutor, Availability req) {
+    private boolean checkTutorAvailability(Tutor tutor, AvailabilityBean req) {
         if (tutor.getAvailability() == null || req == null) return true;
 
         Availability av = tutor.getAvailability();
@@ -205,8 +220,8 @@ public class BookingTutoringSessionController {
         if (req.getEndDate()   != null && av.getEndDate()   != null &&
                 av.getEndDate().isBefore(req.getEndDate()))     return false;
 
-        /* giorni   — basta 1 giorno in comune se l’utente ne ha scelti */
-        List<DayOfWeek> days = req.getDaysOfWeek();
+        /* Giorni — basta 1 giorno in comune se l’utente ne ha scelti */
+        List<DayOfWeek> days = req.getDays();
         return (days == null || days.isEmpty()) ||
                 days.stream().anyMatch(av.getDaysOfWeek()::contains);
     }
@@ -230,5 +245,19 @@ public class BookingTutoringSessionController {
             return tutor.getAvailability();
         }
         return null;
+    }
+
+    public String getStudentAccountId() {
+        return SessionManager.getLoggedUser()
+                .getAccounts().stream()
+                .filter(a -> "Student".equalsIgnoreCase(a.getRole()))
+                .map(AccountBean::getAccountId)
+                .findFirst()
+                .orElseThrow(() ->
+                        new IllegalStateException("Logged user has no Student account"));
+    }
+
+    public UserBean getLoggedUser() {
+        return SessionManager.getLoggedUser();
     }
 }

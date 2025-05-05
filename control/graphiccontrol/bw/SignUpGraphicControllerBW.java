@@ -4,7 +4,6 @@ import logic.bean.AvailabilityBean;
 import logic.bean.AccountBean;
 import logic.bean.UserBean;
 import logic.control.logiccontrol.SignUpController;
-
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -40,7 +39,6 @@ public class SignUpGraphicControllerBW extends BaseCLIControllerBW {
         UserBean userBean = new UserBean();
         userBean.setUsername(username);
         userBean.setEmail(email);
-        userBean.setPassword(password);
 
         AccountBean accountBean = new AccountBean();
         accountBean.setRole(role);
@@ -76,9 +74,26 @@ public class SignUpGraphicControllerBW extends BaseCLIControllerBW {
             catch (IllegalArgumentException ex) { return; }
 
             accountBean.setAvailabilityBean(availabilityBean);
-
         }
 
+        accountBean.setPassword(password);
+        accountBean.setConfirmPassword(password);
+
+        try {
+            userBean.checkEmailSyntax();
+            userBean.checkUsernameSyntax();
+            accountBean.checkBasicSyntax();
+            accountBean.checkPasswordSyntax();
+            if ("Student".equalsIgnoreCase(role)) {
+                accountBean.checkStudentSyntax();
+            } else {
+                accountBean.checkTutorSyntax();
+            }
+        } catch (IllegalArgumentException ex) {
+            LOGGER.warning(ex.getMessage());
+            pressEnter();
+            return;
+        }
         // Aggiungo l'account al UserBean
         userBean.addAccount(accountBean);
 

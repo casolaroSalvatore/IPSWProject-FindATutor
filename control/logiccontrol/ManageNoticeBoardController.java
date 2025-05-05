@@ -2,12 +2,14 @@ package logic.control.logiccontrol;
 
 import logic.bean.AccountBean;
 import logic.bean.TutoringSessionBean;
+import logic.bean.UserBean;
 import logic.model.dao.AccountDAO;
 import logic.model.dao.DaoFactory;
 import logic.model.dao.TutoringSessionDAO;
 import logic.model.domain.Account;
 import logic.model.domain.SessionManager;
-import logic.model.domain.TutoringSession;
+import logic.model.domain.state.TutoringSession;
+import logic.model.domain.state.TutoringSessionStatus;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -22,6 +24,7 @@ public class ManageNoticeBoardController {
 
     private final TutoringSessionDAO tutoringSessionDAO = DaoFactory.getInstance().getTutoringSessionDAO();
     private final AccountDAO accountDAO = DaoFactory.getInstance().getAccountDAO();
+    private final BookingTutoringSessionController bookingCtrl = new BookingTutoringSessionController();
 
     /* Conta quante sessioni "nuove" devono essere viste o approvate dall'utente specificato.
        Esempio: sessioni con status PENDING, MOD_REQUESTED, CANCEL_REQUESTED
@@ -54,10 +57,10 @@ public class ManageNoticeBoardController {
             return false;
         }
 
-        String st = s.getStatus();
-        return  "PENDING".equalsIgnoreCase(st)
-                ||  STATUS_MOD_REQUEST.equalsIgnoreCase(st)
-                ||  STATUS_CANCEL_REQUEST.equalsIgnoreCase(st);
+        TutoringSessionStatus st = s.getStatus();
+        return st == TutoringSessionStatus.PENDING
+                || st == TutoringSessionStatus.MOD_REQUESTED
+                || st == TutoringSessionStatus.CANCEL_REQUESTED;
     }
 
     // Ritorna “Nome Cognome (età)” della controparte
@@ -72,8 +75,7 @@ public class ManageNoticeBoardController {
         List<TutoringSessionBean> sessions = loadSessionsForLoggedUser();
 
         for (TutoringSessionBean s : sessions) {
-            if (STATUS_ACCEPTED.equalsIgnoreCase(s.getStatus())
-                    && date.equals(s.getDate())) {
+            if (s.getStatus() == TutoringSessionStatus.ACCEPTED && date.equals(s.getDate())) {
                 return true;
             }
         }
@@ -87,9 +89,9 @@ public class ManageNoticeBoardController {
         for (TutoringSessionBean s : sessions) {
             if (s.getDate() != null
                     && s.getDate().equals(date)
-                    && ("PENDING".equalsIgnoreCase(s.getStatus())
-                    || STATUS_MOD_REQUEST.equalsIgnoreCase(s.getStatus())
-                    || STATUS_CANCEL_REQUEST.equalsIgnoreCase(s.getStatus()))) {
+                    && (s.getStatus() == TutoringSessionStatus.PENDING
+                    || s.getStatus() == TutoringSessionStatus.MOD_REQUESTED
+                    || s.getStatus() == TutoringSessionStatus.CANCEL_REQUESTED)) {
                 return true;
             }
         }
@@ -152,15 +154,13 @@ public class ManageNoticeBoardController {
                                     LocalTime newStart,
                                     LocalTime newEnd,
                                     String reason){
+
         TutoringSession s = loadEntity(b);
         if(s==null) return;
 
-        s.setStatus(STATUS_MOD_REQUEST);
-        s.setProposedDate(newDate);
-        s.setProposedStartTime(newStart);
-        s.setProposedEndTime(newEnd);
-        s.setComment(reason);
-        flagUnseenAndWho(s);
+        String me = SessionManager.getLoggedUserAccountId();
+        s.askModification(newDate, newStart, newEnd, reason, me);
+        flagUnseen(s);
 
         tutoringSessionDAO.store(s);
     }
@@ -171,13 +171,7 @@ public class ManageNoticeBoardController {
         TutoringSession s = loadEntity(b);
         if(s==null) return;
 
-        s.setDate(s.getProposedDate());
-        s.setStartTime(s.getProposedStartTime());
-        s.setEndTime(s.getProposedEndTime());
-        s.setProposedDate(null);
-        s.setProposedStartTime(null);
-        s.setProposedEndTime(null);
-        s.setStatus(STATUS_ACCEPTED);
+        s.respondModification(true);
         flagUnseen(s);
         tutoringSessionDAO.store(s);
     }
@@ -187,10 +181,7 @@ public class ManageNoticeBoardController {
         TutoringSession s = loadEntity(b);
         if(s==null) return;
 
-        s.setStatus(STATUS_ACCEPTED);
-        s.setProposedDate(null);
-        s.setProposedStartTime(null);
-        s.setProposedEndTime(null);
+        s.respondModification(false);  // ⇢ FSM
         flagUnseen(s);
 
         tutoringSessionDAO.store(s);
@@ -202,8 +193,8 @@ public class ManageNoticeBoardController {
         TutoringSession s = loadEntity(b);
         if(s==null) return;
 
-        s.setStatus(STATUS_CANCEL_REQUEST);
-        s.setComment(reason);
+        String me = SessionManager.getLoggedUserAccountId();
+        s.askCancellation(reason, me);
         flagUnseenAndWho(s);
         tutoringSessionDAO.store(s);
     }
@@ -224,7 +215,7 @@ public class ManageNoticeBoardController {
         TutoringSession s = loadEntity(b);
         if(s==null) return;
 
-        s.setStatus("CANCELLED");
+        s.respondCancellation(true);
         flagUnseen(s);
         tutoringSessionDAO.store(s);     // In demo teniamo la traccia; se vuoi eliminarla: tsDao.delete(s.getSessionId());
     }
@@ -235,7 +226,7 @@ public class ManageNoticeBoardController {
         TutoringSession s = loadEntity(b);
         if(s==null) return;
 
-        s.setStatus(STATUS_ACCEPTED);
+        s.respondCancellation(false);  // ⇢ FSM
         flagUnseen(s);
         tutoringSessionDAO.store(s);
     }
@@ -309,6 +300,32 @@ public class ManageNoticeBoardController {
 
         s.setTutorSeen(iAmTutor);
         s.setStudentSeen(!iAmTutor);
+    }
+
+    public String getLoggedRole() {
+        return SessionManager.getLoggedUser().getAccounts().stream()
+                .map(AccountBean::getRole)
+                .filter(r -> "Tutor".equalsIgnoreCase(r) || "Student".equalsIgnoreCase(r))
+                .findFirst().orElse(null);
+    }
+    public String getLoggedAccountId() {
+        return SessionManager.getLoggedUser().getAccounts().stream()
+                .filter(a -> "Tutor".equalsIgnoreCase(a.getRole()) || "Student".equalsIgnoreCase(a.getRole()))
+                .map(AccountBean::getAccountId)
+                .findFirst().orElse(null);
+    }
+
+    // Wrapper che delegano al BookingTutoringSessionController
+    public void acceptSession   (String id){ bookingCtrl.acceptSession(id);   }
+    public void refuseSession   (String id){ bookingCtrl.refuseSession(id);   }
+
+    // Interazioni dirette con il SessionManager, in maniera tale che il controller grafico non lo conosca
+    public UserBean getLoggedUser() {
+        return SessionManager.getLoggedUser();
+    }
+
+    public void logout() {
+        SessionManager.logout();
     }
 }
 

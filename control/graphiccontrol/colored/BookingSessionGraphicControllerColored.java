@@ -11,13 +11,8 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.HBox;
 import javafx.stage.Screen;
-import logic.bean.AccountBean;
-import logic.bean.DayBookingBean;
-import logic.bean.TutorBean;
-import logic.bean.TutoringSessionBean;
+import logic.bean.*;
 import logic.control.logiccontrol.BookingTutoringSessionController;
-import logic.model.dao.AccountDAO;
-import logic.model.dao.DaoFactory;
 import logic.model.domain.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -29,12 +24,12 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
+import logic.model.domain.state.TutoringSessionStatus;
 import java.io.IOException;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -183,7 +178,7 @@ public class BookingSessionGraphicControllerColored {
     // Variabili statiche per i parametri di ricerca (Booking scene)
     private static String chosenLocation;
     private static String chosenSubject;
-    private static Availability chosenAvailability;
+    private static AvailabilityBean chosenAvailability;
 
     private ObservableList<DayBookingBean> dayBookings = FXCollections.observableArrayList();
 
@@ -199,6 +194,9 @@ public class BookingSessionGraphicControllerColored {
         if (tutorTable != null) {
             // Scena "BookingTutoringSession.fxml"
             initBookingScene();
+            // Ci consente di impostare la grandezza delle colonne in base alla grandezza dello schermo
+            tutorTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+            dayTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         }
         if (sessionTable != null) {
             // Scena "ManageNoticeBoard.fxml"
@@ -207,7 +205,7 @@ public class BookingSessionGraphicControllerColored {
     }
 
     // Metodo invocato dalla Home, per salvare i parametri di ricerca
-    public static void setSearchParameters(String location, String subject, Availability availability) {
+    public static void setSearchParameters(String location, String subject, AvailabilityBean availability) {
         chosenLocation  = location;
         chosenSubject   = subject;
         chosenAvailability = availability;
@@ -439,7 +437,7 @@ public class BookingSessionGraphicControllerColored {
                 chosenAvailability.getEndDate()   : LocalDate.now();
 
         List<DayOfWeek> userDays = (chosenAvailability!=null)?
-                chosenAvailability.getDaysOfWeek() : List.of();
+                chosenAvailability.getDays() : List.of();
 
         for(LocalDate d = start; !d.isAfter(end); d=d.plusDays(1)){
             boolean okUser = userDays.isEmpty() || userDays.contains(d.getDayOfWeek());
@@ -502,8 +500,7 @@ public class BookingSessionGraphicControllerColored {
 
         dateColumn.setCellValueFactory(cd -> {
             TutoringSessionBean s = cd.getValue();
-            if ("MOD_REQUESTED".equalsIgnoreCase(s.getStatus())
-                    && s.getProposedDate() != null) {
+            if (s.getStatus() == TutoringSessionStatus.MOD_REQUESTED && s.getProposedDate() != null) {
                 return new SimpleStringProperty(s.getProposedDate().toString());
             } else if (s.getDate() != null) {
                 return new SimpleStringProperty(s.getDate().toString());
@@ -514,9 +511,8 @@ public class BookingSessionGraphicControllerColored {
 
         timeColumn.setCellValueFactory(cd -> {
             TutoringSessionBean s = cd.getValue();
-            if ("MOD_REQUESTED".equalsIgnoreCase(s.getStatus())
-                    && s.getProposedStartTime() != null
-                    && s.getProposedEndTime() != null) {
+            if (s.getStatus() == TutoringSessionStatus.MOD_REQUESTED
+                    && s.getProposedStartTime() != null && s.getProposedEndTime() != null) {
                 return new SimpleStringProperty(
                         s.getProposedStartTime() + " - " + s.getProposedEndTime()
                 );
@@ -599,7 +595,7 @@ public class BookingSessionGraphicControllerColored {
                         if (empty) {
                             setGraphic(null);
                         } else {
-                            if ("PENDING".equalsIgnoreCase(getTableView().getItems().get(getIndex()).getStatus())) {
+                            if (getTableView().getItems().get(getIndex()).getStatus() == TutoringSessionStatus.PENDING) {
                                 setGraphic(new HBox(5, acceptBtn, refuseBtn));
                             } else {
                                 setGraphic(null);
@@ -660,7 +656,7 @@ public class BookingSessionGraphicControllerColored {
         return modCancelActionColumn;
     }
 
-    // Metodo getter, così che il ManageNoticeBoardGraphicControllerColored
+    /* Metodo getter, così che il ManageNoticeBoardGraphicControllerColored
     // possa ottenere "sessionTable"
     public TableView<TutoringSessionBean> getSessionTable() {
         return sessionTable;
@@ -700,7 +696,7 @@ public class BookingSessionGraphicControllerColored {
         /* System.out.println("Trovati: " + allTutorAccounts.size() + " tutor accounts.");
         for (Account a : allTutorAccounts) {
             System.out.println(" - " + a.getEmail() + " / " + a.getRole());
-        } */
+        }
         return FXCollections.observableArrayList(filtered);
     }
 
@@ -738,7 +734,7 @@ public class BookingSessionGraphicControllerColored {
 
         // Tutte le verifiche superate
         return true;
-    }
+    } */
 
 
     @FXML

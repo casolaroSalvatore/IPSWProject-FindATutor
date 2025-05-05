@@ -1,13 +1,8 @@
 package logic.control.graphiccontrol.bw;
 
+import logic.bean.AccountBean;
 import logic.bean.UserBean;
 import logic.control.logiccontrol.LoginController;
-import logic.bean.SignUpBean;
-import logic.model.dao.DaoFactory;
-import logic.model.dao.UserDAO;
-import logic.model.domain.Account;
-import logic.model.domain.User;
-import logic.model.domain.SessionManager;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -27,6 +22,7 @@ public class LoginGraphicControllerBW extends BaseCLIControllerBW {
     private final LoginController logic = new LoginController();
 
     public void start() {
+
         LOGGER.info("\n=== LOGIN ===");
         String email    = ask("Email:");
         String password = ask("Password:");
@@ -34,19 +30,27 @@ public class LoginGraphicControllerBW extends BaseCLIControllerBW {
 
         UserBean userBean = new UserBean();
         userBean.setEmail(email);
-        userBean.setPassword(password);
-        userBean.setSelectedRole(role);
 
-        // Faccio il login
-        UserBean loggedUser = logic.login(userBean);
-
-        if (logic.login(userBean) != null) {
-            LOGGER.warning("Incorrect credentials or role mismatch.");
+        AccountBean acc = new AccountBean();
+        acc.setRole(role);
+        acc.setPassword(password);
+        try {
+            userBean.checkEmailSyntax();
+            acc.checkPasswordSyntax();
+        } catch (IllegalArgumentException ex) {
+            LOGGER.warning(ex.getMessage());
             pressEnter();
             return;
         }
+        userBean.addAccount(acc);
 
-        SessionManager.setLoggedUser(loggedUser);
+        UserBean loggedUser = logic.login(userBean);
+
+         if (loggedUser == null) {
+            LOGGER.warning("Incorrect credentials or role mismatch.");
+            pressEnter();
+            return;
+         }
 
         LOGGER.info("Login successful!");
         pressEnter();

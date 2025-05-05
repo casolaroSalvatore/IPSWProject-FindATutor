@@ -1,14 +1,14 @@
 package logic.control.graphiccontrol.bw;
 
-import logic.model.dao.DaoFactory;
-import logic.model.domain.Student;
-import logic.model.domain.Account;
+import logic.bean.AccountBean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import logic.control.logiccontrol.StudentProfileController;
 
 public class StudentProfileGraphicControllerBW extends BaseCLIControllerBW {
 
     private static final Logger LOGGER = Logger.getLogger(StudentProfileGraphicControllerBW.class.getName());
+    private StudentProfileController studentProfileController = new StudentProfileController();
 
     static {
         SystemOutConsoleHandler handler = new SystemOutConsoleHandler();
@@ -20,18 +20,21 @@ public class StudentProfileGraphicControllerBW extends BaseCLIControllerBW {
     }
 
     public void show(String studentAccountId) {
-        Account acc = DaoFactory.getInstance().getAccountDAO().load(studentAccountId);
-        if (!(acc instanceof Student s)) {
-            LOGGER.warning("Not a student account!");
-            return;
+        AccountBean b;
+        try {
+            b = studentProfileController.loadStudentBean(studentAccountId);
+        } catch (IllegalArgumentException ex){
+            LOGGER.warning(ex.getMessage());
+            pressEnter(); return;
         }
 
-        String studentInfo = String.format(
+        String info = String.format(
                 "%nStudent: %s %s – Institute: %s – Age: %d",
-                s.getName(), s.getSurname(), s.getInstitute(), s.getAge()
+                b.getName(), b.getSurname(), b.getInstitute(),
+                (b.getBirthday()==null?0:
+                        java.time.Period.between(b.getBirthday(),java.time.LocalDate.now()).getYears())
         );
-        LOGGER.info(studentInfo);
-
+        LOGGER.info(info);
         pressEnter();
     }
 }

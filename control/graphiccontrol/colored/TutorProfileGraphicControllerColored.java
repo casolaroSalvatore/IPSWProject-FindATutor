@@ -6,17 +6,10 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.stage.Stage;
-import logic.model.dao.AccountDAO;
-import logic.model.dao.DaoFactory;
-import logic.model.dao.SharedReviewDAO;
-import logic.model.domain.Account;
-import logic.model.domain.ReviewStatus;
-import logic.model.domain.SharedReview;
-import logic.model.domain.Tutor;
-
+import logic.bean.SharedReviewBean;
+import logic.bean.TutorBean;
+import logic.control.logiccontrol.TutorProfileController;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 
 public class TutorProfileGraphicControllerColored {
@@ -35,107 +28,53 @@ public class TutorProfileGraphicControllerColored {
     private Label profileCommentLabel;
 
     @FXML
-    private TableView<SharedReview> reviewsTable;
+    private TableView<SharedReviewBean> reviewsTable;
     @FXML
-    private TableColumn<SharedReview, String> studentNameColumn;
+    private TableColumn<SharedReviewBean, String> studentNameColumn;
     @FXML
-    private TableColumn<SharedReview, String> starsColumn;
+    private TableColumn<SharedReviewBean, String> starsColumn;
     @FXML
-    private TableColumn<SharedReview, String> reviewTitleColumn;
+    private TableColumn<SharedReviewBean, String> reviewTitleColumn;
     @FXML
-    private TableColumn<SharedReview, String> reviewCommentColumn;
+    private TableColumn<SharedReviewBean, String> reviewCommentColumn;
 
-    private String tutorAccountId; // ad es. "alex@example.com_Tutor"
+    private TutorProfileController logic = new TutorProfileController();
 
     public void setTutorData(String tutorAccountId) {
-        this.tutorAccountId = tutorAccountId;
-        loadTutorInfo();
-        loadTutorReviews();
-    }
 
-    private void loadTutorInfo() {
-        AccountDAO accountDAO = DaoFactory.getInstance().getAccountDAO();
-        Account acc = accountDAO.load(tutorAccountId);
-        if (!(acc instanceof Tutor tutor)) {
-            // Errore, l’account non è un tutor
-            nameLabel.setText("Error: not a tutor account");
-            return;
-        }
+        /* 1. Bean con i dati anagrafici */
+        TutorBean t = logic.loadTutorBean(tutorAccountId);
 
-        // Mostriamo i campi
-        String fullName = tutor.getName() + " " + tutor.getSurname();
-        nameLabel.setText("Tutor: " + fullName);
+        nameLabel    .setText("Tutor: " + t.getName() + " " + t.getSurname());
+        titleLabel   .setText("Educational Title: " + t.getEducationalTitle());
+        locationLabel.setText("Location: " + t.getLocation());
+        ratingLabel  .setText("Rating: " + t.getRating());
 
-        titleLabel.setText("Educational Title: " + tutor.getEducationalTitle());
-        locationLabel.setText("Location: " + tutor.getLocation());
-        ratingLabel.setText("Rating: " + tutor.getRating());
-
-        // Carichiamo l’immagine di profilo
-        if (tutor.getProfilePicturePath() != null && !tutor.getProfilePicturePath().isEmpty()) {
-            File file = new File(tutor.getProfilePicturePath());
-            if (file.exists()) {
-                Image img = new Image(file.toURI().toString());
-                profilePictureView.setImage(img);
-            } else {
-                profilePictureView.setImage(null);
-            }
+        if (t.getProfilePicturePath() != null && !t.getProfilePicturePath().isBlank()
+                && new File(t.getProfilePicturePath()).exists()) {
+            profilePictureView.setImage(
+                    new Image(new File(t.getProfilePicturePath()).toURI().toString()));
         } else {
             profilePictureView.setImage(null);
         }
+        profileCommentLabel.setText(
+                t.getProfileComment() == null ? "" : t.getProfileComment());
 
-        // Commento profilo
-        if (tutor.getProfileComment() != null && !tutor.getProfileComment().isEmpty()) {
-            profileCommentLabel.setText(tutor.getProfileComment());
-        } else {
-            profileCommentLabel.setText("");
-        }
-    }
+        /* 2.Recensioni già mappate in Bean*/
+        List<SharedReviewBean> completed = logic.loadCompletedReviews(tutorAccountId);
 
-    private void loadTutorReviews() {
-        // Carichiamo tutte le SharedReview per questo tutor
-        SharedReviewDAO reviewDAO = DaoFactory.getInstance().getSharedReviewDAO();
-        List<SharedReview> all = reviewDAO.loadForTutor(tutorAccountId);
+        studentNameColumn.setCellValueFactory(cd ->
+                new SimpleStringProperty(cd.getValue().getCounterpartyInfo()));
 
-        // Filtra per status = COMPLETE
-        List<SharedReview> completed = new ArrayList<>();
-        for (SharedReview sr : all) {
-            if (sr.getStatus() == ReviewStatus.COMPLETE) {
-                completed.add(sr);
-            }
-        }
+        starsColumn.setCellValueFactory(cd ->
+                new SimpleStringProperty(String.valueOf(cd.getValue().getStudentStars())));
 
-        // Configuriamo le colonne (se non già configurate in initialize())
-        studentNameColumn.setCellValueFactory(cd -> {
-            SharedReview sr = cd.getValue();
-            // sr.getStudentId() => carichiamo l’account per stampare Nome Cognome
-            Account acc = DaoFactory.getInstance().getAccountDAO().load(sr.getStudentId());
-            if (acc != null) {
-                return new SimpleStringProperty(acc.getName() + " " + acc.getSurname());
-            }
-            return new SimpleStringProperty(sr.getStudentId());
-        });
+        reviewTitleColumn.setCellValueFactory(cd ->
+                new SimpleStringProperty(cd.getValue().getStudentTitle()));
 
-        starsColumn.setCellValueFactory(cd -> {
-            SharedReview sr = cd.getValue();
-            return new SimpleStringProperty(String.valueOf(sr.getStudentStars()));
-        });
-
-        reviewTitleColumn.setCellValueFactory(cd -> {
-            SharedReview sr = cd.getValue();
-            return new SimpleStringProperty(sr.getStudentTitle());
-        });
-
-        reviewCommentColumn.setCellValueFactory(cd -> {
-            SharedReview sr = cd.getValue();
-            return new SimpleStringProperty(sr.getStudentComment());
-        });
+        reviewCommentColumn.setCellValueFactory(cd ->
+                new SimpleStringProperty(cd.getValue().getStudentComment()));
 
         reviewsTable.setItems(FXCollections.observableArrayList(completed));
-    }
-
-    @FXML
-    private void handleClose() {
-        Stage stage = (Stage) reviewsTable.getScene().getWindow();
-        stage.close();
     }
 }

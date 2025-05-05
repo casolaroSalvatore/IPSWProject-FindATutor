@@ -22,9 +22,15 @@ public class SharedReviewBean {
     private String tutorComment;
     private boolean tutorSubmitted;
 
+    private static final int TITLE_MAX   = 60;
+    private static final int COMMENT_MAX = 300;
+
     private ReviewStatus status;
     private SenderRole senderRole;
     private String counterpartyInfo;
+
+    // Enum indicante il ruolo del sender della recensione
+    public enum SenderRole { STUDENT, TUTOR }
 
     public SharedReviewBean() { }
 
@@ -43,30 +49,29 @@ public class SharedReviewBean {
         this.counterpartyInfo = counterpartInfo;
     }
 
+    public SharedReviewBean(SharedReview sr) {
+        this(sr, null);
+    }
+
     // Validazione della forma dei dati
     public void checkSyntax() {
         if (senderRole == null) {
             throw new IllegalArgumentException("SenderRole must be specified.");
         }
-
         if (senderRole == SenderRole.STUDENT) {
             if (studentStars < 1 || studentStars > 5)
-                throw new IllegalArgumentException("Stars must be between 1 and 5.");
-            if (studentTitle == null || studentTitle.isBlank() || studentTitle.length() > 60)
-                throw new IllegalArgumentException("Student Title required (≤60 chars)");
-            if (studentComment == null || studentComment.isBlank())
-                throw new IllegalArgumentException("Student Comment cannot be empty");
+                throw new IllegalArgumentException("Stars must be 1‑5.");
+            if (studentTitle == null || studentTitle.isBlank() || studentTitle.length() > TITLE_MAX)
+                throw new IllegalArgumentException("Student title ≤" + TITLE_MAX + " chars.");
+            if (studentComment == null || studentComment.isBlank() || studentComment.length() > COMMENT_MAX)
+                throw new IllegalArgumentException("Student comment 1‑" + COMMENT_MAX + " chars.");
         } else if (senderRole == SenderRole.TUTOR) {
-            if (tutorTitle == null || tutorTitle.isBlank() || tutorTitle.length() > 60)
-                throw new IllegalArgumentException("Tutor Title required (≤60 chars)");
-            if (tutorComment == null || tutorComment.isBlank())
-                throw new IllegalArgumentException("Tutor Comment cannot be empty");
+            if (tutorTitle == null || tutorTitle.isBlank() || tutorTitle.length() > TITLE_MAX)
+                throw new IllegalArgumentException("Tutor title ≤" + TITLE_MAX + " chars.");
+            if (tutorComment == null || tutorComment.isBlank() || tutorComment.length() > COMMENT_MAX)
+                throw new IllegalArgumentException("Tutor comment 1‑" + COMMENT_MAX + " chars.");
         }
     }
-
-
-    // Enum indicante il ruolo del sender della recensione
-    public enum SenderRole { STUDENT, TUTOR }
 
     public String getReviewId() {
         return reviewId;

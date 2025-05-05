@@ -1,5 +1,7 @@
 package logic.bean;
 
+import logic.model.domain.state.TutoringSessionStatus;
+
 import java.time.LocalDate;
 import java.time.LocalTime;
 
@@ -14,7 +16,9 @@ public class TutoringSessionBean {
     private String location;
     private String subject;
     private String comment;
-    private String status;
+    private String modificationReason;
+    private String cancellationReason;
+    private TutoringSessionStatus status;
 
     private LocalDate proposedDate;
     private LocalTime proposedStartTime;
@@ -52,8 +56,8 @@ public class TutoringSessionBean {
     public String getComment() { return comment; }
     public void setComment(String comment) { this.comment = comment; }
 
-    public String getStatus()               { return status;   }
-    public void setStatus(String status)       { this.status = status;      }
+    public TutoringSessionStatus getStatus() { return status; }
+    public void setStatus (TutoringSessionStatus status) { this.status = status; }
 
     public LocalDate getProposedDate() { return proposedDate; }
     public void setProposedDate(LocalDate proposedDate) { this.proposedDate = proposedDate; }
@@ -74,11 +78,28 @@ public class TutoringSessionBean {
     public void checkSyntax() {
         if (tutorId   == null || tutorId.isBlank())   throw new IllegalArgumentException("TutorId empty");
         if (studentId == null || studentId.isBlank()) throw new IllegalArgumentException("StudentId empty");
-        if (date == null)                             throw new IllegalArgumentException("Date required");
+        if (date == null || date.isBefore(LocalDate.now())) throw new IllegalArgumentException("Date must be today or later");
         if (startTime == null || endTime == null)     throw new IllegalArgumentException("Times required");
         if (!startTime.isBefore(endTime))             throw new IllegalArgumentException("Start ≥ End");
         if (location == null || location.isBlank())   throw new IllegalArgumentException("Location required");
         if (subject  == null || subject.isBlank())    throw new IllegalArgumentException("Subject required");
+        if (proposedStartTime != null && proposedEndTime != null && !proposedStartTime.isBefore(proposedEndTime))
+            throw new IllegalArgumentException("Proposed start ≥ end");
+        if (comment != null && comment.length() > 300)
+            throw new IllegalArgumentException("Comment ≤ 300 chars");
+        if (modificationReason != null && modificationReason.length() > 300)
+            throw new IllegalArgumentException("Modification reason ≤ 300 chars");
+        if (cancellationReason != null && cancellationReason.length() > 300)
+            throw new IllegalArgumentException("Cancellation reason ≤ 300 chars");
+    }
+
+    public void checkProposedTimes() {
+        if (proposedDate == null || proposedDate.isBefore(LocalDate.now()))
+            throw new IllegalArgumentException("Proposed date must be today or later");
+        if (proposedStartTime == null || proposedEndTime == null)
+            throw new IllegalArgumentException("Both proposed times required");
+        if (!proposedStartTime.isBefore(proposedEndTime))
+            throw new IllegalArgumentException("Proposed start ≥ end");
     }
 
 }

@@ -3,9 +3,9 @@ package logic.control.graphiccontrol.colored;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.stage.Screen;
+import logic.bean.AccountBean;
 import logic.bean.UserBean;
 import logic.control.logiccontrol.LoginController;
-import logic.model.domain.SessionManager;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -59,11 +59,6 @@ public class LoginGraphicControllerColored {
         String email = emailField.getText();
         String password = passwordField.getText();
 
-        if (email.isEmpty() || password.isEmpty()) {
-            showAlert("Error", "Please enter email and password.");
-            return;
-        }
-
         // Controlliamo quale ruolo è stato selezionato dall'utente
         RadioButton selectedButton = (RadioButton) roleToggleGroup.getSelectedToggle();
         if (selectedButton == null) {
@@ -76,25 +71,29 @@ public class LoginGraphicControllerColored {
         // Creazione del Bean e chiamata al controller logico
         UserBean userBean = new UserBean();
         userBean.setEmail(email);
-        userBean.setPassword(password);
-        userBean.setSelectedRole(selectedRole);
 
-        // Controllo sintattico
+        AccountBean accountBean = new AccountBean();
+        accountBean.setRole(selectedRole);
+        accountBean.setPassword(password);
+        userBean.addAccount(accountBean);
+
         try {
-            userBean.checkLoginSyntax();
+            userBean.checkEmailSyntax();
+            accountBean.checkPasswordSyntax();
+        } catch (IllegalArgumentException ex) {
+            showAlert("Error", ex.getMessage());
+            return;
         }
-
-        catch (IllegalArgumentException ex) { showAlert("Error", ex.getMessage()); return; }
 
         UserBean loggedProfile = loginController.login(userBean);
 
         if (loggedProfile != null) {
             showAlert("Success", "Logged in as " + selectedRole);
 
-            // Salva il nome dell'utente nella Home
-            SessionManager.setLoggedUser(loggedProfile);
+            /* Salva il nome dell'utente nella Home
+            SessionManager.setLoggedUser(loggedProfile); */
 
-            showAlert("Success", "Redirecting to the " + userBean.getSelectedRole() + " dashboard...");
+            showAlert("Success", "Redirecting to the " + accountBean.getRole() + " dashboard...");
             goToHome(event);
 
         } else {

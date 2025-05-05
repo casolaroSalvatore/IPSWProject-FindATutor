@@ -13,128 +13,117 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.shape.Rectangle?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="864.0" prefWidth="1536.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="logic.control.graphiccontrol.colored.SignUpGraphicControllerColored">
+<AnchorPane xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="logic.control.graphiccontrol.colored.SignUpGraphicControllerColored">
 
-       <!-- 1) Barra blu in alto -->
-    <Rectangle arcHeight="5" arcWidth="5" fill="#0e3aa1" height="60" stroke="BLACK" strokeType="INSIDE" strokeWidth="0" width="1600.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="-518.0" AnchorPane.topAnchor="0" />
+    <!-- 1) Barra blu in alto, full‑width -->
+    <Pane prefHeight="60.0" style="-fx-background-color:#0e3aa1;" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
 
-    <!-- 2) Logo “FindATutor” -->
-    <Label text="FindATutor" textFill="WHITE" AnchorPane.leftAnchor="14" AnchorPane.topAnchor="14">
+    <!-- 2) Logo “FindATutor”: resta a 14px dal bordo sinistro -->
+    <Label prefHeight="60.0" prefWidth="96.0" text="FindATutor" textFill="WHITE" AnchorPane.leftAnchor="14.0" AnchorPane.topAnchor="0.0">
         <font><Font name="System Bold" size="18" /></font>
     </Label>
 
-    <!-- 3) HBox con tre pulsanti, centrato orizzontalmente -->
-    <HBox alignment="CENTER" prefHeight="47.0" prefWidth="1536.0" spacing="20" style="-fx-border-width:2; -fx-background-radius:8; -fx-border-radius:8; -fx-padding:6;" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="70.0">
-        <Button mnemonicParsing="false" onAction="#goToHome" prefHeight="34" prefWidth="276" text="Return to Home">
-            <graphic>
-                <ImageView fitHeight="26" fitWidth="26"><Image url="@../images/home.png" /></ImageView>
-            </graphic>
+    <!-- 3) HBox con i tre pulsanti: già full‑width, basta ancorarlo -->
+    <HBox alignment="CENTER" layoutX="-4.0" layoutY="83.0" prefHeight="34.0" prefWidth="1030.0" spacing="20" AnchorPane.leftAnchor="-4.0" AnchorPane.rightAnchor="-1.599999999999909" AnchorPane.topAnchor="83.0">
+        <Button onAction="#goToHome" prefWidth="250.0" text="Return to Home">
+            <graphic><ImageView fitHeight="26" fitWidth="26"><Image url="@../images/home.png" /></ImageView></graphic>
         </Button>
-        <Button fx:id="manageNoticeBoardButton" mnemonicParsing="false" onAction="#goToManageNoticeBoard" prefHeight="34" prefWidth="276" text="Manage Notice Board">
-            <graphic>
-                <ImageView fitHeight="26" fitWidth="26"><Image url="@../images/modify-calendar.png" /></ImageView>
-            </graphic>
+
+        <Button onAction="#goToManageNoticeBoard" prefWidth="250.0" text="Manage Notice Board">
+            <graphic><ImageView fitHeight="26" fitWidth="26"><Image url="@../images/modify-calendar.png" /></ImageView></graphic>
         </Button>
-        <Button fx:id="leaveASharedReviewButton" mnemonicParsing="false" prefHeight="34" prefWidth="276" text="Leave a Shared Review">
-            <graphic>
-                <ImageView fitHeight="26" fitWidth="26"><Image url="@../images/review.png" /></ImageView>
-            </graphic>
+
+        <Button prefWidth="250.0" text="Leave a Shared Review">
+            <graphic><ImageView fitHeight="26" fitWidth="26"><Image url="@../images/review.png" /></ImageView></graphic>
         </Button>
     </HBox>
 
-    <!-- Titolo della pagina -->
-    <Label alignment="CENTER" layoutX="449.0" layoutY="171.0" prefHeight="34.0" prefWidth="635.0" style="-fx-font-size: 24px; -fx-font-weight: bold;" text="Sign Up" textFill="#0e3aa1" />
+    <!-- 4‑5) Titolo e sottotitolo centrati orizzontalmente -->
+    <Label alignment="CENTER" style="-fx-font-size:24px; -fx-font-weight:bold;" text="Sign Up" textFill="#0e3aa1" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="150.0" />
 
-    <!-- Sottotitolo -->
-    <Label alignment="CENTER" layoutX="447.0" layoutY="211.0" prefHeight="18.0" prefWidth="641.0" text="Please insert your credentials in order to create a new account:" />
+    <Label alignment="CENTER" text="Please insert your credentials in order to create a new account:" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="190.0" />
 
-    <!-- Riquadro di contorno (bordo blu) della form principale -->
-    <Rectangle arcHeight="5.0" arcWidth="5.0" fill="TRANSPARENT" height="544.0" layoutX="447.5" layoutY="170.0" stroke="#0e3aa1" strokeType="INSIDE" strokeWidth="2.0" width="641.0" />
+    <!-- 6) Cornice della form: centrata orizzontalmente, larghezza max 640 px -->
+    <Rectangle arcHeight="5" arcWidth="5" fill="TRANSPARENT" height="544" layoutX="448.0" layoutY="140.0" stroke="#0e3aa1" strokeWidth="2" width="640" />
 
-    <!-- Pulsante di Registrazione -->
-    <Button fx:id="registerButton" alignment="CENTER" layoutX="719.0" layoutY="725.0" maxWidth="96.0" minWidth="96.0" onAction="#handleRegister" prefHeight="26.0" prefWidth="96.0" text="Sign Up" />
+    <!-- 7) Contenitore con tutti i campi: largo max 640 px e centrato -->
+    <VBox alignment="CENTER" layoutX="600.0" layoutY="207.2" maxWidth="936.0" prefHeight="476.0" prefWidth="335.0" spacing="13" AnchorPane.leftAnchor="600.0" AnchorPane.rightAnchor="601.0" AnchorPane.topAnchor="207.0">
 
-    <!-- Link per tornare al Login -->
-    <Hyperlink fx:id="backToLogin" alignment="CENTER" layoutX="699.0" layoutY="751.0" onAction="#goToLogin" prefHeight="24.0" prefWidth="134.0" text="Back to login" />
-     <Button layoutX="950.0" layoutY="607.0" onAction="#handleBrowseImage" text="Browse" />
-   <VBox layoutX="599.0" layoutY="258.0" prefHeight="418.0" prefWidth="336.0" spacing="13.0">
-      <children>
-         <HBox prefHeight="26.0" prefWidth="335.0" spacing="104.0">
-            <children>
-                   <Label alignment="CENTER_RIGHT" prefHeight="34.0" prefWidth="38.0" text="Name:" />
-                   <TextField fx:id="nameField" prefWidth="200.0" promptText="Insert your name" />
-            </children>
-         </HBox>
-         <HBox prefHeight="25.0" prefWidth="357.0" spacing="92.0">
-            <children>
-                   <Label alignment="CENTER_RIGHT" prefHeight="26.0" prefWidth="70.0" text="Surname:" />
-                   <TextField fx:id="surnameField" prefWidth="213.0" promptText="Insert your surname" />
-            </children>
-         </HBox>
-         <HBox prefHeight="18.0" prefWidth="306.0" spacing="90.0">
-            <children>
-                   <Label alignment="CENTER_RIGHT" prefHeight="27.0" prefWidth="47.0" text="Birthday:" />
-                   <DatePicker fx:id="birthdayPicker" prefWidth="200.0" />
-            </children>
-         </HBox>
-         <HBox prefHeight="16.0" prefWidth="306.0" spacing="80.0">
-            <children>
-                   <Label alignment="CENTER_RIGHT" prefHeight="28.0" prefWidth="58.0" text="Username:" />
-                   <TextField fx:id="usernameField" prefWidth="200.0" promptText="Insert your username" />
-            </children>
-         </HBox>
-         <HBox prefHeight="22.0" prefWidth="306.0" spacing="100.0">
-            <children>
-                   <Label alignment="CENTER_RIGHT" prefHeight="27.0" prefWidth="38.0" text="E-mail:" />
-                   <TextField fx:id="emailField" prefWidth="200.0" promptText="Insert your e-mail" />
-            </children>
-         </HBox>
-         <HBox prefHeight="27.0" prefWidth="306.0" spacing="80.0">
-            <children>
-                   <Label alignment="CENTER_RIGHT" prefHeight="26.0" prefWidth="56.0" text="Password:" />
-                   <PasswordField fx:id="passwordField" prefWidth="200.0" promptText="Insert a password" />
-            </children>
-         </HBox>
-         <HBox prefHeight="22.0" prefWidth="306.0" spacing="40.0">
-            <children>
-                   <Label alignment="CENTER_RIGHT" prefHeight="26.0" prefWidth="102.0" text="Confirm Password:" />
-                   <PasswordField fx:id="confirmPasswordField" prefWidth="200.0" promptText="Insert your password again" />
-            </children>
-         </HBox>
-         <HBox prefHeight="26.0" prefWidth="306.0" spacing="60.0">
-            <children>
-                   <Label alignment="CENTER_RIGHT" prefHeight="26.0" prefWidth="84.0" text="Select the role:" />
-                   <ComboBox fx:id="roleComboBox" prefWidth="200.0">
-                       <items>
-                           <FXCollections fx:factory="observableArrayList">
-                               <String fx:value="Student" />
-                               <String fx:value="Tutor" />
-                           </FXCollections>
-                       </items>
-                   </ComboBox>
-            </children>
-         </HBox>
-          <HBox fx:id="instituteHBox" alignment="CENTER_LEFT" spacing="92.0" visible="true">
-              <Label fx:id="instituteLabel" alignment="CENTER_RIGHT" prefHeight="26.0" prefWidth="53.0" text="Institute:" />
-              <TextField fx:id="instituteField" prefHeight="26.0" prefWidth="200.0" promptText="Insert your institute name" />
-          </HBox>
-         <HBox prefHeight="24.0" prefWidth="306.0" spacing="89.0">
-            <children>
-                 <Label alignment="CENTER_RIGHT" prefHeight="26.0" prefWidth="63.0" text="Profile Pic:" />
-                 <TextField fx:id="profilePictureField" prefWidth="200.0" promptText="Path o URL dell'immagine" />
-            </children>
-         </HBox>
-         <HBox prefHeight="20.0" prefWidth="306.0" spacing="52.0">
-            <children>
-                 <Label alignment="CENTER_RIGHT" prefHeight="26.0" prefWidth="101.0" text="Profile Comment:" />
-                 <TextField fx:id="profileCommentField" prefWidth="200.0" promptText="Write a short description" />
-            </children>
-         </HBox>
-      </children>
-   </VBox>
+        <!-- ogni riga è un HBox già presente: ho rimosso prefWidth/spacing e usato HGrow -->
+        <HBox spacing="15">
+            <Label alignment="CENTER_RIGHT" minWidth="100" text="Name:" />
+            <TextField fx:id="nameField" promptText="Insert your name" HBox.hgrow="ALWAYS" />
+        </HBox>
+
+        <HBox spacing="15">
+            <Label alignment="CENTER_RIGHT" minWidth="100" text="Surname:" />
+            <TextField fx:id="surnameField" promptText="Insert your surname" HBox.hgrow="ALWAYS" />
+        </HBox>
+
+        <HBox spacing="15">
+            <Label alignment="CENTER_RIGHT" minWidth="100" text="Birthday:" />
+            <DatePicker fx:id="birthdayPicker" prefHeight="26.0" prefWidth="221.0" />
+        </HBox>
+
+        <HBox spacing="15">
+            <Label alignment="CENTER_RIGHT" minWidth="100" text="Username:" />
+            <TextField fx:id="usernameField" promptText="Insert your username" HBox.hgrow="ALWAYS" />
+        </HBox>
+
+        <HBox spacing="15">
+            <Label alignment="CENTER_RIGHT" minWidth="100" text="E‑mail:" />
+            <TextField fx:id="emailField" promptText="Insert your e‑mail" HBox.hgrow="ALWAYS" />
+        </HBox>
+
+        <HBox spacing="15">
+            <Label alignment="CENTER_RIGHT" minWidth="100" text="Password:" />
+            <PasswordField fx:id="passwordField" promptText="Insert a password" HBox.hgrow="ALWAYS" />
+        </HBox>
+
+        <HBox spacing="15">
+            <Label alignment="CENTER_RIGHT" minWidth="100" text="Confirm Password:" />
+            <PasswordField fx:id="confirmPasswordField" promptText="Insert your password again" HBox.hgrow="ALWAYS" />
+        </HBox>
+
+        <HBox spacing="15">
+            <Label alignment="CENTER_RIGHT" minWidth="100" text="Select the role:" />
+            <ComboBox fx:id="roleComboBox" prefHeight="26.0" prefWidth="222.0">
+                <items>
+                    <FXCollections fx:factory="observableArrayList">
+                        <String fx:value="Student" />
+                        <String fx:value="Tutor" />
+                    </FXCollections>
+                </items>
+            </ComboBox>
+        </HBox>
+
+        <!-- I campi Institute / profile pic / comment li ho lasciati identici ma con HGrow -->
+        <HBox fx:id="instituteHBox" spacing="15">
+            <Label fx:id="instituteLabel" alignment="CENTER_RIGHT" minWidth="100" text="Institute:" />
+            <TextField fx:id="instituteField" promptText="Insert your institute name" HBox.hgrow="ALWAYS" />
+        </HBox>
+
+        <HBox spacing="15">
+            <Label alignment="CENTER_RIGHT" minWidth="100" text="Profile Pic:" />
+            <TextField fx:id="profilePictureField" promptText="Path o URL dell'immagine" HBox.hgrow="ALWAYS" />
+            <Button onAction="#handleBrowseImage" text="Browse" />
+        </HBox>
+
+        <HBox spacing="15">
+            <Label alignment="CENTER_RIGHT" minWidth="100" text="Profile Comment:" />
+            <TextField fx:id="profileCommentField" promptText="Write a short description" HBox.hgrow="ALWAYS" />
+        </HBox>
+    </VBox>
+
+    <!-- 8) Pulsante Sign‑Up centrato sotto la form -->
+    <Button fx:id="registerButton" alignment="CENTER" layoutX="715.2" maxWidth="821.0" minWidth="96" onAction="#handleRegister" prefHeight="26.0" prefWidth="100.0" text="Sign Up" AnchorPane.leftAnchor="715.0" AnchorPane.rightAnchor="721.0" AnchorPane.topAnchor="725.0" />
+
+    <!-- 9) Link back‑to‑login sotto al pulsante -->
+    <Hyperlink fx:id="backToLogin" alignment="CENTER" layoutX="715.2" onAction="#goToLogin" prefHeight="24.0" prefWidth="100.0" text="Back to login" AnchorPane.leftAnchor="715.0" AnchorPane.rightAnchor="721.0" AnchorPane.topAnchor="755.0" />
 
 </AnchorPane>

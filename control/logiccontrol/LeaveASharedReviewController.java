@@ -2,8 +2,10 @@ package logic.control.logiccontrol;
 
 import logic.bean.AccountBean;
 import logic.bean.SharedReviewBean;
+import logic.bean.UserBean;
 import logic.model.dao.*;
 import logic.model.domain.*;
+import logic.model.domain.state.TutoringSession;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -301,5 +303,27 @@ public class LeaveASharedReviewController {
             }
         }
         return bean;
+    }
+
+    public String getLoggedRole() {
+        return SessionManager.getLoggedUser().getAccounts().stream()
+                .map(AccountBean::getRole)
+                .filter(r -> "Tutor".equalsIgnoreCase(r) || "Student".equalsIgnoreCase(r))
+                .findFirst().orElse(null);
+    }
+    public String getLoggedAccountId() {
+        return SessionManager.getLoggedUser().getAccounts().stream()
+                .filter(a -> "Tutor".equalsIgnoreCase(a.getRole()) || "Student".equalsIgnoreCase(a.getRole()))
+                .map(AccountBean::getAccountId)
+                .findFirst().orElse(null);
+    }
+
+    // Interazioni dirette con il SessionManager, in maniera tale che il controller grafico non lo conosca
+    public UserBean getLoggedUser() {
+        return SessionManager.getLoggedUser();
+    }
+
+    public void logout() {
+        SessionManager.logout();
     }
 }

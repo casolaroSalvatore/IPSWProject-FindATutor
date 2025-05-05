@@ -1,15 +1,15 @@
 package logic.control.graphiccontrol.bw;
 
-import logic.model.dao.DaoFactory;
-import logic.model.domain.Tutor;
-import logic.model.domain.Account;
-
+import logic.bean.TutorBean;
+import logic.control.logiccontrol.TutorProfileController;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class TutorProfileGraphicControllerBW extends BaseCLIControllerBW {
 
     private static final Logger LOGGER = Logger.getLogger(TutorProfileGraphicControllerBW.class.getName());
+    private TutorProfileController tutorProfileController = new TutorProfileController();
+
 
     static {
         SystemOutConsoleHandler handler = new SystemOutConsoleHandler();
@@ -21,18 +21,20 @@ public class TutorProfileGraphicControllerBW extends BaseCLIControllerBW {
     }
 
     public void show(String tutorAccountId) {
-        Account acc = DaoFactory.getInstance().getAccountDAO().load(tutorAccountId);
-        if (!(acc instanceof Tutor t)) {
-            LOGGER.warning("It is not a tutor!!");
-            return;
+        TutorBean t;
+        try{
+            t = tutorProfileController.loadTutorBean(tutorAccountId);
+        }catch(IllegalArgumentException ex){
+            LOGGER.warning(ex.getMessage());
+            pressEnter(); return;
         }
 
-        String tutorInfo = String.format(
-                "\nTutor: %s %s – %s%nTitle: %s – Rating: %.1f",
-                t.getName(), t.getSurname(), t.getLocation(), t.getEducationalTitle(), t.getRating()
+        String info = String.format(
+                "%nTutor: %s %s – %s%nTitle: %s – Rating: %.1f",
+                t.getName(), t.getSurname(), t.getLocation(),
+                t.getEducationalTitle(), t.getRating()
         );
-        LOGGER.info(tutorInfo);
-
+        LOGGER.info(info);
         pressEnter();
     }
 }

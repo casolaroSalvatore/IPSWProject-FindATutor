@@ -12,160 +12,68 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.shape.Rectangle?>
 <?import javafx.scene.text.Font?>
 
 <AnchorPane prefHeight="864.0" prefWidth="1536.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="logic.control.graphiccontrol.colored.SignUpGraphicControllerColored">
 
-    <children>
+    <!-- 1) Barra blu in alto, full‑width -->
+    <Pane prefHeight="60.0" style="-fx-background-color:#0e3aa1;" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
 
-        <!-- 1) Barra blu in alto -->
-        <Rectangle arcHeight="5" arcWidth="5" fill="#0e3aa1" height="60" stroke="BLACK" strokeType="INSIDE" strokeWidth="0" width="1600.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="-518.0" AnchorPane.topAnchor="0" />
+    <!-- 2) Logo “FindATutor”: resta a 14px dal bordo sinistro -->
+    <Label prefHeight="60.0" prefWidth="96.0" text="FindATutor" textFill="WHITE" AnchorPane.leftAnchor="14.0" AnchorPane.topAnchor="0.0">
+        <font><Font name="System Bold" size="18" /></font>
+    </Label>
 
-        <!-- 2) Logo “FindATutor” -->
-        <Label text="FindATutor" textFill="WHITE" AnchorPane.leftAnchor="14" AnchorPane.topAnchor="14">
-            <font><Font name="System Bold" size="18" /></font>
-        </Label>
+    <!-- 3) HBox con i tre pulsanti: già full‑width, basta ancorarlo -->
+    <HBox alignment="CENTER" layoutX="-4.0" layoutY="83.0" prefHeight="34.0" prefWidth="1030.0" spacing="20" AnchorPane.leftAnchor="-4.0" AnchorPane.rightAnchor="-1.599999999999909" AnchorPane.topAnchor="83.0">
+        <Button onAction="#goToHome" prefWidth="250.0" text="Return to Home">
+            <graphic><ImageView fitHeight="26" fitWidth="26"><Image url="@../images/home.png" /></ImageView></graphic>
+        </Button>
 
-        <!-- 3) HBox con tre pulsanti, centrato orizzontalmente -->
-        <HBox alignment="CENTER" prefHeight="47.0" prefWidth="1536.0" spacing="20" style="-fx-border-width:2; -fx-background-radius:8; -fx-border-radius:8; -fx-padding:6;" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="70.0">
-            <Button mnemonicParsing="false" onAction="#goToHome" prefHeight="34" prefWidth="276" text="Return to Home">
-                <graphic>
-                    <ImageView fitHeight="26" fitWidth="26"><Image url="@../images/home.png" /></ImageView>
-                </graphic>
-            </Button>
-            <Button fx:id="manageNoticeBoardButton" mnemonicParsing="false" onAction="#goToManageNoticeBoard" prefHeight="34" prefWidth="276" text="Manage Notice Board">
-                <graphic>
-                    <ImageView fitHeight="26" fitWidth="26"><Image url="@../images/modify-calendar.png" /></ImageView>
-                </graphic>
-            </Button>
-            <Button fx:id="leaveASharedReviewButton" mnemonicParsing="false" prefHeight="34" prefWidth="276" text="Leave a Shared Review">
-                <graphic>
-                    <ImageView fitHeight="26" fitWidth="26"><Image url="@../images/review.png" /></ImageView>
-                </graphic>
-            </Button>
+        <Button onAction="#goToManageNoticeBoard" prefWidth="250.0" text="Manage Notice Board">
+            <graphic><ImageView fitHeight="26" fitWidth="26"><Image url="@../images/modify-calendar.png" /></ImageView></graphic>
+        </Button>
+
+        <Button prefWidth="250.0" text="Leave a Shared Review">
+            <graphic><ImageView fitHeight="26" fitWidth="26"><Image url="@../images/review.png" /></ImageView></graphic>
+        </Button>
+    </HBox>
+
+    <!-- ───────── TITOLO + SOTTOTITOLO ───────── -->
+    <VBox alignment="TOP_CENTER" spacing="6" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="150">
+        <Label style="-fx-font-size:24px; -fx-font-weight:bold;" text="Complete the Sign Up" textFill="#0e3aa1" />
+        <Label text="Please insert your credentials in order to create a new account as a Tutor:" />
+    </VBox>
+
+    <!-- ───────── CORNICE BLU (640 px) ───────── -->
+    <Rectangle arcHeight="5" arcWidth="5" fill="TRANSPARENT" height="540" layoutX="448" layoutY="140" stroke="#0e3aa1" strokeWidth="2" width="640" />
+
+    <!-- ───────── FORM (stessa larghezza di SignUp.fxml) ───────── -->
+    <VBox alignment="CENTER" layoutX="503.0" layoutY="232.0" maxWidth="570.0" prefHeight="355.0" prefWidth="494.0" spacing="18">
+
+        <!-- City -->
+        <HBox spacing="15">
+            <Label alignment="CENTER_RIGHT" minWidth="140" text="City:" />
+            <TextField fx:id="locationField" prefWidth="262.0" promptText="Insert your city" HBox.hgrow="ALWAYS" />
         </HBox>
 
-        <!-- Titolo -->
-        <Label alignment="CENTER" layoutX="449.0" layoutY="174.0" prefHeight="35.0" prefWidth="635.0" style="-fx-font-size: 24px; -fx-font-weight: bold;" text="Complete the Sign Up" textFill="#0e3aa1" />
+        <!-- Availability (date) -->
+        <HBox spacing="15">
+            <Label alignment="CENTER_RIGHT" minWidth="140" text="Time availability:" />
+            <HBox spacing="8">
+                <Label style="-fx-font-size:12;" text="From" />
+                <DatePicker fx:id="startDatePicker" prefWidth="120" />
+                <Label style="-fx-font-size:12;" text="To" />
+                <DatePicker fx:id="endDatePicker" prefWidth="120" />
+            </HBox>
+        </HBox>
 
-        <!-- Pulsante di Registrazione -->
-        <Button fx:id="registerButton" layoutX="697.0" layoutY="729.0" onAction="#handleTutorData" prefHeight="26.0" prefWidth="142.0" text="Complete the Sign Up" />
-        <Label layoutX="14.0" prefHeight="47.0" prefWidth="96.0" text="FindATutor" textFill="WHITE">
-            <font>
-                <Font name="System Bold" size="18.0" />
-            </font>
-        </Label>
-        <Label alignment="CENTER" layoutX="448.0" layoutY="211.0" prefHeight="22.0" prefWidth="641.0" text="Please insert your crendentials in order to create a new account as a Tutor:" />
-
-        <Rectangle arcHeight="5.0" arcWidth="5.0" fill="TRANSPARENT" height="544.0" layoutX="447.5" layoutY="170.4" stroke="#0e3aa1" strokeType="INSIDE" strokeWidth="2.0" width="641.0" />
-
-        <VBox layoutX="559.0" layoutY="290.0" prefHeight="219.0" prefWidth="419.0" spacing="30.0">
-         <children>
-            <HBox prefHeight="26.0" prefWidth="423.0" spacing="100.0">
-               <children>
-            
-                    <!-- Città -->
-                    <Label prefHeight="26.0" prefWidth="34.0" text="City:" />
-                    <TextField fx:id="locationField" prefHeight="26.0" prefWidth="298.0" promptText="Insert your city" />
-               </children>
-            </HBox>
-            <HBox prefHeight="16.0" prefWidth="423.0" spacing="30.0">
-               <children>
-            
-                    <!-- Availabilty -->
-                    <Label text="Time availabilty:" />
-                  <HBox prefWidth="297.0" spacing="5" style="-fx-alignment: center;">
-                     <children>
-                        <Label prefHeight="18.0" prefWidth="34.0" style="-fx-font-size: 12px;" text="From" />
-                        <DatePicker fx:id="startDatePicker" prefHeight="26.0" prefWidth="117.0" style="-fx-font-size: 12px;" />
-                        <Label prefHeight="18.0" prefWidth="18.0" style="-fx-font-size: 12px;" text="To" />
-                        <DatePicker fx:id="endDatePicker" prefHeight="26.0" prefWidth="119.0" style="-fx-font-size: 12px;" />
-                     </children>
-                  </HBox>
-               </children>
-            </HBox>
-            <HBox prefHeight="29.0" prefWidth="423.0" />
-            <HBox prefHeight="26.0" prefWidth="426.0" spacing="67.0">
-               <children>
-            
-                    <!-- Subject -->
-                    <Label prefHeight="26.0" prefWidth="52.0" text="Subject:" />
-                    <ComboBox fx:id="subjectComboBox" prefHeight="26.0" prefWidth="297.0">
-                        <items>
-                            <FXCollections fx:factory="observableArrayList">
-                                <String fx:value="Math" />
-                                <String fx:value="Physics" />
-                                <String fx:value="Chemistry" />
-                                <String fx:value="Biology" />
-                                <String fx:value="Computer Science" />
-                                <String fx:value="Natural Sciences" />
-                                <String fx:value="History" />
-                                <String fx:value="Geography" />
-                                <String fx:value="Philosophy" />
-                                <String fx:value="Italian Literature" />
-                                <String fx:value="English Language" />
-                                <String fx:value="French Language" />
-                                <String fx:value="Spanish Language" />
-                                <String fx:value="Latin" />
-                                <String fx:value="Ancient Greek" />
-                                <String fx:value="Economics" />
-                                <String fx:value="Law" />
-                                <String fx:value="Statistics" />
-                                <String fx:value="Mathematical Analysis" />
-                                <String fx:value="Engineering" />
-                                <String fx:value="Art History" />
-                                <String fx:value="Music Theory" />
-                                <String fx:value="Psychology" />
-                                <String fx:value="Sociology" />
-                                <String fx:value="Business Administration" />
-                            </FXCollections>
-                        </items>
-                    </ComboBox>
-               </children>
-            </HBox>
-            <HBox prefHeight="26.0" prefWidth="426.0" spacing="25.0">
-               <children>
-            
-                                          
-                                                  <Label alignment="CENTER_RIGHT" prefHeight="26.0" prefWidth="90.0" text="Educational Title:" />
-                    <TextField fx:id="educationalTitleField" prefHeight="26.0" prefWidth="298.0" promptText="e.g. Bachelor's in Math" />
-               </children>
-            </HBox>
-            <HBox prefHeight="26.0" prefWidth="423.0" spacing="34.0">
-               <children>
-                  <Label prefHeight="25.0" prefWidth="86.0" text="Hourly rate ($):" />
-                  <TextField fx:id="hourlyRateField" prefHeight="26.0" prefWidth="298.0" promptText="Insert your houly rate" />
-               </children>
-            </HBox>
-            <HBox prefHeight="51.0" prefWidth="423.0" spacing="30.0">
-               <children>
-                  <Label prefHeight="35.0" prefWidth="102.0" text="Lession options:" />
-            
-                    <VBox prefHeight="46.0" prefWidth="314.0" spacing="5.0">
-                     <children>
-                        <HBox prefHeight="27.0" prefWidth="191.0" spacing="8">
-                           <children>
-                                  <CheckBox fx:id="inPersonTutorCheck" text="Offers In-person Lessons" />
-                                  <CheckBox fx:id="firstLessonFreeCheck" text="First Lesson is Free" />
-                           </children>
-                        </HBox>
-                        <HBox prefHeight="21.0" prefWidth="191.0" spacing="22.0">
-                           <children>
-                                  <CheckBox fx:id="groupTutorCheck" text="Offers Group Sessions" />
-                                  <CheckBox fx:id="onlineTutorCheck" text="Offers Online Lessons" />
-                           </children>
-                        </HBox>
-                     </children>
-                  </VBox>
-               </children>
-            </HBox>
-         </children>
-      </VBox>
-      <HBox layoutX="659.0" layoutY="394.0" prefHeight="18.0" prefWidth="353.0" spacing="8" style="-fx-alignment: center;">
-         <children>
-            <Label style="-fx-font-size: 12px; -fx-text-fill: #0e3aa1;" />
+        <!-- Days of week -->
+        <HBox alignment="CENTER_LEFT" spacing="8">
+            <Label alignment="CENTER_RIGHT" minWidth="140" text="Days:" />
             <CheckBox fx:id="mondayCheck" text="Mon" />
             <CheckBox fx:id="tuesdayCheck" text="Tue" />
             <CheckBox fx:id="wednesdayCheck" text="Wed" />
@@ -173,8 +81,63 @@
             <CheckBox fx:id="fridayCheck" text="Fri" />
             <CheckBox fx:id="saturdayCheck" text="Sat" />
             <CheckBox fx:id="sundayCheck" text="Sun" />
-         </children>
-      </HBox>
+        </HBox>
 
-    </children>
+        <!-- Subject -->
+        <HBox spacing="15">
+            <Label alignment="CENTER_RIGHT" minWidth="140" text="Subject:" />
+            <ComboBox fx:id="subjectComboBox" HBox.hgrow="ALWAYS">
+                <items>
+                    <FXCollections fx:factory="observableArrayList">
+                        <String fx:value="Math" /><String fx:value="Physics" /><String fx:value="Chemistry" />
+                        <String fx:value="Biology" /><String fx:value="Computer Science" />
+                        <String fx:value="Natural Sciences" /><String fx:value="History" />
+                        <String fx:value="Geography" /><String fx:value="Philosophy" />
+                        <String fx:value="Italian Literature" /><String fx:value="English Language" />
+                        <String fx:value="French Language" /><String fx:value="Spanish Language" />
+                        <String fx:value="Latin" /><String fx:value="Ancient Greek" />
+                        <String fx:value="Economics" /><String fx:value="Law" />
+                        <String fx:value="Statistics" /><String fx:value="Mathematical Analysis" />
+                        <String fx:value="Engineering" /><String fx:value="Art History" />
+                        <String fx:value="Music Theory" /><String fx:value="Psychology" />
+                        <String fx:value="Sociology" /><String fx:value="Business Administration" />
+                    </FXCollections>
+                </items>
+            </ComboBox>
+        </HBox>
+
+        <!-- Educational Title -->
+        <HBox spacing="15">
+            <Label alignment="CENTER_RIGHT" minWidth="140" text="Educational Title:" />
+            <TextField fx:id="educationalTitleField" prefHeight="26.0" prefWidth="316.0" promptText="e.g. Bachelor's in Math" HBox.hgrow="ALWAYS" />
+        </HBox>
+
+        <!-- Hourly Rate -->
+        <HBox spacing="15">
+            <Label alignment="CENTER_RIGHT" minWidth="140" text="Hourly rate ($):" />
+            <TextField fx:id="hourlyRateField" promptText="Insert your hourly rate" HBox.hgrow="ALWAYS" />
+        </HBox>
+
+        <!-- Lesson options -->
+        <HBox spacing="15">
+            <Label alignment="CENTER_RIGHT" minWidth="140" text="Lesson options:" />
+            <VBox spacing="6">
+                <HBox spacing="8">
+                    <CheckBox fx:id="inPersonTutorCheck" text="Offers In‑person Lessons" />
+                    <CheckBox fx:id="firstLessonFreeCheck" text="First Lesson is Free" />
+                </HBox>
+                <HBox spacing="8">
+                    <CheckBox fx:id="groupTutorCheck" text="Offers Group Sessions" />
+                    <CheckBox fx:id="onlineTutorCheck" text="Offers Online Lessons" />
+                </HBox>
+            </VBox>
+        </HBox>
+
+    </VBox>
+
+    <!-- ───────── PULSANTE FINALE ───────── -->
+    <VBox alignment="TOP_CENTER" AnchorPane.leftAnchor="715.0" AnchorPane.rightAnchor="721.0" AnchorPane.topAnchor="725.0">
+        <Button fx:id="registerButton" minWidth="160" onAction="#handleTutorData" text="Complete the Sign Up" />
+    </VBox>
+
 </AnchorPane>

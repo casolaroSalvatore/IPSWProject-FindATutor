@@ -1,39 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.layout.VBox?>
-<?import javafx.scene.control.TableView?>
-<?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.VBox?>
 
-<VBox xmlns="http://javafx.com/javafx/23.0.1"
-      xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="logic.control.graphiccontrol.colored.BookingSessionGraphicControllerColored"
-      prefWidth="921.0" prefHeight="384.0">
+<VBox alignment="TOP_CENTER" fillWidth="true" prefHeight="384.0" prefWidth="1135.0" spacing="7.5" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="logic.control.graphiccontrol.colored.BookingSessionGraphicControllerColored">
 
-    <children>
-        <Label text="Accept / Refuse Sessions" />
+    <Label style="-fx-font-size:16px; -fx-font-weight:bold;" text="Accept / Refuse Sessions" />
 
-        <!-- Copia dal ManageNoticeBoard.fxml la definizione della sessionTable: -->
-        <TableView fx:id="sessionTable" prefHeight="384.0" prefWidth="921.0">
-            <columnResizePolicy>
-                <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
-            </columnResizePolicy>
-            <columns>
-                <TableColumn fx:id="studentColumn" text="Student" />
-                <TableColumn fx:id="tutorColumn" text="Tutor" />
-                <TableColumn fx:id="dateColumn" text="Date" />
-                <TableColumn fx:id="timeColumn" text="Time" />
-                <TableColumn fx:id="locationColumn" text="Location" />
-                <TableColumn fx:id="subjectColumn" text="Subject" />
-                <TableColumn fx:id="commentColumn" text="Comment" />
-                <TableColumn fx:id="statusColumn" text="Status" />
-                <!--Colonna 1: bookingActionColumn, gestita da BookingSessionGraphicControllerColored -->
-                <TableColumn fx:id="bookingActionColumn" text="Booking Action" />
+    <TableView fx:id="sessionTable" maxHeight="Infinity" maxWidth="Infinity" prefHeight="343.0" prefWidth="1030.0" VBox.vgrow="ALWAYS">
 
-                <!-- Colonna 2: modCancelActionColumn, gestita da ManageNoticeBoardGraphicControllerColored -->
-                <TableColumn fx:id="modCancelActionColumn" text="Mod/Cancel Action" />
-            </columns>
-        </TableView>
-    </children>
+        <columnResizePolicy>
+            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+        </columnResizePolicy>
+
+        <columns>
+            <TableColumn fx:id="studentColumn" text="Student" />
+            <TableColumn fx:id="tutorColumn" text="Tutor" />
+            <TableColumn fx:id="dateColumn" text="Date" />
+            <TableColumn fx:id="timeColumn" text="Time" />
+            <TableColumn fx:id="locationColumn" text="Location" />
+            <TableColumn fx:id="subjectColumn" text="Subject" />
+            <TableColumn fx:id="commentColumn" text="Comment" />
+            <TableColumn fx:id="statusColumn" text="Status" />
+            <TableColumn fx:id="bookingActionColumn" text="Booking Action" />
+            <TableColumn fx:id="modCancelActionColumn" text="Mod/Cancel Action" />
+        </columns>
+    </TableView>
 </VBox>
-

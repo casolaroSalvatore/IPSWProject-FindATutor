@@ -5,6 +5,7 @@ import logic.bean.AccountBean;
 import logic.model.dao.DaoFactory;
 import logic.model.dao.UserDAO;
 import logic.model.domain.Account;
+import logic.model.domain.SessionManager;
 import logic.model.domain.User;
 
 public class LoginController {
@@ -21,22 +22,24 @@ public class LoginController {
 
         System.out.println("Utente trovato: " + user.getEmail());
         System.out.println("Password corretta.");
-        System.out.println("Ruolo selezionato: " + loginBean.getSelectedRole());
-        System.out.println("Ruoli disponibili per l'utente:");
+        String role          = loginBean.getAccounts().get(0).getRole();
+        String inputPassword = loginBean.getAccounts().get(0).getPassword();
+        System.out.println("Ruolo selezionato: " + role);
+        System.out.println("Tentativo di accesso con password: " + inputPassword);
 
         // Cerchiamo l’account con il ruolo richiesto
         Account matchedAccount = null;
         for (Account acc : user.getAccounts()) {
-            if (acc.getRole().equalsIgnoreCase(loginBean.getSelectedRole())) {
+            if (acc.getRole().equalsIgnoreCase(role)) {
                 matchedAccount = acc;
                 break;
             }
         }
 
-        if (matchedAccount == null || !matchedAccount.getPassword().equals(loginBean.getPassword()) ) {
+        String inputPassword1 = loginBean.getAccounts().get(0).getPassword();
+        if (matchedAccount == null || !inputPassword1.equals(matchedAccount.getPassword())) {
             return null;
         }
-
 
         // Costruiamo lo UserBean da restituire al controller grafico LoginGraphicControllerColored
         UserBean userBean = new UserBean();
@@ -49,6 +52,8 @@ public class LoginController {
         accountBean.setRole(matchedAccount.getRole());
 
         userBean.addAccount(accountBean);
+        // Unica sede in cui viene impostata la sessione
+        SessionManager.setLoggedUser(userBean);
 
         return userBean;
     }

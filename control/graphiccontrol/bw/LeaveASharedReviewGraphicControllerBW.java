@@ -4,16 +4,14 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
-
 import logic.bean.AccountBean;
 import logic.bean.SharedReviewBean;
 import logic.control.logiccontrol.LeaveASharedReviewController;
-import logic.model.domain.SessionManager;
-import logic.model.domain.SharedReview;
 
 public class LeaveASharedReviewGraphicControllerBW extends BaseCLIControllerBW {
 
     private static final Logger LOGGER = Logger.getLogger(LeaveASharedReviewGraphicControllerBW.class.getName());
+    private LeaveASharedReviewController leaveASharedReviewController = new LeaveASharedReviewController();
 
     static {
         SystemOutConsoleHandler handler = new SystemOutConsoleHandler();
@@ -27,7 +25,7 @@ public class LeaveASharedReviewGraphicControllerBW extends BaseCLIControllerBW {
     private final LeaveASharedReviewController logic = new LeaveASharedReviewController();
 
     public void start() {
-        if (SessionManager.getLoggedUser() == null) {
+        if (leaveASharedReviewController.getLoggedUser() == null) {
             LOGGER.info("Please log in first!");
             pressEnter();
             return;
@@ -36,7 +34,7 @@ public class LeaveASharedReviewGraphicControllerBW extends BaseCLIControllerBW {
         String role = null;
         String userId = null;
 
-        for (AccountBean account : SessionManager.getLoggedUser().getAccounts()) {
+        for (AccountBean account : leaveASharedReviewController.getLoggedUser().getAccounts()) {
             if ("Student".equalsIgnoreCase(account.getRole())) {
                 role = "Student";
                 userId = account.getAccountId();
@@ -56,22 +54,16 @@ public class LeaveASharedReviewGraphicControllerBW extends BaseCLIControllerBW {
         final boolean isStudent = "Student".equalsIgnoreCase(role);
         final String finalUserId = userId;
 
-        List<SharedReview> reviews = isStudent
-                ? logic.findAllTutorsForStudent(finalUserId).stream()
-                .map(tid -> logic.findOrCreateSharedReview(finalUserId, tid))
-                .toList()
-                : logic.findAllStudentsForTutor(finalUserId).stream()
-                .map(sid -> logic.findOrCreateSharedReview(sid, finalUserId))
-                .toList();
+        List<SharedReviewBean> reviews = isStudent
+                ? logic.loadBeansForStudent(finalUserId)
+                : logic.loadBeansForTutor(finalUserId);
 
         while (true) {
             LOGGER.info("\n=== SHARED REVIEWS ===");
             IntStream.range(0, reviews.size()).forEach(i -> {
-                SharedReview sr = reviews.get(i);
+                SharedReviewBean sr = reviews.get(i);
                 String info = String.format("%2d) With %s [%s]",
-                        i + 1,
-                        isStudent ? sr.getTutorId() : sr.getStudentId(),
-                        sr.getStatus());
+                        i+1, sr.getCounterpartyInfo(), sr.getStatus());
                 LOGGER.info(info);
             });
 
@@ -81,8 +73,7 @@ public class LeaveASharedReviewGraphicControllerBW extends BaseCLIControllerBW {
                 return;
             }
 
-            SharedReview selected = reviews.get(idx);
-
+            SharedReviewBean selected = reviews.get(idx);      // MOD
             if (isStudent) {
                 handleStudentSide(selected);
             } else {
@@ -91,7 +82,7 @@ public class LeaveASharedReviewGraphicControllerBW extends BaseCLIControllerBW {
         }
     }
 
-    private void handleStudentSide(SharedReview sr) {
+    private void handleStudentSide(SharedReviewBean sr) {
         if (sr.isStudentSubmitted()) {
             LOGGER.log(Level.INFO, "You already submitted your part. Status: {0}", sr.getStatus());
             pressEnter();
@@ -104,8 +95,8 @@ public class LeaveASharedReviewGraphicControllerBW extends BaseCLIControllerBW {
 
         // Creo il nuovo bean
         SharedReviewBean bean = new SharedReviewBean();
-        bean.setReviewId(sr.getReviewId());
-        bean.setStudentId(SessionManager.getLoggedUser().getAccounts().stream()
+        bean.setReviewId(bean.getReviewId());
+        bean.setStudentId(leaveASharedReviewController.getLoggedUser().getAccounts().stream()
                 .filter(a -> "Student".equalsIgnoreCase(a.getRole()))
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("Student account not found"))
@@ -122,7 +113,8 @@ public class LeaveASharedReviewGraphicControllerBW extends BaseCLIControllerBW {
     }
 
 
-    private void handleTutorSide(SharedReview sr) {
+    private void handleTutorSide(SharedReviewBean sr) {
+
         if (sr.isTutorSubmitted()) {
             LOGGER.log(Level.INFO, "You already submitted your part. Status: {0}", sr.getStatus());
             pressEnter();
@@ -133,7 +125,7 @@ public class LeaveASharedReviewGraphicControllerBW extends BaseCLIControllerBW {
         String comment = ask("Comment:");
 
         SharedReviewBean bean = new SharedReviewBean();
-        bean.setReviewId(sr.getReviewId());
+        bean.setReviewId(bean.getReviewId());
         bean.setSenderRole(SharedReviewBean.SenderRole.TUTOR);
         bean.setTutorTitle(title);
         bean.setTutorComment(comment);

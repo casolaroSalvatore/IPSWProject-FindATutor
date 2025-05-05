@@ -10,66 +10,77 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.shape.Rectangle?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="864.0" prefWidth="1536.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="logic.control.graphiccontrol.colored.LeaveASharedReviewGraphicControllerColored">
+<AnchorPane xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="logic.control.graphiccontrol.colored.LeaveASharedReviewGraphicControllerColored">
 
-    <!-- 1) Barra blu in alto, full-width -->
-    <Rectangle arcHeight="5" arcWidth="5" fill="#0e3aa1" height="60" stroke="BLACK" strokeType="INSIDE" strokeWidth="0" width="1536.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="37.0" AnchorPane.topAnchor="0.0" />
+    <!-- 1) Barra blu in alto, full‑width -->
+    <Pane prefHeight="60.0" style="-fx-background-color:#0e3aa1;" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
 
     <!-- Logo a sinistra -->
-    <Label text="FindATutor" textFill="WHITE" AnchorPane.leftAnchor="14" AnchorPane.topAnchor="14">
+    <Label prefHeight="60.0" prefWidth="96.0" text="FindATutor" textFill="WHITE" AnchorPane.leftAnchor="14.0" AnchorPane.topAnchor="0.0">
         <font><Font name="System Bold" size="18" /></font>
     </Label>
 
     <!-- 2) SignUp / LogIn / LogOut in alto a destra -->
-    <HBox alignment="CENTER_RIGHT" layoutX="1322.4" layoutY="15.2" prefHeight="26.0" prefWidth="200.0" spacing="10">
-        <Button fx:id="signUpButton" mnemonicParsing="false" text="Sign up" />
-        <Button fx:id="logInButton" mnemonicParsing="false" prefHeight="26" prefWidth="54" text="Log In" />
+    <HBox alignment="CENTER_RIGHT" prefHeight="60.0" prefWidth="126.0" spacing="10" AnchorPane.rightAnchor="11.0" AnchorPane.topAnchor="0.0">
+        <Button fx:id="signUpButton" text="Sign up" />
+        <Button fx:id="logInButton" prefHeight="26.0" prefWidth="59.0" text="Log In" />
     </HBox>
-    <Button fx:id="logOutButton" layoutX="1452.0" layoutY="16.0" mnemonicParsing="false" onAction="#handleLogOut" prefHeight="26" prefWidth="69.0" text="Log Out" visible="false" />
+    <Button fx:id="logOutButton" layoutY="16.0" onAction="#handleLogOut" prefHeight="26.0" prefWidth="59.0" text="Log Out" visible="false" AnchorPane.rightAnchor="11.0" AnchorPane.topAnchor="16.0" />
 
     <!-- Messaggio di benvenuto -->
-    <Label fx:id="welcomeLabel" alignment="CENTER_RIGHT" layoutX="1099.0" layoutY="20.0" prefHeight="20.0" prefWidth="300.0" textAlignment="RIGHT" textFill="WHITE" visible="false">
+    <Label fx:id="welcomeLabel" alignment="CENTER_RIGHT" contentDisplay="RIGHT" prefHeight="20.0" prefWidth="232.0" textAlignment="RIGHT" textFill="WHITE" visible="false" AnchorPane.rightAnchor="110.0" AnchorPane.topAnchor="20.0">
         <font><Font size="14" /></font>
     </Label>
 
-    <!-- 3) HBox con tre pulsanti, centrato orizzontalmente -->
-    <HBox alignment="CENTER" prefHeight="47.0" prefWidth="1536.0" spacing="20" style="-fx-border-width:2; -fx-background-radius:8; -fx-border-radius:8; -fx-padding:6;" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="70.0">
-        <Button mnemonicParsing="false" onAction="#goToHome" prefHeight="34" prefWidth="276" text="Return to Home">
-            <graphic>
-                <ImageView fitHeight="26" fitWidth="26"><Image url="@../images/home.png" /></ImageView>
-            </graphic>
+    <!-- 3) HBox con tre pulsanti, full‑width e centrato -->
+    <HBox alignment="CENTER" layoutX="-4.0" layoutY="83.0" prefHeight="34.0" prefWidth="1030.0" spacing="20" AnchorPane.leftAnchor="-4.0" AnchorPane.rightAnchor="-1.599999999999909" AnchorPane.topAnchor="83.0">
+        <Button onAction="#goToHome" prefWidth="250.0" text="Return to Home">
+            <graphic><ImageView fitHeight="26" fitWidth="26"><Image url="@../images/home.png" /></ImageView></graphic>
         </Button>
-        <Button fx:id="manageNoticeBoardButton" mnemonicParsing="false" onAction="#goToManageNoticeBoard" prefHeight="34" prefWidth="276" text="Manage Notice Board">
-            <graphic>
-                <ImageView fitHeight="26" fitWidth="26"><Image url="@../images/modify-calendar.png" /></ImageView>
-            </graphic>
+
+        <Button fx:id="manageNoticeBoardButton" onAction="#goToManageNoticeBoard" prefWidth="250.0" text="Manage Notice Board">
+            <graphic><ImageView fitHeight="26" fitWidth="26"><Image url="@../images/modify-calendar.png" /></ImageView></graphic>
         </Button>
-        <Button fx:id="leaveASharedReviewButton" mnemonicParsing="false" prefHeight="34" prefWidth="276" text="Leave a Shared Review">
-            <graphic>
-                <ImageView fitHeight="26" fitWidth="26"><Image url="@../images/review.png" /></ImageView>
-            </graphic>
+
+        <Button fx:id="leaveASharedReviewButton" prefWidth="250.0" text="Leave a Shared Review">
+            <graphic><ImageView fitHeight="26" fitWidth="26"><Image url="@../images/review.png" /></ImageView></graphic>
         </Button>
     </HBox>
 
-        <!-- *************************** STUDENT PANE *************************** -->
-        <AnchorPane fx:id="studentPane" layoutX="15.0" layoutY="124.0" prefHeight="718.0" prefWidth="1511.0">
-                <Label layoutX="14.0" layoutY="10.0" text="Student side" />
+    <!-- ────── AREA CONTENUTI (da 140 px in giù) ────── -->
+    <AnchorPane AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="140">
 
-                <TableView fx:id="studentTable" layoutX="14.0" layoutY="35.0" onMouseClicked="#handleStudentTableClick" prefHeight="200.0" prefWidth="400.0">
-                    <columns>
-                        <TableColumn fx:id="tutorInfoColumnStudent" text="Tutor" />
-                        <TableColumn fx:id="tutorSubjectColumnStudent" text="Subject" />
-                        <TableColumn fx:id="tutorLocationColumnStudent" text="Location" />
-                        <TableColumn fx:id="statusColumnStudent" text="Status" />
-                    </columns>
-                </TableView>
+        <!-- ***************** STUDENT PANE ***************** -->
+        <AnchorPane fx:id="studentPane" visible="false" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
 
-                <!-- Form per compilare la parte STUDENTE -->
-                <VBox fx:id="studentReviewForm" layoutX="859.0" layoutY="35.0" prefHeight="212.0" prefWidth="630.0" spacing="5">
+            <!-- Layout verticale principale -->
+            <VBox spacing="20" style="-fx-padding:20;" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
+
+                <!-- titolo sezione -->
+                <Label style="-fx-font-size:16px; -fx-font-weight:bold;" text="Student side" />
+
+                <!-- tabella + form affiancati -->
+                <HBox spacing="200.0" VBox.vgrow="ALWAYS">
+
+                    <!-- tabella sessioni -->
+                    <TableView fx:id="studentTable" maxHeight="250" maxWidth="700.0" minWidth="400" onMouseClicked="#handleStudentTableClick" prefHeight="250" prefWidth="700.0" HBox.hgrow="NEVER" VBox.vgrow="NEVER">
+                        <columnResizePolicy>
+                            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                        </columnResizePolicy>
+                        <columns>
+                            <TableColumn fx:id="tutorInfoColumnStudent" text="Tutor" />
+                            <TableColumn fx:id="tutorSubjectColumnStudent" text="Subject" />
+                            <TableColumn fx:id="tutorLocationColumnStudent" text="Location" />
+                            <TableColumn fx:id="statusColumnStudent" text="Status" />
+                        </columns>
+                    </TableView>
+
+                    <!-- form di review -->
+                    <VBox fx:id="studentReviewForm" maxWidth="416.0" prefHeight="250.0" prefWidth="416.0" spacing="8">
                         <Label text="Student Title:" />
                         <TextField fx:id="studentReviewTitle" />
 
@@ -83,17 +94,17 @@
                         </HBox>
 
                         <Label text="Comment:" />
-                        <TextArea fx:id="studentReviewComment" prefRowCount="2" prefWidth="386.0" wrapText="true" />
+                        <TextArea fx:id="studentReviewComment" prefRowCount="3" wrapText="true" />
 
                         <Button onAction="#handleStudentSubmit" text="Submit Student Review" />
-                </VBox>
+                    </VBox>
+                </HBox>
 
-                <!-- Box in basso per VEDERE la recensione COMPLETATA, solo se COMPLETED -->
-            <HBox fx:id="studentCompletedBox" layoutY="350.0" managed="false" spacing="20" style="-fx-border-color: #cccccc; -fx-padding: 10;" visible="false" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
-
-                    <!-- Parte lasciata dallo studente -->
-                <VBox spacing="5" HBox.hgrow="ALWAYS">
-                        <Label style="-fx-font-weight: bold;" text="Your Review" />
+                <!-- review completata -->
+                <HBox fx:id="studentCompletedBox" layoutY="330.0" managed="false" prefHeight="300.0" spacing="20" style="-fx-border-color:#cccccc; -fx-padding:10;" visible="false" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+                    <!-- lato studente -->
+                    <VBox spacing="5" HBox.hgrow="ALWAYS">
+                        <Label style="-fx-font-weight:bold;" text="Your Review" />
                         <Label text="Title:" />
                         <TextField fx:id="studentCompletedTitle" editable="false" />
                         <Label text="Stars:" />
@@ -101,55 +112,65 @@
                         <Label text="Comment:" />
                         <TextArea fx:id="studentCompletedComment" editable="false" prefRowCount="3" wrapText="true" />
                     </VBox>
-
-                    <!-- Parte ricevuta dal tutor -->
-                <VBox spacing="5" HBox.hgrow="ALWAYS">
-                        <Label style="-fx-font-weight: bold;" text="Review from Tutor" />
+                    <!-- lato tutor -->
+                    <VBox spacing="5" HBox.hgrow="ALWAYS">
+                        <Label style="-fx-font-weight:bold;" text="Review from Tutor" />
                         <Label text="Title:" />
                         <TextField fx:id="studentCompletedTutorTitle" editable="false" />
                         <Label text="Comment:" />
                         <TextArea fx:id="studentCompletedTutorComment" editable="false" prefRowCount="3" wrapText="true" />
                     </VBox>
                 </HBox>
+            </VBox>
         </AnchorPane>
 
-                    <!-- ************************** TUTOR PANE ************************** -->
-        <AnchorPane fx:id="tutorPane" layoutX="15.0" layoutY="124.0" prefHeight="718.0" prefWidth="1511.0">
-                <Label layoutX="14.0" layoutY="10.0" text="Tutor side" />
+        <!-- ***************** TUTOR PANE ***************** -->
+        <AnchorPane fx:id="tutorPane" visible="false" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
 
-                            <TableView fx:id="tutorTable" layoutX="14.0" layoutY="35.0" onMouseClicked="#handleTutorTableClick" prefHeight="254.0" prefWidth="606.0">
-                    <columns>
-                        <TableColumn fx:id="studentInfoColumnTutor" text="Student" />
-                        <TableColumn fx:id="studentSubjectColumnTutor" text="Subject" />
-                        <TableColumn fx:id="studentLocationColumnTutor" text="Location" />
-                        <TableColumn fx:id="statusColumnTutor" text="Status" />
-                    </columns>
-                </TableView>
+            <VBox spacing="20" style="-fx-padding:20;" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
 
-                            <VBox fx:id="tutorReviewForm" layoutX="859.0" layoutY="35.0" prefHeight="162.0" prefWidth="630.0" spacing="5">
+                <Label style="-fx-font-size:16px; -fx-font-weight:bold;" text="Tutor side" />
+
+                <HBox spacing="200.0" VBox.vgrow="ALWAYS">
+
+                    <!-- tabella -->
+                    <TableView fx:id="tutorTable" maxHeight="250" maxWidth="700.0" minWidth="400" onMouseClicked="#handleTutorTableClick" prefHeight="250" prefWidth="700.0" HBox.hgrow="NEVER" VBox.vgrow="NEVER">
+                        <columnResizePolicy>
+                            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                        </columnResizePolicy>
+                        <columns>
+                            <TableColumn fx:id="studentInfoColumnTutor" text="Student" />
+                            <TableColumn fx:id="studentSubjectColumnTutor" text="Subject" />
+                            <TableColumn fx:id="studentLocationColumnTutor" text="Location" />
+                            <TableColumn fx:id="statusColumnTutor" text="Status" />
+                        </columns>
+                    </TableView>
+
+                    <!-- form tutor -->
+                    <VBox fx:id="tutorReviewForm" maxWidth="415.0" prefHeight="250.0" prefWidth="415.0" spacing="8">
                         <Label text="Tutor Title:" />
                         <TextField fx:id="tutorReviewTitle" />
 
-                                    <Label text="Tutor Comment:" />
-                        <TextArea fx:id="tutorReviewComment" prefRowCount="2" wrapText="true" />
+                        <Label text="Tutor Comment:" />
+                        <TextArea fx:id="tutorReviewComment" prefRowCount="3" wrapText="true" />
 
-                                    <Button onAction="#handleTutorSubmit" text="Submit Tutor Review" />
-                </VBox>
+                        <Button onAction="#handleTutorSubmit" text="Submit Tutor Review" />
+                    </VBox>
+                </HBox>
 
-            <HBox fx:id="tutorCompletedBox" layoutY="350.0" managed="false" spacing="20" style="-fx-border-color: #cccccc; -fx-padding: 10;" visible="false" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
-
-                                <!-- Parte lasciata dal tutor -->
-                <VBox spacing="5" HBox.hgrow="ALWAYS">
-                        <Label style="-fx-font-weight: bold;" text="Your Review" />
+                <!-- review completata -->
+                <HBox fx:id="tutorCompletedBox" layoutY="330.0" managed="false" prefHeight="300.0" spacing="20" style="-fx-border-color:#cccccc; -fx-padding:10;" visible="false" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+                    <!-- lato tutor -->
+                    <VBox spacing="5" HBox.hgrow="ALWAYS">
+                        <Label style="-fx-font-weight:bold;" text="Your Review" />
                         <Label text="Title:" />
                         <TextField fx:id="tutorCompletedTitle" editable="false" />
                         <Label text="Comment:" />
                         <TextArea fx:id="tutorCompletedComment" editable="false" prefRowCount="3" wrapText="true" />
                     </VBox>
-
-                                <!-- Parte ricevuta dallo studente -->
-                <VBox spacing="5" HBox.hgrow="ALWAYS">
-                        <Label style="-fx-font-weight: bold;" text="Review from Student" />
+                    <!-- lato studente -->
+                    <VBox spacing="5" HBox.hgrow="ALWAYS">
+                        <Label style="-fx-font-weight:bold;" text="Review from Student" />
                         <Label text="Title:" />
                         <TextField fx:id="tutorCompletedStudentTitle" editable="false" />
                         <Label text="Stars:" />
@@ -158,5 +179,7 @@
                         <TextArea fx:id="tutorCompletedStudentComment" editable="false" prefRowCount="3" wrapText="true" />
                     </VBox>
                 </HBox>
+            </VBox>
         </AnchorPane>
+    </AnchorPane>
 </AnchorPane>

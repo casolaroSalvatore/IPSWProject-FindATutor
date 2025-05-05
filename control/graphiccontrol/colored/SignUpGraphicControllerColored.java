@@ -8,7 +8,6 @@ import javafx.stage.FileChooser;
 import javafx.stage.Screen;
 import logic.bean.AccountBean;
 import logic.bean.AvailabilityBean;
-import logic.bean.SignUpBean;
 import logic.bean.UserBean;
 import logic.control.logiccontrol.SignUpController;
 import logic.model.domain.SessionManager;
@@ -193,6 +192,7 @@ public class SignUpGraphicControllerColored {
         userBean.setEmail(email);
 
         AccountBean accountBean = new AccountBean();
+        accountBean.setRole(role);
         accountBean.setPassword(passwordField.getText());
         accountBean.setConfirmPassword(confirmPasswordField.getText());
         accountBean.setRole(role);
@@ -204,8 +204,10 @@ public class SignUpGraphicControllerColored {
 
         // VALIDATION: always basic checks first
         try {
-            userBean.checkSyntax();
+            userBean.checkEmailSyntax();
+            userBean.checkUsernameSyntax();
             accountBean.checkBasicSyntax();
+            accountBean.checkPasswordSyntax();
         } catch (IllegalArgumentException ex) {
             showAlert("Error", ex.getMessage());
             return;
@@ -213,6 +215,11 @@ public class SignUpGraphicControllerColored {
 
         if (STUDENT.equalsIgnoreCase(role)) {
             accountBean.setInstitute(institute);
+
+            try {
+                accountBean.checkStudentSyntax();
+            } catch (IllegalArgumentException ex) { showAlert(ERROR, ex.getMessage()); return; }
+
             userBean.addAccount(accountBean);
 
             try {
@@ -235,7 +242,9 @@ public class SignUpGraphicControllerColored {
         } else if (TUTOR.equalsIgnoreCase(role)) {
             userBean.addAccount(accountBean);
             // Modifica: salvo nel SessionManager UserBean parziale
-            SessionManager.setUserBean(userBean);
+            // SessionManager.setUserBean(userBean);
+            SignUpController signUpController = new SignUpController();
+            signUpController.cachePartialTutor(userBean);
             goToSignUpTutor(event);
         }
     }
@@ -248,14 +257,6 @@ public class SignUpGraphicControllerColored {
 
         if (userBean == null) {
             showAlert(ERROR, "No partial data found. Did you skip the first step?");
-            return;
-        }
-
-        // Controllo della forma dei dati tramite il SignUpBean
-        try {
-            userBean.checkSyntax();
-        } catch (IllegalArgumentException ex) {
-            showAlert(ERROR, ex.getMessage());
             return;
         }
 
@@ -302,11 +303,12 @@ public class SignUpGraphicControllerColored {
         accountBean.setFirstLessonFree(firstLessonFree);
 
         try {
-            userBean.checkSyntax();
+            accountBean.checkBasicSyntax();
+            accountBean.checkPasswordSyntax();
             accountBean.checkTutorSyntax();
         } catch (IllegalArgumentException ex) {
-            showAlert("Error", ex.getMessage());
-            return;
+          showAlert(ERROR, ex.getMessage());
+          return;
         }
 
         SignUpController signUpController = new SignUpController();
@@ -315,7 +317,7 @@ public class SignUpGraphicControllerColored {
 
         if (success) {
             showAlert("Sign up completed", "The user has been registered successfully!");
-            SessionManager.clearUserBean();
+            signUpController.clearPartialTutor();
             goToLogin1();
         } else {
             showAlert(ERROR, "An account with this role already exists.");
