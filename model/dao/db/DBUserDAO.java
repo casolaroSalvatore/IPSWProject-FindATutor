@@ -19,7 +19,7 @@ public class DBUserDAO implements UserDAO {
     @Override
     public User load(String email) {
         User user = null;
-        String sql = "SELECT email, username, password FROM users WHERE email = ?";
+        String sql = "SELECT email, username FROM users WHERE email = ?";
 
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
@@ -28,7 +28,6 @@ public class DBUserDAO implements UserDAO {
                 if (rs.next()) {
                     // Costruisci l'oggetto User
                     String usr = rs.getString("username");
-                    String pwd = rs.getString("password");
                     user = new User(email, usr);
                 }
             }
@@ -54,7 +53,7 @@ public class DBUserDAO implements UserDAO {
         boolean exists = exists(user.getEmail());
         if (!exists) {
             // Insert
-            String sql = "INSERT INTO users (email, username, password) VALUES (?, ?, ?)";
+            String sql = "INSERT INTO users (email, username) VALUES (?, ?)";
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setString(1, user.getEmail());
                 pstmt.setString(2, user.getUsername());
@@ -64,10 +63,10 @@ public class DBUserDAO implements UserDAO {
             }
         } else {
             // Se vuoi fare un update di username/password
-            String sql = "UPDATE users SET username = ?, password = ? WHERE email = ?";
+            String sql = "UPDATE users SET username = ? WHERE email = ?";
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setString(1, user.getUsername());
-                pstmt.setString(3, user.getEmail());
+                pstmt.setString(2, user.getEmail());
                 pstmt.executeUpdate();
             } catch (SQLException e) {
                 e.printStackTrace();

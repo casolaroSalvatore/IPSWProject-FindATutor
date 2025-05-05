@@ -1,5 +1,6 @@
 package logic.model.domain;
 
+import logic.bean.AccountBean;
 import logic.bean.UserBean;
 
 public class SessionManager {
@@ -10,6 +11,16 @@ public class SessionManager {
 
     public static UserBean getLoggedUser() {
         return loggedUser;
+    }
+
+    public static String getLoggedUserAccountId() {
+        if (getLoggedUser() == null) return null;
+        for (AccountBean acc : getLoggedUser().getAccounts()) {
+            if ("Tutor".equalsIgnoreCase(acc.getRole()) ||
+                    "Student".equalsIgnoreCase(acc.getRole()))
+                return acc.getAccountId();
+        }
+        return null;
     }
 
     // (Solo a scopo demo) Memorizza i dati di registrazione del Tutor

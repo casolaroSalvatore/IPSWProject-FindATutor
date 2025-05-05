@@ -28,7 +28,7 @@ class FileSystemUserDAO extends FileSystemDAO<String,User> implements UserDAO {
 
     }
 
-    /* deserializzazione */
+    // Deserializzazione
     @Override
     protected User decode(List<String> lines) {
         Map<String,String> m = toMap(lines);

@@ -1,7 +1,8 @@
 package logic.model.dao.db;
 
 import logic.model.dao.TutoringSessionDAO;
-import logic.model.domain.TutoringSession;
+import logic.model.domain.state.TutoringSession;
+import logic.model.domain.state.TutoringSessionStatus;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -50,7 +51,8 @@ public class DBTutoringSessionDAO implements TutoringSessionDAO {
                     }
 
                     session.setComment(rs.getString("comment"));
-                    session.setStatus(rs.getString("status"));
+                    session.restoreStatusFromPersistence(
+                            TutoringSessionStatus.valueOf(rs.getString("status")));
                     session.setModifiedBy(rs.getString("modified_by"));
                     session.setModifiedTo(rs.getString("modified_to"));
 
@@ -141,7 +143,7 @@ public class DBTutoringSessionDAO implements TutoringSessionDAO {
             }
 
             pstmt.setString(9, s.getComment());
-            pstmt.setString(10, s.getStatus());
+            pstmt.setString(10, s.getStatus().name());
             pstmt.setString(11, s.getModifiedBy());
             pstmt.setString(12, s.getModifiedTo());
 
@@ -205,7 +207,7 @@ public class DBTutoringSessionDAO implements TutoringSessionDAO {
             }
 
             pstmt.setString(8, s.getComment());
-            pstmt.setString(9, s.getStatus());
+            pstmt.setString(9, s.getStatus().name());
             pstmt.setString(10, s.getModifiedBy());
             pstmt.setString(11, s.getModifiedTo());
 

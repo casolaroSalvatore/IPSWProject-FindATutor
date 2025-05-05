@@ -1,6 +1,6 @@
 package logic.model.dao;
 
-import logic.model.domain.TutoringSession;
+import logic.model.domain.state.TutoringSession;
 
 import java.util.List;
 

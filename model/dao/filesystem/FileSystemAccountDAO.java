@@ -23,7 +23,8 @@ class FileSystemAccountDAO extends FileSystemDAO<String,Account> implements Acco
                 "role:"      + a.getRole(),
                 "name:"      + nullSafe(a.getName()),
                 "surname:"   + nullSafe(a.getSurname()),
-                "birthday:"  + nullSafe(a.getBirthday())
+                "birthday:"  + nullSafe(a.getBirthday()),
+                "password:"  + nullSafe(a.getPassword())
         ));
         out.add("profilePic:" + nullSafe(a.getProfilePicturePath()));
         out.add("profileComment:" + nullSafe(a.getProfileComment()));
@@ -89,10 +90,16 @@ class FileSystemAccountDAO extends FileSystemDAO<String,Account> implements Acco
     }
 
     /* ---- helper ---- */
-    private void fillCommon(Account a, Map<String,String> m){
+    private void fillCommon(Account a, Map<String,String> m) {
         a.setProfilePicturePath(m.get("profilePic"));
         a.setProfileComment(m.get("profileComment"));
+
+        String password = m.get("password");
+        if (password != null && !password.isBlank()) {
+            a.setPassword(password);
+        }
     }
+
     private String nullSafe(Object o){ return o==null?"":o.toString(); }
     private Map<String,String> toMap(List<String> ls){
         Map<String,String> m=new HashMap<>();

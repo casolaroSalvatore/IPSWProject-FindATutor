@@ -5,7 +5,6 @@ import logic.model.domain.Account;
 import logic.model.domain.Availability;
 import logic.model.domain.Tutor;
 import logic.model.domain.Student;
-
 import java.sql.*;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -25,7 +24,7 @@ public class DBAccountDAO implements AccountDAO {
 
     @Override
     public Account load(String accountId) {
-        final String sql = "SELECT email, role, name, surname, birthday, "
+        final String sql = "SELECT email, role, password, name, surname, birthday, "
                 + "institute, location, educational_title, subject, "
                 + "hourly_rate, offers_in_person, offers_online, "
                 + "offers_group, first_lesson_free, "
@@ -44,19 +43,23 @@ public class DBAccountDAO implements AccountDAO {
 
                 String email    = rs.getString("email");
                 String role     = rs.getString("role");
+                String password = rs.getString("password");
                 String name     = rs.getString("name");
                 String surname  = rs.getString("surname");
                 LocalDate birth = toLocalDate(rs.getDate("birthday"));
 
                 Availability avail = buildAvailability(rs);
 
-                return switch (role.toUpperCase()) {
-                    case "TUTOR"   -> buildTutor(rs, email, name, surname, birth, avail);
-                    case "STUDENT" -> buildStudent(rs, email, name, surname, birth);
-                    default        -> new Account(email, role, name, surname, birth,
+                Account account;
+                switch (role.toUpperCase()) {
+                    case "TUTOR"   -> account = buildTutor(rs, email, name, surname, birth, avail);
+                    case "STUDENT" -> account = buildStudent(rs, email, name, surname, birth);
+                    default        -> account = new Account(email, role, name, surname, birth,
                             rs.getString(PROFILE_PIC),
                             rs.getString(PROFILE_COMMENT));
-                };
+                }
+                account.setPassword(password);
+                return account;
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -131,14 +134,14 @@ public class DBAccountDAO implements AccountDAO {
 
         final String SQL = """
         INSERT INTO accounts(
-            account_id, email, role, name, surname, birthday,
+            account_id, email, role, password, name, surname, birthday,
             institute, location, educational_title, subject,
             hourly_rate, offers_in_person, offers_online,
             offers_group, first_lesson_free,
             profile_picture_path, profile_comment,
             availability_start_date, availability_end_date, availability_days_of_week,
             rating)
-        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
         """;
 
         try (PreparedStatement ps = conn.prepareStatement(SQL)) {
@@ -146,12 +149,13 @@ public class DBAccountDAO implements AccountDAO {
             ps.setString(1,  acc.getAccountId());
             ps.setString(2,  acc.getEmail());
             ps.setString(3,  acc.getRole());
-            ps.setString(4,  acc.getName());
-            ps.setString(5,  acc.getSurname());
-            setDateOrNull(ps, 6, acc.getBirthday());
+            ps.setString(4,  acc.getPassword());
+            ps.setString(5,  acc.getName());
+            ps.setString(6,  acc.getSurname());
+            setDateOrNull(ps, 7, acc.getBirthday());
 
             // Campi Student
-            ps.setString(7,  (acc instanceof Student s) ? s.getInstitute() : null);
+            ps.setString(8,  (acc instanceof Student s) ? s.getInstitute() : null);
 
             // Campi Tutor
             if (acc instanceof Tutor t) {
@@ -160,8 +164,8 @@ public class DBAccountDAO implements AccountDAO {
                 fillEmptyTutorFields(ps);
             }
 
-            ps.setString(16, acc.getProfilePicturePath());
-            ps.setString(17, acc.getProfileComment());
+            ps.setString(17, acc.getProfilePicturePath());
+            ps.setString(18, acc.getProfileComment());
 
             ps.executeUpdate();
 
@@ -180,43 +184,43 @@ public class DBAccountDAO implements AccountDAO {
      // Riempie tutti i campi specifici del Tutor
     private static void fillTutorFields(PreparedStatement ps, Tutor t) throws SQLException {
 
-        ps.setString (8,  t.getLocation());
-        ps.setString (9,  t.getEducationalTitle());
-        ps.setString (10, t.getSubject());
-        ps.setFloat  (11, t.getHourlyRate());
-        ps.setBoolean(12, t.offersInPerson());
-        ps.setBoolean(13, t.offersOnline());
-        ps.setBoolean(14, t.offersGroup());
-        ps.setBoolean(15, t.isFirstLessonFree());
+        ps.setString (9,  t.getLocation());
+        ps.setString (10,  t.getEducationalTitle());
+        ps.setString (11, t.getSubject());
+        ps.setFloat  (12, t.getHourlyRate());
+        ps.setBoolean(13, t.offersInPerson());
+        ps.setBoolean(14, t.offersOnline());
+        ps.setBoolean(15, t.offersGroup());
+        ps.setBoolean(16, t.isFirstLessonFree());
 
         Availability av = t.getAvailability();
         if (av != null) {
-            setDateOrNull(ps, 18, av.getStartDate());
-            setDateOrNull(ps, 19, av.getEndDate());
-            ps.setString(20, av.getDaysOfWeek().stream()
+            setDateOrNull(ps, 19, av.getStartDate());
+            setDateOrNull(ps, 20, av.getEndDate());
+            ps.setString(21, av.getDaysOfWeek().stream()
                     .map(DayOfWeek::name)
                     .collect(Collectors.joining(",")));
         } else {
-            ps.setNull(18, Types.DATE);
             ps.setNull(19, Types.DATE);
-            ps.setNull(20, Types.VARCHAR);
+            ps.setNull(20, Types.DATE);
+            ps.setNull(21, Types.VARCHAR);
         }
 
-        ps.setFloat(21, t.getRating());
+        ps.setFloat(22, t.getRating());
     }
 
     // Per gli account non-Tutor: imposta NULL/0 ai campi tutor-specifici
     private static void fillEmptyTutorFields(PreparedStatement ps) throws SQLException {
-        for (int idx = 8; idx <= 10; idx++) ps.setNull(idx, Types.VARCHAR);
+        for (int idx = 9; idx <= 11; idx++) ps.setNull(idx, Types.VARCHAR);
 
-        ps.setFloat  (11, 0f);       // hourly_rate
-        for (int idx = 12; idx <= 15; idx++) ps.setBoolean(idx, false);
+        ps.setFloat  (12, 0f);
+        for (int idx = 13; idx <= 16; idx++) ps.setBoolean(idx, false);
 
-        ps.setNull(18, Types.DATE);
         ps.setNull(19, Types.DATE);
-        ps.setNull(20, Types.VARCHAR);
+        ps.setNull(20, Types.DATE);
+        ps.setNull(21, Types.VARCHAR);
 
-        ps.setFloat(21, 0f);
+        ps.setFloat(22, 0f);
     }
 
 

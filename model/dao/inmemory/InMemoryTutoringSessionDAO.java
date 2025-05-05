@@ -1,7 +1,7 @@
 package logic.model.dao.inmemory;
 
 import logic.model.dao.TutoringSessionDAO;
-import logic.model.domain.TutoringSession;
+import logic.model.domain.state.TutoringSession;
 
 import java.util.ArrayList;
 import java.util.List;

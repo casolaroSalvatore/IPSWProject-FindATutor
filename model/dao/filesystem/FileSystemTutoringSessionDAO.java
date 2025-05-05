@@ -1,7 +1,8 @@
 package logic.model.dao.filesystem;
 
 import logic.model.dao.TutoringSessionDAO;
-import logic.model.domain.TutoringSession;
+import logic.model.domain.state.TutoringSession;
+import logic.model.domain.state.TutoringSessionStatus;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -33,7 +34,7 @@ class FileSystemTutoringSessionDAO extends FileSystemDAO<String, TutoringSession
                 "startTime:"        + nullSafe(s.getStartTime()),
                 "endTime:"          + nullSafe(s.getEndTime()),
                 "comment:"          + nullSafe(s.getComment()),
-                "status:"           + nullSafe(s.getStatus()),
+                "status:"           + nullSafe(s.getStatus().name()),
                 "modifiedBy:"       + nullSafe(s.getModifiedBy()),
                 "modifiedTo:"       + nullSafe(s.getModifiedTo()),
                 "proposedDate:"     + nullSafe(s.getProposedDate()),
@@ -55,7 +56,8 @@ class FileSystemTutoringSessionDAO extends FileSystemDAO<String, TutoringSession
         s.setStartTime(parseTime(m.get("startTime")));
         s.setEndTime(parseTime(m.get("endTime")));
         s.setComment(m.get("comment"));
-        s.setStatus(m.get("status"));
+        s.restoreStatusFromPersistence(TutoringSessionStatus.valueOf(m.get("status")));
+        // Necessario per sincronizzare lo stato della TutoringSessionMachine
         s.setModifiedBy(m.get("modifiedBy"));
         s.setModifiedTo(m.get("modifiedTo"));
         s.setProposedDate(parseDate(m.get("proposedDate")));
