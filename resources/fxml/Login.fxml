@@ -36,7 +36,7 @@
             <graphic><ImageView fitHeight="26" fitWidth="26"><Image url="@../images/modify-calendar.png" /></ImageView></graphic>
         </Button>
 
-        <Button prefWidth="250.0" text="Leave a Shared Review">
+        <Button onAction="#goToLeaveASharedReview" prefWidth="250.0" text="Leave a Shared Review">
             <graphic><ImageView fitHeight="26" fitWidth="26"><Image url="@../images/review.png" /></ImageView></graphic>
         </Button>
     </HBox>

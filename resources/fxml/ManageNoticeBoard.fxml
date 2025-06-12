@@ -40,7 +40,7 @@
 
     <!-- 3) HBox con tre pulsanti, full‑width e centrato -->
     <HBox alignment="CENTER" layoutX="-4.0" layoutY="83.0" prefHeight="34.0" prefWidth="1030.0" spacing="20" AnchorPane.leftAnchor="-4.0" AnchorPane.rightAnchor="-1.599999999999909" AnchorPane.topAnchor="83.0">
-        <Button prefWidth="250.0" text="Return to Home">
+        <Button prefWidth="250.0" onAction="#goToHome" text="Return to Home">
             <graphic><ImageView fitHeight="26" fitWidth="26"><Image url="@../images/home.png" /></ImageView></graphic>
         </Button>
 
@@ -58,9 +58,6 @@
 
         <!-- ◂ COLONNA SINISTRA: CALENDARIO -->
         <VBox alignment="CENTER" prefWidth="480" spacing="20">
-            <padding>
-                <Insets left="30" top="30" />
-            </padding>
 
             <!-- Barra mese + frecce -->
             <HBox fx:id="monthNavigationBar" alignment="CENTER" spacing="10">
@@ -98,7 +95,7 @@
         </VBox>
 
         <!-- ◂ COLONNA DESTRA: DETTAGLIO / TABELLA / BOTTONI -->
-        <VBox spacing="7.5" HBox.hgrow="ALWAYS">
+        <VBox spacing="8" HBox.hgrow="ALWAYS">
 
             <!-- Pane dinamico che il controller riempie -->
             <AnchorPane fx:id="bookingSessionPane" minHeight="300" prefHeight="450" VBox.vgrow="ALWAYS" />
@@ -107,7 +104,7 @@
             </HBox>
 
             <!-- Tabella sessioni del giorno -->
-            <TableView fx:id="daySessionTable" prefHeight="250" VBox.vgrow="ALWAYS">
+            <TableView fx:id="daySessionTable" prefHeight="180" VBox.vgrow="ALWAYS">
                 <columnResizePolicy>
                     <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
                 </columnResizePolicy>
