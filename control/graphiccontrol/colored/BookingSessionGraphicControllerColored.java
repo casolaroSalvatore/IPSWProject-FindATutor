@@ -1,5 +1,6 @@
 package logic.control.graphiccontrol.colored;
 
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
@@ -9,11 +10,12 @@ import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.stage.Screen;
 import logic.bean.*;
 import logic.control.logiccontrol.BookingTutoringSessionController;
-import logic.model.domain.*;
+import logic.control.logiccontrol.LoginController;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -26,20 +28,22 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
 import logic.model.domain.state.TutoringSessionStatus;
 import java.io.IOException;
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
+import java.util.logging.Logger;
 
 public class BookingSessionGraphicControllerColored {
 
     // Per evitare ripetizioni
     private static final String ROLE_TUTOR = "Tutor";
+    private static final String ROLE_STUDENT = "Student";
     private final BookingTutoringSessionController bookingCtrl = new BookingTutoringSessionController();
-
+    private static final Logger LOGGER = Logger.getLogger(BookingSessionGraphicControllerColored.class.getName());
 
     // *** FXML comuni: logOutButton, signUpButton, logInButton, welcomeLabel...
     @FXML
@@ -53,6 +57,9 @@ public class BookingSessionGraphicControllerColored {
 
     @FXML
     private Button logInButton;
+
+    @FXML
+    private Button manageNoticeBoardButton;
 
     @FXML
     private Button leaveASharedReviewButton;
@@ -167,9 +174,10 @@ public class BookingSessionGraphicControllerColored {
     @FXML
     private TableColumn<TutoringSessionBean, Void> modCancelActionColumn;
 
-    // Stelle relative alle valutazioni
-    private Image fullStarImage;
-    private Image emptyStarImage;
+    private final LoginController loginCtrl = new LoginController();
+    private final BookingTutoringSessionController bookingTutoringSessionController = new BookingTutoringSessionController();
+    private UUID sessionId;
+    private UserBean userBean;
 
     // Riferimento al ManageNoticeBoardGraphicControllerColored (servirà per permettere l'aggiornamento
     // del calendario al seguito di una prenotazione
@@ -181,50 +189,60 @@ public class BookingSessionGraphicControllerColored {
     private static AvailabilityBean chosenAvailability;
 
     private ObservableList<DayBookingBean> dayBookings = FXCollections.observableArrayList();
+    private Image fullStarImage;
+    private Image emptyStarImage;
 
     // Serve per passare il riferimento al controller del ManageNoticeBoardGraphicControllerColored
     public void setParentController(ManageNoticeBoardGraphicControllerColored parentController) {
         this.parentController = parentController;
     }
 
-    public void initialize() {
+    // Chiamato dalla Home dopo il FXMLLoader
+    public void initData(UUID sid, UserBean userBean) {
 
-        fullStarImage  = new Image(getClass().getResourceAsStream("/images/full_star.png"));
-        emptyStarImage = new Image(getClass().getResourceAsStream("/images/empty_star.png"));
+        this.sessionId = sid;
+        this.userBean = userBean;
+
         if (tutorTable != null) {
-            // Scena "BookingTutoringSession.fxml"
-            initBookingScene();
-            // Ci consente di impostare la grandezza delle colonne in base alla grandezza dello schermo
+            initBookingScene(fullStarImage, emptyStarImage);
             tutorTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
             dayTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         }
+
         if (sessionTable != null) {
-            // Scena "ManageNoticeBoard.fxml"
             initManageNoticeBoardScene();
         }
     }
 
+    @FXML
+    public void initialize() {
+        // Caricamento delle risorse, indipendente dalla sessione
+        fullStarImage = new Image(getClass().getResourceAsStream("/images/full_star.png"));
+        emptyStarImage = new Image(getClass().getResourceAsStream("/images/empty_star.png"));
+    }
+
+
     // Metodo invocato dalla Home, per salvare i parametri di ricerca
     public static void setSearchParameters(String location, String subject, AvailabilityBean availability) {
-        chosenLocation  = location;
-        chosenSubject   = subject;
+        chosenLocation = location;
+        chosenSubject = subject;
         chosenAvailability = availability;
-
     }
 
     // Logica per la scena BookingTutoringSession.fxml
-    private void initBookingScene() {
+    private void initBookingScene(Image fullStarImage, Image emptyStarImage) {
         setupWelcomeLabel();
         setupFilterLabels();
         setupCheckboxListeners();
-        setupTutorTable();
+        setupTutorTable(fullStarImage, emptyStarImage);
         setupRowDoubleClick();
         setupDayBookingTable();
     }
 
     private void setupWelcomeLabel() {
-        if (SessionManager.getLoggedUser() != null) {
-            welcomeLabel.setText("Welcome, " + SessionManager.getLoggedUser().getUsername() + "!");
+        UserBean me = getLoggedUser();
+        if (me != null) {
+            welcomeLabel.setText("Welcome, " + me.getUsername() + "!");
             welcomeLabel.setVisible(true);
             logOutButton.setVisible(true);
             logInButton.setVisible(false);
@@ -233,6 +251,7 @@ public class BookingSessionGraphicControllerColored {
             welcomeLabel.setVisible(false);
         }
     }
+
 
     private void setupFilterLabels() {
         if (chosenSubject != null && !chosenSubject.isBlank()) {
@@ -272,58 +291,80 @@ public class BookingSessionGraphicControllerColored {
         firstLessonFreeCheck.selectedProperty().addListener((obs, oldVal, newVal) -> updateTutorTable());
     }
 
-    private void setupTutorTable() {
-        nameColumn.setCellValueFactory(cd ->
-                new SimpleStringProperty(
-                        cd.getValue().getName()+" "+cd.getValue().getSurname()
-                                +" ("+cd.getValue().getAge()+")"));
-
-        ratingColumn.setCellValueFactory(cd -> new javafx.beans.property.SimpleDoubleProperty(cd.getValue().getRating()).asObject());
-        hourlyRateColumn.setCellValueFactory(cd -> new javafx.beans.property.SimpleDoubleProperty(cd.getValue().getHourlyRate()).asObject());
-
-        ratingColumn.setCellFactory(col -> new TableCell<TutorBean,Double>() {
-            private final HBox starsBox = new HBox(2);
-
-            // CellFactory per disegnare le stesse
-            @Override
-            protected void updateItem(Double rating, boolean empty) {
-                super.updateItem(rating, empty);
-                if (empty || rating == null) {
-                    setText(null);
-                    setGraphic(null);
-                } else {
-                    starsBox.getChildren().clear();
-                    // Arrotondo per difetto
-                    int fullStars = rating.intValue();
-                    for (int i = 0; i < 5; i++) {
-                        ImageView iv = new ImageView(i < fullStars ? fullStarImage : emptyStarImage);
-                        iv.setFitWidth(16);
-                        iv.setFitHeight(16);
-                        starsBox.getChildren().add(iv);
-                    }
-                    setText(null);
-                    setGraphic(starsBox);
-                }
-            }
-        });
-
+    private void setupTutorTable(Image fullStarImage, Image emptyStarImage) {
+        setupCellValueFactories();
+        setupRatingColumnWithStars(fullStarImage, emptyStarImage);
         updateTutorTable();
 
-        tutorTable.getSelectionModel().selectedItemProperty().addListener((obs,o,n)->{
-            bookTutoringSessionButton.setDisable(n==null);
+        tutorTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
+            bookTutoringSessionButton.setDisable(newSelection == null);
             dayBookings.clear();
-            if(n!=null) populateDayBookingsForTutor(n);
+            if (newSelection != null) {
+                populateDayBookingsForTutor(newSelection);
+            }
         });
     }
 
-    /* --- ADD : updateTutorTable completamente delegato al controller applicativo */
-    private void updateTutorTable() {
-        List<TutorBean> list = bookingCtrl.searchTutors(
-                chosenSubject, chosenLocation, chosenAvailability,
-                inPersonCheck.isSelected(), onlineCheck.isSelected(), groupCheck.isSelected(),
-                rating4Check.isSelected(), firstLessonFreeCheck.isSelected(),
-                orderComboBox.getValue());
+    private void setupCellValueFactories() {
+        nameColumn.setCellValueFactory(cd ->
+                new SimpleStringProperty(cd.getValue().getName() + " " +
+                        cd.getValue().getSurname() + " (" +
+                        cd.getValue().getAge() + ")"));
 
+        ratingColumn.setCellValueFactory(cd ->
+                new SimpleDoubleProperty(cd.getValue().getRating()).asObject());
+
+        hourlyRateColumn.setCellValueFactory(cd ->
+                new SimpleDoubleProperty(cd.getValue().getHourlyRate()).asObject());
+    }
+
+    private void setupRatingColumnWithStars(Image fullStarImage, Image emptyStarImage) {
+        ratingColumn.setCellFactory(col -> new TableCell<>() {
+            private final HBox starsBox = new HBox(2);
+
+            @Override
+            protected void updateItem(Double rating, boolean empty) {
+                super.updateItem(rating, empty);
+
+                if (empty || rating == null) {
+                    setText(null);
+                    setGraphic(null);
+                    return;
+                }
+
+                starsBox.getChildren().clear();
+
+                for (int i = 0; i < 5; i++) {
+                    ImageView star = new ImageView(i < rating.intValue() ? fullStarImage : emptyStarImage);
+                    star.setFitWidth(16);
+                    star.setFitHeight(16);
+                    starsBox.getChildren().add(star);
+                }
+
+                setText(null);
+                setGraphic(starsBox);
+            }
+        });
+    }
+
+
+    /* updateTutorTable completamente delegato al controller applicativo */
+    private void updateTutorTable() {
+
+        // Costruisco l'oggetto criteria necessario per la chiamata di searchTutor
+        TutorSearchCriteriaBean criteria = new TutorSearchCriteriaBean(
+                chosenSubject,
+                chosenLocation,
+                chosenAvailability,
+                inPersonCheck.isSelected(),
+                onlineCheck.isSelected(),
+                groupCheck.isSelected(),
+                rating4Check.isSelected(),
+                firstLessonFreeCheck.isSelected(),
+                orderComboBox.getValue()
+        );
+
+        List<TutorBean> list = bookingCtrl.searchTutors(criteria);
         tutorTable.setItems(FXCollections.observableArrayList(list));
     }
 
@@ -376,7 +417,7 @@ public class BookingSessionGraphicControllerColored {
     private ObservableList<String> generateTimeSlots() {
         ObservableList<String> timeSlots = FXCollections.observableArrayList();
         LocalTime start = LocalTime.of(8, 0);  // inizio 8:00
-        LocalTime end   = LocalTime.of(20, 0); // fine 20:00
+        LocalTime end = LocalTime.of(20, 0); // fine 20:00
         while (!start.isAfter(end)) {
             timeSlots.add(start.toString());
             start = start.plusMinutes(30);
@@ -415,35 +456,9 @@ public class BookingSessionGraphicControllerColored {
         tutorTable.refresh();
     }
 
-
-    private boolean passesAllFilters(Tutor tutor) {
-        return !(inPersonCheck.isSelected() && !tutor.offersInPerson())
-                && !(onlineCheck.isSelected() && !tutor.offersOnline())
-                && !(groupCheck.isSelected() && !tutor.offersGroup())
-                && !(rating4Check.isSelected() && tutor.getRating() < 4.0)
-                && !(firstLessonFreeCheck.isSelected() && !tutor.isFirstLessonFree());
-    }
-
     private void populateDayBookingsForTutor(TutorBean tutor) {
 
-        dayBookings.clear();
-
-        Availability av = bookingCtrl.getTutorAvailability(tutor.getAccountId());
-        if(av==null || av.getDaysOfWeek()==null || av.getDaysOfWeek().isEmpty()) return;
-
-        LocalDate start = (chosenAvailability!=null && chosenAvailability.getStartDate()!=null)?
-                chosenAvailability.getStartDate() : LocalDate.now();
-        LocalDate end   = (chosenAvailability!=null && chosenAvailability.getEndDate()!=null)?
-                chosenAvailability.getEndDate()   : LocalDate.now();
-
-        List<DayOfWeek> userDays = (chosenAvailability!=null)?
-                chosenAvailability.getDays() : List.of();
-
-        for(LocalDate d = start; !d.isAfter(end); d=d.plusDays(1)){
-            boolean okUser = userDays.isEmpty() || userDays.contains(d.getDayOfWeek());
-            boolean okTut  = av.getDaysOfWeek().contains(d.getDayOfWeek());
-            if(okUser && okTut) dayBookings.add(new DayBookingBean(d));
-        }
+        dayBookings.setAll(bookingCtrl.computeDayBookingsForTutor(tutor.getAccountId(), chosenAvailability));
         dayTable.setItems(dayBookings);
     }
 
@@ -456,46 +471,53 @@ public class BookingSessionGraphicControllerColored {
     }
 
     private void setupSessionRowFactory() {
-        if (sessionTable != null) {
-            sessionTable.setRowFactory(tv -> {
-                TableRow<TutoringSessionBean> row = new TableRow<>();
-                row.setOnMouseClicked(event -> {
-                    if (!row.isEmpty()
-                            && event.getButton() == MouseButton.PRIMARY
-                            && event.getClickCount() == 2) {
-                        TutoringSessionBean selected = row.getItem();
-                        if (selected == null) {
-                            return;
-                        }
-                        // Decidi chi aprire in base al ruolo
-                        String role = null;
+        if (sessionTable == null) {
+            return;
+        }
 
-                        for (AccountBean account : SessionManager.getLoggedUser().getAccounts()) {
-                            if ("Student".equalsIgnoreCase(account.getRole())) {
-                                role = "Student";
-                                break;
-                            } else if ("Tutor".equalsIgnoreCase(account.getRole())) {
-                                role = "Tutor";
-                                break;
-                            }
-                        }
+        sessionTable.setRowFactory(tv -> {
+            TableRow<TutoringSessionBean> row = new TableRow<>();
+
+            row.setOnMouseClicked(event -> {
+                if (isDoubleClick(event, row)) {
+                    TutoringSessionBean selected = row.getItem();
+                    if (selected != null) {
+                        String role = getLoggedUserRole();
                         if (ROLE_TUTOR.equalsIgnoreCase(role)) {
                             showStudentProfile(selected.getStudentId());
                         } else {
                             showTutorProfile(selected.getTutorId());
                         }
                     }
-                });
-                return row;
+                }
             });
+
+            return row;
+        });
+    }
+
+    private boolean isDoubleClick(MouseEvent event, TableRow<?> row) {
+        return !row.isEmpty()
+                && event.getButton() == MouseButton.PRIMARY
+                && event.getClickCount() == 2;
+    }
+
+    private String getLoggedUserRole() {
+        UserBean me = getLoggedUser();
+        if (me == null) return null;
+        for (AccountBean ab : me.getAccounts()) {
+            if (ROLE_STUDENT.equalsIgnoreCase(ab.getRole())
+                    || ROLE_TUTOR.equalsIgnoreCase(ab.getRole()))
+                return ab.getRole();
         }
+        return null;
     }
 
     private void setupSessionColumns() {
 
         studentColumn.setCellValueFactory(cd ->
                 new SimpleStringProperty(bookingCtrl.counterpartLabel(cd.getValue().getStudentId())));
-        tutorColumn  .setCellValueFactory(cd ->
+        tutorColumn.setCellValueFactory(cd ->
                 new SimpleStringProperty(bookingCtrl.counterpartLabel(cd.getValue().getTutorId())));
 
         dateColumn.setCellValueFactory(cd -> {
@@ -532,86 +554,95 @@ public class BookingSessionGraphicControllerColored {
     }
 
     private void loadUserSessions() {
-        if (SessionManager.getLoggedUser() == null) return;
+        UserBean me = getLoggedUser();
+        if (me == null) return;
 
-        String uid = null;
-        String role = null;
-
-        for (AccountBean account : SessionManager.getLoggedUser().getAccounts()) {
-            if ("Student".equalsIgnoreCase(account.getRole())) {
-                uid = account.getAccountId();
-                role = "Student";
-                break;
-            } else if ("Tutor".equalsIgnoreCase(account.getRole())) {
-                uid = account.getAccountId();
-                role = "Tutor";
+        String uid = null, role = null;
+        for (AccountBean ab : me.getAccounts()) {
+            if (ROLE_STUDENT.equalsIgnoreCase(ab.getRole())
+                    || ROLE_TUTOR.equalsIgnoreCase(ab.getRole())) {
+                uid  = ab.getAccountId();
+                role = ab.getRole();
                 break;
             }
         }
+        if (uid == null || role == null)
+            throw new IllegalStateException("No valid account (Student/Tutor) for logged user.");
 
-        if (uid == null || role == null) {
-            throw new IllegalStateException("No valid account (Student or Tutor) found for logged user.");
-        }
+        List<TutoringSessionBean> list =
+                ROLE_TUTOR.equalsIgnoreCase(role)
+                        ? bookingCtrl.loadAllSessionsForTutor(uid)
+                        : bookingCtrl.loadAllSessionsForStudent(uid);
 
-        List<TutoringSessionBean> list;
-        if (ROLE_TUTOR.equalsIgnoreCase(role)) {
-            studentColumn.setVisible(true);
-            tutorColumn.setVisible(false);
-            list = bookingCtrl.loadAllSessionsForTutor(uid);
-        } else {
-            studentColumn.setVisible(false);
-            tutorColumn.setVisible(true);
-            list = bookingCtrl.loadAllSessionsForStudent(uid);
-        }
+        studentColumn.setVisible(ROLE_TUTOR.equalsIgnoreCase(role));
+        tutorColumn.setVisible(!ROLE_TUTOR.equalsIgnoreCase(role));
+
         sessionTable.setItems(FXCollections.observableArrayList(list));
     }
 
     // Aggiunge i pulsanti Accept/Refuse se l'utente è un Tutor
     private void addBookingActionColumn() {
-        if (SessionManager.getLoggedUser() != null) {
 
-            boolean isTutor = false;
+        if (!isLogged()) { hideBookingActionColumn(); return; }
 
-            for (AccountBean account : SessionManager.getLoggedUser().getAccounts()) {
-                if ("Tutor".equalsIgnoreCase(account.getRole())) {
-                    isTutor = true;
-                    break;
-                }
-            }
-
-            if (isTutor) {
-                bookingActionColumn.setCellFactory(col -> new TableCell<>() {
-                    private final Button acceptBtn = new Button("Accept");
-                    private final Button refuseBtn = new Button("Refuse");
-
-                    {
-                        acceptBtn.setOnAction(e -> handleAccept(getIndex()));
-                        refuseBtn.setOnAction(e -> handleRefuse(getIndex()));
-                    }
-
-                    @Override
-                    protected void updateItem(Void item, boolean empty) {
-                        super.updateItem(item, empty);
-                        if (empty) {
-                            setGraphic(null);
-                        } else {
-                            if (getTableView().getItems().get(getIndex()).getStatus() == TutoringSessionStatus.PENDING) {
-                                setGraphic(new HBox(5, acceptBtn, refuseBtn));
-                            } else {
-                                setGraphic(null);
-                            }
-                        }
-                    }
-                });
-            } else {
-                bookingActionColumn.setVisible(false);
-            }
-
+        if (isUserTutor()) {
+            setupBookingActionButtons();
         } else {
-            bookingActionColumn.setVisible(false);
+            hideBookingActionColumn();
         }
     }
 
+    private void hideBookingActionColumn() {
+        bookingActionColumn.setVisible(false);
+    }
+
+    private boolean isUserTutor() {
+        UserBean me = getLoggedUser();
+        if (me == null) return false;
+
+        for (AccountBean account : me.getAccounts()) {
+            String role = account.getRole();
+            if (ROLE_TUTOR.equalsIgnoreCase(role)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    private void setupBookingActionButtons() {
+        bookingActionColumn.setCellFactory(col -> new TableCell<>() {
+            private final Button acceptBtn;
+            private final Button refuseBtn;
+
+            {
+                acceptBtn = new Button("Accept");
+                refuseBtn = new Button("Refuse");
+                configureActionButtons();
+            }
+
+            @Override
+            protected void updateItem(Void item, boolean empty) {
+                super.updateItem(item, empty);
+
+                if (empty) {
+                    setGraphic(null);
+                    return;
+                }
+
+                if (getTableView().getItems().get(getIndex()).getStatus() == TutoringSessionStatus.PENDING) {
+                    setGraphic(new HBox(5, acceptBtn, refuseBtn));
+                } else {
+                    setGraphic(null);
+                }
+            }
+
+            private void configureActionButtons() {
+                acceptBtn.setOnAction(e -> handleAccept(getIndex()));
+                refuseBtn.setOnAction(e -> handleRefuse(getIndex()));
+            }
+        });
+    }
 
     private void handleAccept(int index) {
         if (userConfirmed(
@@ -619,8 +650,10 @@ public class BookingSessionGraphicControllerColored {
                 "Are you sure you want to accept the booking?",
                 "Click OK to accept.")) {
             TutoringSessionBean session = bookingActionColumn.getTableView().getItems().get(index);
-            new BookingTutoringSessionController().acceptSession(session.getSessionId());
+            new BookingTutoringSessionController(sessionId).acceptSession(session.getSessionId());
+
             bookingActionColumn.getTableView().getItems().remove(session);
+
             if (parentController != null) {
                 parentController.refreshCalendarAndTable();
             }
@@ -633,7 +666,7 @@ public class BookingSessionGraphicControllerColored {
                 "Are you sure you want to refuse the booking?",
                 "Click OK to refuse.")) {
             TutoringSessionBean session = bookingActionColumn.getTableView().getItems().get(index);
-            new BookingTutoringSessionController().refuseSession(session.getSessionId());
+            new BookingTutoringSessionController(sessionId).refuseSession(session.getSessionId());
             bookingActionColumn.getTableView().getItems().remove(session);
             if (parentController != null) {
                 parentController.refreshCalendarAndTable();
@@ -656,86 +689,9 @@ public class BookingSessionGraphicControllerColored {
         return modCancelActionColumn;
     }
 
-    /* Metodo getter, così che il ManageNoticeBoardGraphicControllerColored
-    // possa ottenere "sessionTable"
     public TableView<TutoringSessionBean> getSessionTable() {
         return sessionTable;
     }
-
-    private ObservableList<Tutor> loadTutorMatches(String subject, String location, Availability availability) {
-        // 1) Ottengo la factory e l’AccountDAO
-        AccountDAO accountDAO = DaoFactory.getInstance().getAccountDAO();
-
-        // 2) Carico TUTTI gli account con role="Tutor"
-        List<Account> allTutorAccounts = accountDAO.loadAllAccountsOfType(ROLE_TUTOR);
-
-        // 3) Converto in oggetti Tutor
-        List<Tutor> allTutors = new ArrayList<>();
-        for (Account acc : allTutorAccounts) {
-            if (acc instanceof Tutor tutor) {
-                allTutors.add(tutor);
-            }
-        }
-
-        // Applico un semplice filtro su subject e location
-        List<Tutor> filtered = new ArrayList<>();
-        for (Tutor tutor : allTutors) {
-            boolean matchLocality  = (location == null || location.isBlank())
-                    || tutor.getLocation().equalsIgnoreCase(location);
-
-            boolean matchAvailability = checkTutorAvailability(tutor, availability);
-
-            boolean matchSubject = (subject == null || subject.isBlank())
-                    || tutor.getSubject().equalsIgnoreCase(subject);
-
-            if (matchLocality && matchAvailability && matchSubject) {
-                filtered.add(tutor);
-            }
-        }
-
-        /* System.out.println("Trovati: " + allTutorAccounts.size() + " tutor accounts.");
-        for (Account a : allTutorAccounts) {
-            System.out.println(" - " + a.getEmail() + " / " + a.getRole());
-        }
-        return FXCollections.observableArrayList(filtered);
-    }
-
-    private boolean checkTutorAvailability(Tutor tutor, Availability userReq) {
-
-        // 1. Tutor privo di disponibilità --> subito false
-        Availability tutorAvail = tutor.getAvailability();
-        if (tutorAvail == null) {
-            return false;
-        }
-
-        // 2. Controllo range di date (start / end)
-        LocalDate reqStart = userReq.getStartDate();
-        LocalDate reqEnd   = userReq.getEndDate();
-
-        // Il tutor inizia troppo tardi
-        if (reqStart != null && tutorAvail.getStartDate() != null
-                && tutorAvail.getStartDate().isAfter(reqStart)) {
-            return false;
-        }
-
-        // Il tutor finisce troppo presto
-        if (reqEnd != null && tutorAvail.getEndDate() != null
-                && tutorAvail.getEndDate().isBefore(reqEnd)) {
-            return false;
-        }
-
-        // 3. Giorni della settimana
-        List<DayOfWeek> requestedDays = userReq.getDaysOfWeek();
-        if (requestedDays != null && !requestedDays.isEmpty()) {
-            // basta 1 giorno in comune
-            return requestedDays.stream()
-                    .anyMatch(tutorAvail.getDaysOfWeek()::contains);
-        }
-
-        // Tutte le verifiche superate
-        return true;
-    } */
-
 
     @FXML
     private void handleBookSession(ActionEvent event) {
@@ -749,7 +705,6 @@ public class BookingSessionGraphicControllerColored {
             return;
         }
 
-        BookingTutoringSessionController logic = new BookingTutoringSessionController();
         int booked = bookSelectedRows(tutor);
 
         if (booked > 0) {
@@ -759,6 +714,47 @@ public class BookingSessionGraphicControllerColored {
             showAlert("No Bookings", "No rows selected or no valid time provided.");
         }
     }
+
+    private int bookSelectedRows(TutorBean tutor) {
+        int count = 0;
+        String studentId = getLoggedAccountId();
+        if (studentId == null) {
+            throw new IllegalStateException("Logged user has no Student account.");
+        }
+
+        for (DayBookingBean row : dayTable.getItems()) {
+            if (!row.isSelected() || row.missingTimes()) continue;
+
+            try {
+                TutoringSessionBean bean = bookingCtrl.buildBookingBean(
+                        tutor, row, studentId,
+                        chosenLocation, chosenSubject);
+                bookingCtrl.bookSession(bean);
+                count++;
+            } catch (DateTimeParseException ex) {
+                showAlert("Booking error", "Invalid time ...");
+            }
+        }
+        return count;
+    }
+
+    // Helper centrale per recuperare l'utente loggato
+    private UserBean getLoggedUser(){
+        return (sessionId == null)? null : loginCtrl.getLoggedUser(sessionId);
+    }
+
+    private String getLoggedAccountId() {
+        UserBean ub = getLoggedUser();
+        if (ub == null) return null;
+        for (AccountBean ab : ub.getAccounts()) {
+            if (ROLE_STUDENT.equalsIgnoreCase(ab.getRole())
+                    || ROLE_TUTOR.equalsIgnoreCase(ab.getRole()))
+                return ab.getAccountId();
+        }
+        return null;
+    }
+
+    private boolean isLogged() { return getLoggedUser() != null; }
 
 
     @FXML
@@ -781,9 +777,9 @@ public class BookingSessionGraphicControllerColored {
 
     @FXML
     private boolean ensureUserLoggedIn(ActionEvent event) {
-        if (SessionManager.getLoggedUser() != null) {
-            return true;
-        }
+
+        if (isLogged()) return true;
+
         showAlert("Booking", "You must be logged in to book a session.");
         try {
             Parent root = FXMLLoader.load(getClass().getResource("/fxml/Login.fxml"));
@@ -796,63 +792,6 @@ public class BookingSessionGraphicControllerColored {
         }
         return false;
     }
-
-    private int bookSelectedRows(TutorBean tutor){
-        int count = 0;
-
-        String studentId = null;
-        for (AccountBean account : SessionManager.getLoggedUser().getAccounts()) {
-            if ("Student".equalsIgnoreCase(account.getRole())) {
-                studentId = account.getAccountId();
-                break;
-            }
-        }
-
-        if (studentId == null) {
-            throw new IllegalStateException("Logged user has no Student account.");
-        }
-
-        for( DayBookingBean row : dayTable.getItems()){
-            if(!row.isSelected() || row.missingTimes()) continue;
-
-            try{
-                TutoringSessionBean bean = bookingCtrl.buildBookingBean(
-                        tutor, row, studentId,
-                        chosenLocation, chosenSubject);
-                bookingCtrl.bookSession(bean);
-                count++;
-            }catch(DateTimeParseException ex){
-                showAlert("Booking error","Invalid time ...");
-            }
-        }
-        return count;
-    }
-
-    private TutoringSessionBean buildBean(Tutor tutor, DayBooking row) {
-        TutoringSessionBean bean = new TutoringSessionBean();
-        bean.setTutorId(tutor.getAccountId());
-
-        String studentId = null;
-        for (AccountBean account : SessionManager.getLoggedUser().getAccounts()) {
-            if ("Student".equalsIgnoreCase(account.getRole())) {
-                studentId = account.getAccountId();
-                break;
-            }
-        }
-        if (studentId == null) {
-            throw new IllegalStateException("Logged user has no Student account.");
-        }
-
-        bean.setStudentId(studentId);
-        bean.setDate(row.getDate());
-        bean.setStartTime(LocalTime.parse(row.getStartTime()));
-        bean.setEndTime(LocalTime.parse(row.getEndTime()));
-        bean.setLocation(chosenLocation);
-        bean.setSubject(chosenSubject);
-        bean.setComment(row.getComment());
-        return bean;
-    }
-
 
     @FXML
     private void showStudentProfile(String studentAccountId) {
@@ -875,10 +814,20 @@ public class BookingSessionGraphicControllerColored {
     @FXML
     public void goToHome(ActionEvent event) {
         try {
-            Parent homeRoot = FXMLLoader.load(getClass().getResource("/fxml/Home.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Home.fxml"));
+            Parent root = loader.load();
+
+            // Inizializza la Home con entrambi i parametri
+            HomeGraphicControllerColored controller = loader.getController();
+
+            // Se l'utente è loggato, passiamo i dati
+            if (sessionId != null && userBean != null) {
+                controller.initData(sessionId, userBean);
+            }
+
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
-            Scene scene = new Scene(homeRoot, screenBounds.getWidth(), screenBounds.getHeight());
+            Scene scene = new Scene(root, screenBounds.getWidth(), screenBounds.getHeight());
             stage.setTitle("Home");
             stage.setScene(scene);
             stage.setMaximized(true);
@@ -891,7 +840,8 @@ public class BookingSessionGraphicControllerColored {
 
     @FXML
     public void goToLogin(ActionEvent event) {
-        LoginGraphicControllerColored.showLoginScene(event);
+        LoginGraphicControllerColored loginGraphicControllerColored = new LoginGraphicControllerColored();
+        loginGraphicControllerColored.showLoginScene(event);
     }
 
     @FXML
@@ -900,74 +850,52 @@ public class BookingSessionGraphicControllerColored {
     }
 
     @FXML
-    public void goToManageNoticeBoard(ActionEvent event) {
-        try {
-            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            FXMLLoader loader = new FXMLLoader(BookingSessionGraphicControllerColored.class.getResource("/fxml/ManageNoticeBoard.fxml"));
-            Parent root = loader.load();
-            Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
-            Scene scene = new Scene(root, screenBounds.getWidth(), screenBounds.getHeight());
-            stage.setTitle("Manage Notice Board");
-            stage.setScene(scene);
-            stage.setMaximized(true);
-            stage.show();
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.err.println("An error occurred while loading the Manage Notice Board screen.");
+    private void goToManageNoticeBoard(ActionEvent event) {
+
+        if (userBean == null) {
+            showAlert("Booking", "You must be logged in to manage the notice board.");
+            goToLogin(event);
+            return;
         }
-    }
-
-
-    @FXML
-    public void showTutorListScene(ActionEvent event) {
         try {
-            Stage stage = (Stage) ((Button) event.getSource()).getScene().getWindow();
-            FXMLLoader loader = new FXMLLoader(BookingSessionGraphicControllerColored.class.getResource("/fxml/BookingTutoringSession.fxml"));
-            Parent loginRoot = loader.load();
-            Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
-            Scene scene = new Scene(loginRoot, screenBounds.getWidth(), screenBounds.getHeight());
-            stage.setTitle("Book a Tutoring Session");
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/ManageNoticeBoard.fxml"));
+            Parent root  = loader.load();
+            ManageNoticeBoardGraphicControllerColored manageNoticeBoardGraphicControllerColored = loader.getController();
+            manageNoticeBoardGraphicControllerColored.initData(sessionId, userBean);
+            Rectangle2D sb  = Screen.getPrimary().getVisualBounds();
+            Scene scene  = new Scene(root, sb.getWidth(), sb.getHeight());
+            Stage stage  = (Stage) manageNoticeBoardButton.getScene().getWindow();
             stage.setScene(scene);
+            stage.setTitle("Manage Notice Board");
             stage.setMaximized(true);
             stage.show();
         } catch (Exception e) {
             e.printStackTrace();
-            System.err.println("An error occurred while loading the Tutoring Session screen.");
         }
     }
 
     @FXML
     private void goToLeaveASharedReview(ActionEvent event) {
-        // 1) Verifichiamo se l’utente è loggato
-        if (SessionManager.getLoggedUser() == null) {
-            showAlert("Booking", "You must be logged in to manage the notice board.");
-            try {
-                Parent signUpRoot = FXMLLoader.load(getClass().getResource("/fxml/Login.fxml"));
-                Stage stage = (Stage) leaveASharedReviewButton.getScene().getWindow();
-                Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
-                Scene scene = new Scene(signUpRoot, screenBounds.getWidth(), screenBounds.getHeight());
-                stage.setTitle("Error in accessing the notice board");
-                stage.setScene(scene);
-                stage.setMaximized(true);
-                stage.show();
-            } catch (Exception e) {
-                e.printStackTrace();
-                System.err.println("An error occurred while loading the Login screen for review.");
-            }
-        } else {
-            try {
-                Parent signUpRoot = FXMLLoader.load(getClass().getResource("/fxml/LeaveASharedReview.fxml"));
-                Stage stage = (Stage) leaveASharedReviewButton.getScene().getWindow();
-                Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
-                Scene scene = new Scene(signUpRoot, screenBounds.getWidth(), screenBounds.getHeight());
-                stage.setTitle("Error in accessing the notice board");
-                stage.setScene(scene);
-                stage.setMaximized(true);
-                stage.show();
-            } catch (Exception e) {
-                e.printStackTrace();
-                System.err.println("An error occurred while loading the Shared Review screen.");
-            }
+
+        if (userBean == null) {
+            showAlert("Booking", "You must be logged in to leave a shared review.");
+            goToLogin(event);
+            return;
+        }
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/LeaveASharedReview.fxml"));
+            Parent root = loader.load();
+            LeaveASharedReviewGraphicControllerColored leaveASharedReviewGraphicControllerColored = loader.getController();
+            leaveASharedReviewGraphicControllerColored.initData(sessionId, userBean);
+            Rectangle2D sb = Screen.getPrimary().getVisualBounds();
+            Scene scene  = new Scene(root, sb.getWidth(), sb.getHeight());
+            Stage stage = (Stage) leaveASharedReviewButton.getScene().getWindow();
+            stage.setScene(scene);
+            stage.setTitle("Leave a Shared Review");
+            stage.setMaximized(true);
+            stage.show();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -985,7 +913,11 @@ public class BookingSessionGraphicControllerColored {
         // Se l'utente ha premuto OK, effettuiamo il logout
         if (result.isPresent() && result.get() == ButtonType.OK) {
             // 1) Azzeri la sessione, se hai un SessionManager
-            SessionManager.logout();
+            if(sessionId != null) {
+                loginCtrl.logout(sessionId);
+            }
+
+            sessionId = null;
 
             welcomeLabel.setVisible(false);
             logOutButton.setVisible(false);

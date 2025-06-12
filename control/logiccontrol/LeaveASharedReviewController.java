@@ -7,10 +7,8 @@ import logic.model.dao.*;
 import logic.model.domain.*;
 import logic.model.domain.state.TutoringSession;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.time.LocalDate;
+import java.util.*;
 
 import static logic.model.domain.ReviewStatus.NOT_STARTED;
 import static logic.model.domain.ReviewStatus.PENDING;
@@ -18,18 +16,30 @@ import static logic.model.domain.ReviewStatus.PENDING;
 public class LeaveASharedReviewController {
 
     private static final ReviewStatus COMPLETED = ReviewStatus.COMPLETE;
+    private static final String ROLE_TUTOR = "Tutor";
+    private static final String ROLE_STUDENT = "Student";
 
     private SharedReviewDAO sharedReviewDAO = DaoFactory.getInstance().getSharedReviewDAO();
     private TutoringSessionDAO tutoringSessionDAO = DaoFactory.getInstance().getTutoringSessionDAO();
     private AccountDAO accountDAO = DaoFactory.getInstance().getAccountDAO();
+    private final LoginController loginCtrl = new LoginController();
+
+    public LeaveASharedReviewController() {}
+
+    public LeaveASharedReviewController(UUID sessionId) {
+        this.sessionId = sessionId;
+    }
+
+    private UUID sessionId;
 
     // Carica i tutor con cui lo studente ha almeno una sessione
     public List<String> findAllTutorsForStudent(String studentId) {
         List<TutoringSession> all = tutoringSessionDAO.loadAllTutoringSession();
         Set<String> tutorIds = new HashSet<>();
-        for (TutoringSession tutoringSession : all) {
-            if (studentId.equals(tutoringSession.getStudentId())) {
-                tutorIds.add(tutoringSession.getTutorId());
+        for (TutoringSession ts : all) {
+            if (studentId.equals(ts.getStudentId())
+                    /** && allSessionsFinished(studentId, ts.getTutorId())*/) {
+                tutorIds.add(ts.getTutorId());
             }
         }
         return new ArrayList<>(tutorIds);
@@ -39,9 +49,10 @@ public class LeaveASharedReviewController {
     public List<String> findAllStudentsForTutor(String tutorId) {
         List<TutoringSession> all = tutoringSessionDAO.loadAllTutoringSession();
         Set<String> studentIds = new HashSet<>();
-        for (TutoringSession tutoringSession : all) {
-            if (tutorId.equals(tutoringSession.getTutorId())) {
-                studentIds.add(tutoringSession.getStudentId());
+        for (TutoringSession ts : all) {
+            if (tutorId.equals(ts.getTutorId())
+                    /** && allSessionsFinished(ts.getStudentId(), tutorId)*/) {
+                studentIds.add(ts.getStudentId());
             }
         }
         return new ArrayList<>(studentIds);
@@ -57,7 +68,7 @@ public class LeaveASharedReviewController {
             }
         }
         // Altrimenti la creo
-        SharedReview newSharedReview = new SharedReview(null, studentId, tutorId);
+        SharedReview newSharedReview = new SharedReview(UUID.randomUUID().toString(), studentId, tutorId);
         newSharedReview.setStatus(NOT_STARTED);
         sharedReviewDAO.store(newSharedReview);
         return newSharedReview;
@@ -136,7 +147,9 @@ public class LeaveASharedReviewController {
     }
 
     private float computeAverageTutorRating(String tutorId) {
-        int sum = 0, count = 0;
+        int sum = 0;
+        int count = 0;
+
         for (SharedReview sr : sharedReviewDAO.loadForTutor(tutorId)) {
             if (sr.getStatus() == COMPLETED) {
                 sum += sr.getStudentStars();
@@ -149,10 +162,10 @@ public class LeaveASharedReviewController {
     private void assignRatingToTutorAccount(String tutorKeyOrId, float newRating) {
         // System.out.println("DEBUG: assignRatingToTutorAccount() called with " + tutorKeyOrId + " -> newRating=" + newRating);
 
-        AccountDAO accountDAO = DaoFactory.getInstance().getAccountDAO();
-        Account account = accountDAO.load(tutorKeyOrId); // Proviamo con la chiave diretta
+        AccountDAO accountDAO1 = DaoFactory.getInstance().getAccountDAO();
+        Account account = accountDAO1.load(tutorKeyOrId); // Proviamo con la chiave diretta
         if (account == null) {
-            for (Account acc : accountDAO.loadAllAccountsOfType("Tutor")) {
+            for (Account acc : accountDAO1.loadAllAccountsOfType(ROLE_TUTOR)) {
                 if (acc.getAccountId().equals(tutorKeyOrId)) {
                     account = acc;
                     break;
@@ -161,7 +174,7 @@ public class LeaveASharedReviewController {
 
             if (account instanceof Tutor t) {
                 tutorKeyOrId = t.getEmail() + "_" + t.getRole();
-                account = accountDAO.load(tutorKeyOrId);
+                account = accountDAO1.load(tutorKeyOrId);
             }
         }
 
@@ -169,7 +182,7 @@ public class LeaveASharedReviewController {
             // System.out.println("DEBUG: old rating = " + tutorAcc.getRating());
             tutorAcc.setRating(newRating);
             // System.out.println("DEBUG: new rating set to " + newRating);
-            accountDAO.store(tutorAcc);
+            accountDAO1.store(tutorAcc);
             // System.out.println("DEBUG: stored " + tutorAcc.getEmail() + "_" + tutorAcc.getRole());
         } else {
             // System.out.println("WARNING: Tutor account not found for key: " + tutorKeyOrId);
@@ -211,19 +224,14 @@ public class LeaveASharedReviewController {
 
         AccountDAO accDao = DaoFactory.getInstance().getAccountDAO();
 
-        boolean isStudent = false;
+        // Determino se l’utente loggato è uno studente usando il metodo già presente
+        boolean isStudent = isLoggedUserStudent();
 
-        // Controllo direttamente se l'utente è uno Studente
-        for (AccountBean account : SessionManager.getLoggedUser().getAccounts()) {
-            if ("Student".equalsIgnoreCase(account.getRole())) {
-                isStudent = true;
-                break;
-            }
-        }
+        // Id della controparte: se sono studente --> tutorId, altrimenti studentId
+        String counterpartId = isStudent ? sr.getTutorId() : sr.getStudentId();
+        Account counterpartAcc = accDao.load(counterpartId);
 
-        String info = buildNameAgeLabel(
-                isStudent ? accDao.load(sr.getTutorId()) : accDao.load(sr.getStudentId())
-        );
+        String info = buildNameAgeLabel(counterpartAcc);
 
         return new SharedReviewBean(sr, info);
     }
@@ -254,76 +262,143 @@ public class LeaveASharedReviewController {
 
     public SharedReviewBean findOrCreateSharedReviewBean(String studentId, String tutorId) {
         SharedReview sr = findOrCreateSharedReview(studentId, tutorId);
+        boolean isStudent = isLoggedUserStudent();
 
-        boolean isStudent = false;
-        for (AccountBean account : SessionManager.getLoggedUser().getAccounts()) {
-            if ("Student".equalsIgnoreCase(account.getRole())) {
-                isStudent = true;
-                break;
-            }
-        }
-
-        Account counterpartAccount;
-        if (isStudent) {
-            counterpartAccount = accountDAO.load(tutorId);    // lo Studente guarda il Tutor
-        } else {
-            counterpartAccount = accountDAO.load(studentId);  // il Tutor guarda lo Studente
-        }
-
+        String counterpartId = isStudent ? tutorId : studentId;
+        Account counterpartAccount = accountDAO.load(counterpartId);
         SharedReviewBean bean = new SharedReviewBean(sr, buildNameAgeLabel(counterpartAccount));
 
         if (counterpartAccount != null) {
-            AccountBean accBean = new AccountBean();
-            accBean.setAccountId(counterpartAccount.getAccountId());
-            accBean.setName(counterpartAccount.getName());
-            accBean.setSurname(counterpartAccount.getSurname());
-            accBean.setBirthday(counterpartAccount.getBirthday());
-            accBean.setRole(counterpartAccount.getRole());
-            accBean.setLocation(counterpartAccount instanceof Tutor t ? t.getLocation() : null);
-            accBean.setSubject(counterpartAccount instanceof Tutor t ? t.getSubject() : null);
-            accBean.setProfilePicturePath(counterpartAccount.getProfilePicturePath());
-            accBean.setProfileComment(counterpartAccount.getProfileComment());
+            AccountBean counterpartBean = toAccountBean(counterpartAccount);
+            bean.setCounterpartAccount(counterpartBean);
 
-            bean.setCounterpartAccount(accBean);
-
-            // Carico qui sempre il tutor, indipendentemente da chi guarda
             Account tutorAcc = accountDAO.load(sr.getTutorId());
             if (tutorAcc != null) {
-                AccountBean tutorBean = new AccountBean();
-                tutorBean.setAccountId(tutorAcc.getAccountId());
-                tutorBean.setName(tutorAcc.getName());
-                tutorBean.setSurname(tutorAcc.getSurname());
-                tutorBean.setBirthday(tutorAcc.getBirthday());
-                tutorBean.setRole(tutorAcc.getRole());
-                tutorBean.setSubject(tutorAcc instanceof Tutor t ? t.getSubject() : null);
-                tutorBean.setLocation(tutorAcc instanceof Tutor t ? t.getLocation() : null);
-                tutorBean.setProfilePicturePath(tutorAcc.getProfilePicturePath());
-                tutorBean.setProfileComment(tutorAcc.getProfileComment());
+                AccountBean tutorBean = toAccountBean(tutorAcc);
                 bean.setTutorAccount(tutorBean);
             }
         }
+
         return bean;
     }
 
-    public String getLoggedRole() {
-        return SessionManager.getLoggedUser().getAccounts().stream()
-                .map(AccountBean::getRole)
-                .filter(r -> "Tutor".equalsIgnoreCase(r) || "Student".equalsIgnoreCase(r))
-                .findFirst().orElse(null);
-    }
-    public String getLoggedAccountId() {
-        return SessionManager.getLoggedUser().getAccounts().stream()
-                .filter(a -> "Tutor".equalsIgnoreCase(a.getRole()) || "Student".equalsIgnoreCase(a.getRole()))
-                .map(AccountBean::getAccountId)
-                .findFirst().orElse(null);
+    private boolean isLoggedUserStudent() {
+        // >>> MOD: passiamo la sessione al metodo
+        UserBean me = getLoggedUser(sessionId);
+        if (me == null) {
+            return false;
+        }
+
+        for (AccountBean account : me.getAccounts()) {
+            if (ROLE_STUDENT.equalsIgnoreCase(account.getRole())) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
-    // Interazioni dirette con il SessionManager, in maniera tale che il controller grafico non lo conosca
-    public UserBean getLoggedUser() {
-        return SessionManager.getLoggedUser();
+
+    private AccountBean toAccountBean(Account account) {
+
+        AccountBean bean = new AccountBean();
+        bean.setAccountId(account.getAccountId());
+        bean.setName(account.getName());
+        bean.setSurname(account.getSurname());
+        bean.setBirthday(account.getBirthday());
+        bean.setRole(account.getRole());
+        bean.setProfilePicturePath(account.getProfilePicturePath());
+        bean.setProfileComment(account.getProfileComment());
+
+        if (account instanceof Tutor tutor) {
+            bean.setLocation(tutor.getLocation());
+            bean.setSubject(tutor.getSubject());
+        } else {
+            bean.setLocation(null);
+            bean.setSubject(null);
+        }
+
+        return bean;
     }
 
-    public void logout() {
-        SessionManager.logout();
+
+    // Controllo che tutte le sessioni di tutoraggio siano terminate prima di
+    // permettere di scrivere una recensione condivisa
+    /** private boolean allSessionsFinished(String studentId, String tutorId) {
+        LocalDate today = LocalDate.now();
+
+        for (TutoringSession session : tutoringSessionDAO.loadAllTutoringSession()) {
+            boolean isBetweenSameUsers = studentId.equals(session.getStudentId())
+                    && tutorId.equals(session.getTutorId());
+            boolean isInFutureOrToday = !session.getDate().isBefore(today);
+
+            if (isBetweenSameUsers && isInFutureOrToday) {
+                return false;
+            }
+        }
+        return true;
+    } */
+
+    public UserBean getLoggedUser(UUID sessionId) {
+        if (sessionId == null || !loginCtrl.isSessionActive(sessionId)) {
+            return null;
+        }
+
+        logic.model.domain.User dom = loginCtrl.getUserFromSession(sessionId);
+        if (dom == null) {
+            return null;
+        }
+
+        UserBean ub = new UserBean();
+        ub.setEmail(dom.getEmail());
+        ub.setUsername(dom.getUsername());
+
+        for (logic.model.domain.Account acc : dom.getAccounts()) {
+            AccountBean ab = new AccountBean();
+            ab.setAccountId(acc.getAccountId());
+            ab.setRole(acc.getRole());
+            ab.setName(acc.getName());
+            ab.setSurname(acc.getSurname());
+            ub.addAccount(ab);
+        }
+
+        return ub;
+    }
+
+    // Restituisce il ruolo “Student” o “Tutor” per la sessione, oppure null
+    public String getLoggedRole(UUID sessionId) {
+        UserBean me = getLoggedUser(sessionId);
+        if (me == null) {
+            return null;
+        }
+        for (AccountBean ab : me.getAccounts()) {
+            String r = ab.getRole();
+            if (ROLE_TUTOR.equalsIgnoreCase(r) || ROLE_STUDENT.equalsIgnoreCase(r)) {
+                return r;
+            }
+        }
+        return null;
+    }
+
+    // Restituisce l’accountId corrispondente al ruolo “Student” o “Tutor”, oppure null
+    public String getLoggedAccountId(UUID sessionId) {
+        UserBean me = getLoggedUser(sessionId);
+        if (me == null) {
+            return null;
+        }
+        for (AccountBean ab : me.getAccounts()) {
+            String r = ab.getRole();
+            if (ROLE_TUTOR.equalsIgnoreCase(r) || ROLE_STUDENT.equalsIgnoreCase(r)) {
+                return ab.getAccountId();
+            }
+        }
+        return null;
+    }
+
+    // Esegue il logout della sessione specificata
+    public void logout(UUID sessionId) {
+        if (sessionId != null) {
+            loginCtrl.logout(sessionId);
+        }
     }
 }

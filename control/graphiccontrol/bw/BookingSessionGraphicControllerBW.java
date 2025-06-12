@@ -4,15 +4,23 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
 import logic.bean.AvailabilityBean;
 import logic.bean.TutorBean;
+import logic.bean.TutorSearchCriteriaBean;
 import logic.bean.TutoringSessionBean;
 import logic.control.logiccontrol.BookingTutoringSessionController;
 
 public class BookingSessionGraphicControllerBW extends BaseCLIControllerBW {
+
+    private UUID sessionId;
+
+    public BookingSessionGraphicControllerBW(UUID sessionId) {
+        this.sessionId = sessionId;
+    }
 
     private static final Logger LOGGER = Logger.getLogger(BookingSessionGraphicControllerBW.class.getName());
 
@@ -41,9 +49,20 @@ public class BookingSessionGraphicControllerBW extends BaseCLIControllerBW {
         av.setStartDate(startDate);
         av.setEndDate(endDate);
 
-        List<TutorBean> tutors = logic.searchTutors(
-                subject, location, av,
-                false, false, false, false, false, null);
+        // Costruisco l'oggetto criteria necessario per la chiamata di searchTutor
+        TutorSearchCriteriaBean criteria = new TutorSearchCriteriaBean();
+        criteria.setSubject(subject);
+        criteria.setLocation(location);
+        criteria.setAvailability(av);
+
+        criteria.setInPerson(false);
+        criteria.setOnline(false);
+        criteria.setGroup(false);
+        criteria.setRating4Plus(false);
+        criteria.setFirstLessonFree(false);
+        criteria.setOrderCriteria(null);
+
+        List<TutorBean> tutors = logic.searchTutors(criteria);
 
         if (tutors.isEmpty()) {
             LOGGER.info("No tutors found.");
@@ -72,10 +91,11 @@ public class BookingSessionGraphicControllerBW extends BaseCLIControllerBW {
             return;
         }
 
-        label:
-        while(true){
+        boolean keepAsking = true;
+        while (keepAsking) {
             LOGGER.info("\n[V] View tutor profile   [C] Continue to booking   [0] Cancel");
             String in = ask("Choose:").trim().toUpperCase();
+
             switch (in) {
                 case "0":
                     return;
@@ -83,7 +103,11 @@ public class BookingSessionGraphicControllerBW extends BaseCLIControllerBW {
                     new TutorProfileGraphicControllerBW().show(selectedTutor.getAccountId());
                     break;
                 case "C":
-                    break label;
+                    keepAsking = false; // esci dal ciclo e procedi
+                    break;
+                default:
+                    LOGGER.info("Invalid input. Please choose one of the available options.");
+                    break;
             }
         }
 

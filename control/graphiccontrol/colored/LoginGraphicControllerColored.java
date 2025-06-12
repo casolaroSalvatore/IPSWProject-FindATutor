@@ -3,8 +3,7 @@ package logic.control.graphiccontrol.colored;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.stage.Screen;
-import logic.bean.AccountBean;
-import logic.bean.UserBean;
+import logic.bean.*;
 import logic.control.logiccontrol.LoginController;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -13,6 +12,8 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
+
+import java.util.UUID;
 
 public class LoginGraphicControllerColored {
 
@@ -37,8 +38,14 @@ public class LoginGraphicControllerColored {
     @FXML
     private LoginController loginController = new LoginController();
 
+    // Campo per memorizzare la sessione e bean utente
+    private UUID sessionId;
+    private UserBean userBean;
+
+    private static final String ERROR = "Error";
+
     @FXML
-    public static void showLoginScene(ActionEvent event) {
+    public void showLoginScene(ActionEvent event) {
         try {
             Stage stage = (Stage) ((Button) event.getSource()).getScene().getWindow();
             FXMLLoader loader = new FXMLLoader(LoginGraphicControllerColored.class.getResource("/fxml/Login.fxml"));
@@ -62,14 +69,14 @@ public class LoginGraphicControllerColored {
         // Controlliamo quale ruolo è stato selezionato dall'utente
         RadioButton selectedButton = (RadioButton) roleToggleGroup.getSelectedToggle();
         if (selectedButton == null) {
-            showAlert("Error", "Please select a role.");
+            showAlert(ERROR, "Please select a role.");
             return;
         }
 
         String selectedRole = selectedButton.getText(); // "Student" o "Tutor"
 
         // Creazione del Bean e chiamata al controller logico
-        UserBean userBean = new UserBean();
+        userBean = new UserBean();
         userBean.setEmail(email);
 
         AccountBean accountBean = new AccountBean();
@@ -77,38 +84,58 @@ public class LoginGraphicControllerColored {
         accountBean.setPassword(password);
         userBean.addAccount(accountBean);
 
+
+        /* Controllo superfluo, viene già effettuato all'interno della registrazione
         try {
             userBean.checkEmailSyntax();
             accountBean.checkPasswordSyntax();
         } catch (IllegalArgumentException ex) {
-            showAlert("Error", ex.getMessage());
+            showAlert(ERROR, ex.getMessage());
             return;
-        }
+        } */
 
-        UserBean loggedProfile = loginController.login(userBean);
+        try {
+            AuthResultBean loggedProfile = loginController.login(userBean);
+            if (loggedProfile == null) {
+                showAlert(ERROR, "Wrong credentials or role mismatch.");
+                return;
+            }
 
-        if (loggedProfile != null) {
+            if (userBean == null) {
+                showAlert(ERROR, "Login succeeded, but user data is missing.");
+                return;
+            }
+
+            // Memorizzo sia sessionId sia UserBean completo
+            sessionId = loggedProfile.getSessionId();
+            userBean = loggedProfile.getUser();
+
             showAlert("Success", "Logged in as " + selectedRole);
-
-            /* Salva il nome dell'utente nella Home
-            SessionManager.setLoggedUser(loggedProfile); */
-
             showAlert("Success", "Redirecting to the " + accountBean.getRole() + " dashboard...");
             goToHome(event);
 
-        } else {
-            showAlert("Error", "The selected role is not associated with this account.");
+        } catch (IllegalArgumentException ex) {
+            showAlert(ERROR, ex.getMessage());
         }
     }
 
     @FXML
     public void goToHome(ActionEvent event) {
         try {
-            // 1) Carica l’FXML della Home
-            Parent homeRoot = FXMLLoader.load(getClass().getResource("/fxml/Home.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Home.fxml"));
+            Parent root = loader.load();
+
+            // Inizializza la Home con entrambi i parametri
+            HomeGraphicControllerColored controller = loader.getController();
+
+            // Se l'utente è loggato, passiamo i dati
+            if (sessionId != null && userBean != null) {
+                controller.initData(sessionId, userBean);
+            }
+
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
-            Scene scene = new Scene(homeRoot, screenBounds.getWidth(), screenBounds.getHeight());
+            Scene scene = new Scene(root, screenBounds.getWidth(), screenBounds.getHeight());
             stage.setTitle("Home");
             stage.setScene(scene);
             stage.setMaximized(true);
@@ -139,7 +166,12 @@ public class LoginGraphicControllerColored {
 
     @FXML
     private void goToManageNoticeBoard(ActionEvent event) {
-        showAlert("Booking", "You must be logged in to manage the notice board.");
+        showAlert("Manage Notice Board", "You must be logged in to manage the notice board.");
+    }
+
+    @FXML
+    private void goToLeaveASharedReview(ActionEvent event) {
+        showAlert("Leave a Shared Review", "You must be logged in to leave a shared review.");
     }
 
     @FXML
@@ -150,4 +182,5 @@ public class LoginGraphicControllerColored {
         alert.setContentText(message);
         alert.showAndWait();
     }
+
 }

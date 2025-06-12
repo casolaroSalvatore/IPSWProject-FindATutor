@@ -1,5 +1,7 @@
 package logic.bean;
 
+import logic.model.domain.Account;
+
 import java.time.LocalDate;
 import java.time.Period;
 
@@ -10,7 +12,7 @@ public class AccountBean {
     private String password;
     private String confirmPassword;
     private String name;
-    private String surname;;
+    private String surname;
     private LocalDate birthday;
     private String profilePicturePath;
     private String profileComment;
@@ -29,23 +31,66 @@ public class AccountBean {
     private boolean offersGroup;
     private boolean firstLessonFree;
 
-    public String getAccountId() { return accountId; }
-    public void   setAccountId(String accountId)   { this.accountId = accountId;    }
+    public AccountBean() {}
 
-    public String getRole() { return role;      }
-    public void setRole(String role) { this.role = role;         }
+    public AccountBean(Account account) {
+        this.accountId = account.getAccountId();
+        this.role = account.getRole();
+        this.password = account.getPassword();
+        this.name = account.getName();
+        this.surname = account.getSurname();
+        this.birthday = account.getBirthday();
+        this.profilePicturePath = account.getProfilePicturePath();
+        this.profileComment = account.getProfileComment();
+    }
 
-    public String getPassword() { return password; }
-    public void   setPassword(String password) { this.password = password; }
+    public String getAccountId() {
+        return accountId;
+    }
 
-    public String getConfirmPassword() { return confirmPassword; }
-    public void   setConfirmPassword(String confirmPassword) { this.confirmPassword = confirmPassword; }
+    public void setAccountId(String accountId) {
+        this.accountId = accountId;
+    }
 
-    public String getName() { return name;      }
-    public void setName(String name) { this.name = name;         }
+    public String getRole() {
+        return role;
+    }
 
-    public String getSurname() { return surname;   }
-    public void setSurname(String surname) { this.surname = surname;      }
+    public void setRole(String role) {
+        this.role = role;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getConfirmPassword() {
+        return confirmPassword;
+    }
+
+    public void setConfirmPassword(String confirmPassword) {
+        this.confirmPassword = confirmPassword;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getSurname() {
+        return surname;
+    }
+
+    public void setSurname(String surname) {
+        this.surname = surname;
+    }
 
     public LocalDate getBirthday() {
         return birthday;
@@ -55,58 +100,119 @@ public class AccountBean {
         this.birthday = birthday;
     }
 
-    public String getProfilePicturePath() { return profilePicturePath; }
-    public void setProfilePicturePath(String profilePicturePath){ this.profilePicturePath = profilePicturePath;}
+    public String getProfilePicturePath() {
+        return profilePicturePath;
+    }
 
-    public String getProfileComment() { return profileComment; }
-    public void setProfileComment(String profileComment) { this.profileComment = profileComment; }
+    public void setProfilePicturePath(String profilePicturePath) {
+        this.profilePicturePath = profilePicturePath;
+    }
 
-    public String getInstitute() { return institute; }
-    public void setInstitute(String institute) { this.institute = institute; }
+    public String getProfileComment() {
+        return profileComment;
+    }
 
-    public String getLocation() { return location;  }
-    public void setLocation(String location) { this.location = location;     }
+    public void setProfileComment(String profileComment) {
+        this.profileComment = profileComment;
+    }
 
-    public AvailabilityBean getAvailabilityBean() { return availabilityBean; }
-    public void setAvailabilityBean(AvailabilityBean availabilityBean) { this.availabilityBean = availabilityBean; }
+    public String getInstitute() {
+        return institute;
+    }
 
-    public String getSubject() { return subject; }
-    public void setSubject(String subject) { this.subject = subject; }
+    public void setInstitute(String institute) {
+        this.institute = institute;
+    }
 
-    public String getEducationalTitle() { return educationalTitle; }
-    public void setEducationalTitle(String educationalTitle) { this.educationalTitle = educationalTitle; }
+    public String getLocation() {
+        return location;
+    }
 
-    public float getHourlyRate() { return hourlyRate; }
-    public void setHourlyRate(float hourlyRate) { this.hourlyRate = hourlyRate; }
+    public void setLocation(String location) {
+        this.location = location;
+    }
 
-    public boolean isOffersInPerson() { return offersInPerson; }
-    public void setOffersInPerson(boolean offersInPerson) { this.offersInPerson = offersInPerson; }
+    public AvailabilityBean getAvailabilityBean() {
+        return availabilityBean;
+    }
 
-    public boolean isOffersOnline() { return offersOnline; }
-    public void setOffersOnline(boolean offersOnline) { this.offersOnline = offersOnline; }
+    public void setAvailabilityBean(AvailabilityBean availabilityBean) {
+        this.availabilityBean = availabilityBean;
+    }
 
-    public boolean isOffersGroup() { return offersGroup; }
-    public void setOffersGroup(boolean offersGroup) { this.offersGroup = offersGroup; }
+    public String getSubject() {
+        return subject;
+    }
 
-    public boolean isFirstLessonFree() { return firstLessonFree; }
-    public void setFirstLessonFree(boolean firstLessonFree) { this.firstLessonFree = firstLessonFree; }
+    public void setSubject(String subject) {
+        this.subject = subject;
+    }
+
+    public String getEducationalTitle() {
+        return educationalTitle;
+    }
+
+    public void setEducationalTitle(String educationalTitle) {
+        this.educationalTitle = educationalTitle;
+    }
+
+    public float getHourlyRate() {
+        return hourlyRate;
+    }
+
+    public void setHourlyRate(float hourlyRate) {
+        this.hourlyRate = hourlyRate;
+    }
+
+    public boolean isOffersInPerson() {
+        return offersInPerson;
+    }
+
+    public void setOffersInPerson(boolean offersInPerson) {
+        this.offersInPerson = offersInPerson;
+    }
+
+    public boolean isOffersOnline() {
+        return offersOnline;
+    }
+
+    public void setOffersOnline(boolean offersOnline) {
+        this.offersOnline = offersOnline;
+    }
+
+    public boolean isOffersGroup() {
+        return offersGroup;
+    }
+
+    public void setOffersGroup(boolean offersGroup) {
+        this.offersGroup = offersGroup;
+    }
+
+    public boolean isFirstLessonFree() {
+        return firstLessonFree;
+    }
+
+    public void setFirstLessonFree(boolean firstLessonFree) {
+        this.firstLessonFree = firstLessonFree;
+    }
 
     // Validazione sintattica e semantica incapsulata
     public void checkBasicSyntax() {
-        if (name == null || !name.matches("[A-Za-zÀ-ÖØ-öø-ÿ' -]{2,30}"))
+        if (name == null || !name.matches("[A-Za-zÀ-ÖØ-öø-ÿ' \\-]{2,30}"))
             throw new IllegalArgumentException("Name must be alphabetic (2‑30 chars).");
-        if (surname == null || !surname.matches("[A-Za-zÀ-ÖØ-öø-ÿ' -]{2,30}"))
+        if (surname == null || !surname.matches("[A-Za-zÀ-ÖØ-öø-ÿ' \\-]{2,30}"))
             throw new IllegalArgumentException("Surname must be alphabetic (2‑30 chars).");
         if (birthday == null || birthday.isAfter(LocalDate.now()) ||
                 Period.between(birthday, LocalDate.now()).getYears() < 13)
             throw new IllegalArgumentException("Invalid birth date (min 13 years).");
         if (role == null || role.isBlank())
             throw new IllegalArgumentException("Role required.");
-        if (profileComment != null && profileComment.length() > 250)
+        if (profileComment.length() > 250){
             throw new IllegalArgumentException("Comment max 250 characters.");
-        if (profilePicturePath != null &&
-                !profilePicturePath.matches(".*\\.(png|jpg|jpeg)$"))
+        }
+        if (!profilePicturePath.matches(".*\\.(png|jpg|jpeg)$") && profilePicturePath != null) {
             throw new IllegalArgumentException("Profile picture must be PNG/JPG.");
+        }
     }
 
     public void checkPasswordSyntax() {
@@ -118,7 +224,7 @@ public class AccountBean {
                     "Password ≥10 chars with upper, lower, digit & symbol – no spaces.");
         if (password.contains(" "))
             throw new IllegalArgumentException("Password cannot contain spaces.");
-        if (confirmPassword != null && !password.equals(confirmPassword) )
+        if (confirmPassword != null && !password.equals(confirmPassword))
             throw new IllegalArgumentException("Password and confirmation do not match.");
     }
 

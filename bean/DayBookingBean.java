@@ -17,22 +17,57 @@ public class DayBookingBean {
     private final SimpleObjectProperty<String> endTime = new SimpleObjectProperty<>();
     private final SimpleObjectProperty<String> comment = new SimpleObjectProperty<>();
 
-    public DayBookingBean(LocalDate d) { date.set(d); }
+    public DayBookingBean(LocalDate d) {
+        date.set(d);
+    }
 
-    public BooleanProperty selectedProperty() { return selected; }
-    public boolean isSelected() { return selected.get(); }
-    public void setSelected(boolean v) { selected.set(v); }
+    public BooleanProperty selectedProperty() {
+        return selected;
+    }
 
-    public ObjectProperty<LocalDate> dateProperty() { return date; }
-    public LocalDate getDate() { return date.get(); }
-    public void setDate(LocalDate d) { date.set(d); }
+    public boolean isSelected() {
+        return selected.get();
+    }
 
-    public String getStartTime() { return startTime.get(); }
-    public void setStartTime(String t) { startTime.set(t); }
-    public String getEndTime() { return endTime.get(); }
-    public void setEndTime(String t) { endTime.set(t); }
-    public String getComment() { return comment.get(); }
-    public void setComment(String c) { comment.set(c); }
+    public void setSelected(boolean v) {
+        selected.set(v);
+    }
+
+    public ObjectProperty<LocalDate> dateProperty() {
+        return date;
+    }
+
+    public LocalDate getDate() {
+        return date.get();
+    }
+
+    public void setDate(LocalDate d) {
+        date.set(d);
+    }
+
+    public String getStartTime() {
+        return startTime.get();
+    }
+
+    public void setStartTime(String t) {
+        startTime.set(t);
+    }
+
+    public String getEndTime() {
+        return endTime.get();
+    }
+
+    public void setEndTime(String t) {
+        endTime.set(t);
+    }
+
+    public String getComment() {
+        return comment.get();
+    }
+
+    public void setComment(String c) {
+        comment.set(c);
+    }
 
     public LocalTime getStartTimeParsed() {
         String v = startTime.get();          // <-- legge la stringa
@@ -44,8 +79,8 @@ public class DayBookingBean {
         return (v == null || v.isBlank()) ? null : LocalTime.parse(v);
     }
 
-    public boolean missingTimes(){
-        return getStartTime()==null || getEndTime()==null || getStartTime().isBlank() || getEndTime().isBlank();
+    public boolean missingTimes() {
+        return getStartTime() == null || getEndTime() == null || getStartTime().isBlank() || getEndTime().isBlank();
     }
 
     public void checkSyntax() {
@@ -59,7 +94,7 @@ public class DayBookingBean {
             throw new IllegalArgumentException("Start must be before End.");
         if (Duration.between(s, e).toMinutes() < 60)
             throw new IllegalArgumentException("Minimum slot 1 hour.");
-        if (s.isBefore(LocalTime.of(7,0)) || e.isAfter(LocalTime.of(22,0)))
+        if (s.isBefore(LocalTime.of(7, 0)) || e.isAfter(LocalTime.of(22, 0)))
             throw new IllegalArgumentException("Time must be between 07:00 and 22:00.");
     }
 }

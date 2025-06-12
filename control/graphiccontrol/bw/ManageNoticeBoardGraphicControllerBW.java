@@ -1,9 +1,11 @@
 package logic.control.graphiccontrol.bw;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
+
 import logic.bean.TutoringSessionBean;
 import logic.bean.AccountBean;
 import logic.control.logiccontrol.ManageNoticeBoardController;
@@ -14,10 +16,14 @@ public class ManageNoticeBoardGraphicControllerBW extends BaseCLIControllerBW {
     private static final Logger LOGGER = Logger.getLogger(ManageNoticeBoardGraphicControllerBW.class.getName());
     private static final String ROLE_TUTOR = "Tutor";
     private static final String LABEL_CHOICE = "Choice:";
-    private static final String STATUS_MOD_REQUESTED = "MOD_REQUESTED";
-    private static final String STATUS_CANCEL_REQUESTED = "CANCEL_REQUESTED";
 
     private ManageNoticeBoardController manageNoticeBoardController = new ManageNoticeBoardController();
+
+    private UUID sessionId;
+
+    public ManageNoticeBoardGraphicControllerBW(UUID sessionId) {
+        this.sessionId = sessionId;
+    }
 
     static {
         SystemOutConsoleHandler handler = new SystemOutConsoleHandler();
@@ -46,7 +52,6 @@ public class ManageNoticeBoardGraphicControllerBW extends BaseCLIControllerBW {
 
         // Fissiamo role e userId come final (servono per non avere errori nella lambda expression)
         final String fixedRole = role;
-        final String fixedUserId = userId;
 
         while (true) {
             List<TutoringSessionBean> sessions = manageController.loadSessionsForLoggedUser();
@@ -119,12 +124,12 @@ public class ManageNoticeBoardGraphicControllerBW extends BaseCLIControllerBW {
         pressEnter();
     }
 
-     private void handleModificationOrCancellation(List<TutoringSessionBean> sessions) {
+    private void handleModificationOrCancellation(List<TutoringSessionBean> sessions) {
         int idx = askInt("Select an ACCEPTED session:") - 1;
         if (idx < 0 || idx >= sessions.size()) return;
 
         TutoringSessionBean sel = sessions.get(idx);
-         if (sel.getStatus() != TutoringSessionStatus.ACCEPTED) {
+        if (sel.getStatus() != TutoringSessionStatus.ACCEPTED) {
             LOGGER.warning("Only ACCEPTED sessions can be modified or cancelled.");
             pressEnter();
             return;
@@ -132,9 +137,9 @@ public class ManageNoticeBoardGraphicControllerBW extends BaseCLIControllerBW {
 
         int choice = askInt("[1] Request Modification  [2] Request Cancellation :");
         if (choice == 1) {
-            var newDate  = askDate ("New date:");
-            var newStart = askTime ("New start time:");
-            var newEnd   = askTime ("New end time:");
+            var newDate = askDate("New date:");
+            var newStart = askTime("New start time:");
+            var newEnd = askTime("New end time:");
             String reason = ask("Reason for modification:");
             manageController.requestModification(sel, newDate, newStart, newEnd, reason);
             LOGGER.info("Modification request sent.");
@@ -241,11 +246,10 @@ public class ManageNoticeBoardGraphicControllerBW extends BaseCLIControllerBW {
         String role = null;
 
         for (AccountBean account : manageNoticeBoardController.getLoggedUser().getAccounts()) {
-            if ("Student".equalsIgnoreCase(account.getRole())) {
-                role = "Student";
-                break;
-            } else if ("Tutor".equalsIgnoreCase(account.getRole())) {
-                role = "Tutor";
+            String r = account.getRole();
+
+            if ("Student".equalsIgnoreCase(r) || ROLE_TUTOR.equalsIgnoreCase(r)) {
+                role = r;
                 break;
             }
         }
@@ -256,7 +260,7 @@ public class ManageNoticeBoardGraphicControllerBW extends BaseCLIControllerBW {
 
         for (int i = 0; i < list.size(); i++) {
             TutoringSessionBean s = list.get(i);
-            String other = "Tutor".equalsIgnoreCase(role) ? s.getStudentId() : s.getTutorId();
+            String other = ROLE_TUTOR.equalsIgnoreCase(role) ? s.getStudentId() : s.getTutorId();
             String info = String.format("%2d) %s with %s [%s]", i + 1, s.getDate(), other, s.getStatus());
             LOGGER.info(info);
         }

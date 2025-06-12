@@ -1,5 +1,6 @@
 package logic.control.graphiccontrol.bw;
 
+import logic.bean.AuthResultBean;
 import logic.bean.AvailabilityBean;
 import logic.bean.AccountBean;
 import logic.bean.UserBean;
@@ -27,6 +28,7 @@ public class SignUpGraphicControllerBW extends BaseCLIControllerBW {
     private final SignUpController logic = new SignUpController();
 
     public void start() {
+
         LOGGER.info("\n=== SIGN UP ===");
         String role = ask("Role (Student/Tutor):");
         String email = ask("Email:");
@@ -97,10 +99,12 @@ public class SignUpGraphicControllerBW extends BaseCLIControllerBW {
         // Aggiungo l'account al UserBean
         userBean.addAccount(accountBean);
 
-        if (logic.registerUser(userBean)) {
-            LOGGER.info("Sign Up completed! You are now logged in.");
+        AuthResultBean authResultBean = logic.registerUser(userBean);
+        if (authResultBean != null) {
+            LOGGER.info("Sign-Up completed! Logged-in as "+ authResultBean.getUser().getUsername());
+            new HomeGraphicControllerBW(authResultBean.getSessionId()).start();
         } else {
-            LOGGER.warning("An account with this role already exists.");
+            LOGGER.warning("Account already exists.");
         }
         pressEnter();
     }

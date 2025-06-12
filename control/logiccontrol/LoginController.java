@@ -1,16 +1,18 @@
 package logic.control.logiccontrol;
 
-import logic.bean.UserBean;
-import logic.bean.AccountBean;
+import logic.bean.*;
+import logic.model.domain.Session;
+import logic.model.domain.SessionManager;
 import logic.model.dao.DaoFactory;
 import logic.model.dao.UserDAO;
 import logic.model.domain.Account;
-import logic.model.domain.SessionManager;
 import logic.model.domain.User;
+
+import java.util.UUID;
 
 public class LoginController {
 
-    public UserBean login(UserBean loginBean) {
+    public AuthResultBean login(UserBean loginBean) {
 
         UserDAO userDAO = DaoFactory.getInstance().getUserDAO();
         User user = userDAO.load(loginBean.getEmail());
@@ -20,12 +22,7 @@ public class LoginController {
             return null;
         }
 
-        System.out.println("Utente trovato: " + user.getEmail());
-        System.out.println("Password corretta.");
-        String role          = loginBean.getAccounts().get(0).getRole();
-        String inputPassword = loginBean.getAccounts().get(0).getPassword();
-        System.out.println("Ruolo selezionato: " + role);
-        System.out.println("Tentativo di accesso con password: " + inputPassword);
+        String role = loginBean.getAccounts().get(0).getRole();
 
         // Cerchiamo l’account con il ruolo richiesto
         Account matchedAccount = null;
@@ -36,10 +33,13 @@ public class LoginController {
             }
         }
 
-        String inputPassword1 = loginBean.getAccounts().get(0).getPassword();
-        if (matchedAccount == null || !inputPassword1.equals(matchedAccount.getPassword())) {
+        String inputPassword = loginBean.getAccounts().get(0).getPassword();
+        if (matchedAccount == null || !inputPassword.equals(matchedAccount.getPassword())) {
             return null;
         }
+
+        // Creo una nuova Session nel singleton SessionManager
+        UUID sid = SessionManager.getInstance().createSession(user);
 
         // Costruiamo lo UserBean da restituire al controller grafico LoginGraphicControllerColored
         UserBean userBean = new UserBean();
@@ -52,10 +52,54 @@ public class LoginController {
         accountBean.setRole(matchedAccount.getRole());
 
         userBean.addAccount(accountBean);
-        // Unica sede in cui viene impostata la sessione
-        SessionManager.setLoggedUser(userBean);
 
-        return userBean;
+        return new AuthResultBean(sid, userBean);
+    }
+
+    public UserBean getLoggedUser(UUID sid) {
+        Session session = SessionManager.getInstance().getSession(sid);
+        if (session == null || session.getUser() == null) {
+            return null;
+        }
+        return new UserBean(session.getUser());  // CORRETTO: conversione Domain -> Bean
+    }
+
+    public void logout(UUID sessionId) {
+        // Invalida la sessione nel SessionManager
+        SessionManager.getInstance().invalidateSession(sessionId);
+    }
+
+    /* Controlla se la sessione con quell'UUID è ancora attiva. */
+    public boolean isSessionActive(UUID sessionId) {
+        return SessionManager.getInstance().isSessionActive(sessionId);
+    }
+
+    /* Restituisce il dominio User associato alla sessione, oppure null se non valido.
+     * Utile a HomeController o alle View per recuperare UserBean da dominio. */
+    public User getUserFromSession(UUID sessionId) {
+        Session s = SessionManager.getInstance().getSession(sessionId);
+        return (s != null) ? s.getUser() : null;
+    }
+
+    public UserBean getUserBeanFromSession(UUID sessionId) {
+        if (!isSessionActive(sessionId)) return null;
+
+        User dom = getUserFromSession(sessionId);
+        if (dom == null) return null;
+
+        UserBean ub = new UserBean();
+        ub.setEmail(dom.getEmail());
+        ub.setUsername(dom.getUsername());
+
+        for (Account acc : dom.getAccounts()) {
+            AccountBean ab = new AccountBean();
+            ab.setAccountId(acc.getAccountId());
+            ab.setRole(acc.getRole());
+            ab.setName(acc.getName());
+            ab.setSurname(acc.getSurname());
+            ub.addAccount(ab);
+        }
+        return ub;
     }
 }
 

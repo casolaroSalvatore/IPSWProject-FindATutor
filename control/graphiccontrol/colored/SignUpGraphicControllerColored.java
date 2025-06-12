@@ -7,10 +7,10 @@ import javafx.scene.layout.HBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Screen;
 import logic.bean.AccountBean;
+import logic.bean.AuthResultBean;
 import logic.bean.AvailabilityBean;
 import logic.bean.UserBean;
 import logic.control.logiccontrol.SignUpController;
-import logic.model.domain.SessionManager;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -18,18 +18,20 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
-
 import java.io.File;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class SignUpGraphicControllerColored {
 
     private static final String STUDENT = "Student";
     private static final String TUTOR = "Tutor";
     private static final String ERROR = "Error";
+    private static final Logger LOGGER = Logger.getLogger(SignUpGraphicControllerColored.class.getName());
 
     @FXML
     private TextField nameField;
@@ -160,7 +162,7 @@ public class SignUpGraphicControllerColored {
             stage.show();
         } catch (Exception e) {
             e.printStackTrace();
-            System.err.println("An error occurred while loading the SignUp screen.");
+            LOGGER.log(Level.SEVERE, "An error occurred while loading the SignUp screen.", e);
         }
     }
 
@@ -202,14 +204,13 @@ public class SignUpGraphicControllerColored {
         accountBean.setProfilePicturePath(profilePic);
         accountBean.setProfileComment(comment);
 
-        // VALIDATION: always basic checks first
         try {
             userBean.checkEmailSyntax();
             userBean.checkUsernameSyntax();
             accountBean.checkBasicSyntax();
             accountBean.checkPasswordSyntax();
         } catch (IllegalArgumentException ex) {
-            showAlert("Error", ex.getMessage());
+            showAlert(ERROR, ex.getMessage());
             return;
         }
 
@@ -225,24 +226,23 @@ public class SignUpGraphicControllerColored {
             try {
                 accountBean.checkStudentSyntax();
             } catch (IllegalArgumentException ex) {
-                showAlert("Error", ex.getMessage());
+                showAlert(ERROR, ex.getMessage());
                 return;
             }
 
             // Registrazione diretta per Studente
             SignUpController signUpController = new SignUpController();
-            boolean success = signUpController.registerUser(userBean);
-            if (success) {
-                showAlert("Sign up completed", "The user has been registered successfully!");
+            AuthResultBean authResultBean = signUpController.registerUser(userBean);
+            if (authResultBean != null) {
+                showAlert("Sign-up completed","Registration completed successfully!\n You can now log in to your account");
                 goToLogin();
             } else {
-                showAlert(ERROR, "An account with this role already exists.");
+                showAlert(ERROR,"Account already exists.");
             }
 
         } else if (TUTOR.equalsIgnoreCase(role)) {
             userBean.addAccount(accountBean);
-            // Modifica: salvo nel SessionManager UserBean parziale
-            // SessionManager.setUserBean(userBean);
+            // Salvo lo UserBean parziale
             SignUpController signUpController = new SignUpController();
             signUpController.cachePartialTutor(userBean);
             goToSignUpTutor(event);
@@ -253,17 +253,23 @@ public class SignUpGraphicControllerColored {
     public void handleTutorData(ActionEvent event) {
 
         // 1) Recupero i dati base dal SessionManager
-        UserBean userBean = SessionManager.getUserBean();
+        UserBean userBean = SignUpController.getPartialTutor();
 
         if (userBean == null) {
             showAlert(ERROR, "No partial data found. Did you skip the first step?");
             return;
         }
 
-        AccountBean accountBean = userBean.getAccounts().stream()
-                .filter(acc -> TUTOR.equalsIgnoreCase(acc.getRole()))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("No Tutor account found."));
+        AccountBean accountBean = null;
+        for (AccountBean acc : userBean.getAccounts()) {
+            if (TUTOR.equalsIgnoreCase(acc.getRole())) {
+                accountBean = acc;
+                break;
+            }
+        }
+        if (accountBean == null) {
+            throw new IllegalArgumentException("No Tutor account found.");
+        }
 
         String location = locationField.getText();
         LocalDate startDate = startDatePicker.getValue();
@@ -312,15 +318,13 @@ public class SignUpGraphicControllerColored {
         }
 
         SignUpController signUpController = new SignUpController();
-        // Controllo se la registrazione dell'account è avvenuta con successo
-        boolean success = signUpController.registerUser(userBean);
-
-        if (success) {
-            showAlert("Sign up completed", "The user has been registered successfully!");
+        AuthResultBean authResultBean = signUpController.registerUser(userBean);
+        if (authResultBean != null) {
+            showAlert("Sign-up completed","Registration completed successfully!\n You can now log in to your account");
             signUpController.clearPartialTutor();
             goToLogin1();
         } else {
-            showAlert(ERROR, "An account with this role already exists.");
+            showAlert(ERROR,"Account already exists.");
         }
     }
 
@@ -350,7 +354,7 @@ public class SignUpGraphicControllerColored {
             stage.show();
         } catch (Exception e) {
             e.printStackTrace();
-            System.err.println("An error occurred while loading the Login screen.");
+            LOGGER.log(Level.SEVERE, "An error occurred while loading the Login screen.", e);
         }
     }
 
@@ -367,7 +371,7 @@ public class SignUpGraphicControllerColored {
             stage.show();
         } catch (Exception e) {
             e.printStackTrace();
-            System.err.println("An error occurred while loading the Login screen.");
+            LOGGER.log(Level.SEVERE, "An error occurred while loading the Login screen.", e);
         }
     }
 
@@ -384,7 +388,7 @@ public class SignUpGraphicControllerColored {
             stage.show();
         } catch (Exception e) {
             e.printStackTrace();
-            System.err.println("An error occurred while loading the Home screen.");
+            LOGGER.log(Level.SEVERE, "An error occurred while loading the Home screen.", e);
         }
     }
 
@@ -406,7 +410,7 @@ public class SignUpGraphicControllerColored {
             stage.show();
         } catch (Exception e) {
             e.printStackTrace();
-            System.err.println("An error occurred while loading the SignUpTutor screen.");
+            LOGGER.log(Level.SEVERE, "An error occurred while loading the Sign Up Tutor screen.", e);
         }
     }
 

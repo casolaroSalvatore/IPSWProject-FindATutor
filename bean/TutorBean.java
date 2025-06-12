@@ -2,14 +2,24 @@ package logic.bean;
 
 public class TutorBean extends AccountBean {
 
-    private String  subject;
+    private String subject;
     private int age;
-    private float   hourlyRate;
-    private float   rating;
-    private boolean offersInPerson, offersOnline, offersGroup, firstLessonFree;
+    private float hourlyRate;
+    private float rating;
+    private boolean offersInPerson;
+    private boolean offersOnline;
+    private boolean offersGroup;
+    private boolean firstLessonFree;
 
-    public String  getSubject()                 { return subject; }
-    public void    setSubject(String s)         { subject = s;    }
+    @Override
+    public String getSubject() {
+        return subject;
+    }
+
+    @Override
+    public void setSubject(String s) {
+        subject = s;
+    }
 
     public int getAge() {
         return age;
@@ -19,21 +29,61 @@ public class TutorBean extends AccountBean {
         this.age = age;
     }
 
-    public float   getHourlyRate()              { return hourlyRate; }
-    public void    setHourlyRate(float h)       { hourlyRate = h; }
+    @Override
+    public float getHourlyRate() {
+        return hourlyRate;
+    }
 
-    public float   getRating()                  { return rating; }
-    public void    setRating(float r)           { rating = r; }
+    @Override
+    public void setHourlyRate(float h) {
+        hourlyRate = h;
+    }
 
-    public boolean isOffersInPerson()           { return offersInPerson; }
-    public void    setOffersInPerson(boolean v) { offersInPerson = v; }
+    public float getRating() {
+        return rating;
+    }
 
-    public boolean isOffersOnline()             { return offersOnline; }
-    public void    setOffersOnline(boolean v)   { offersOnline = v; }
+    public void setRating(float r) {
+        rating = r;
+    }
 
-    public boolean isOffersGroup()              { return offersGroup; }
-    public void    setOffersGroup(boolean v)    { offersGroup = v; }
+    @Override
+    public boolean isOffersInPerson() {
+        return offersInPerson;
+    }
 
-    public boolean isFirstLessonFree()          { return firstLessonFree; }
-    public void    setFirstLessonFree(boolean v){ firstLessonFree = v; }
+    @Override
+    public void setOffersInPerson(boolean v) {
+        offersInPerson = v;
+    }
+
+    @Override
+    public boolean isOffersOnline() {
+        return offersOnline;
+    }
+
+    @Override
+    public void setOffersOnline(boolean v) {
+        offersOnline = v;
+    }
+
+    @Override
+    public boolean isOffersGroup() {
+        return offersGroup;
+    }
+
+    @Override
+    public void setOffersGroup(boolean v) {
+        offersGroup = v;
+    }
+
+    @Override
+    public boolean isFirstLessonFree() {
+        return firstLessonFree;
+    }
+
+    @Override
+    public void setFirstLessonFree(boolean v) {
+        firstLessonFree = v;
+    }
 }

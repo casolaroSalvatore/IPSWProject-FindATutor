@@ -22,8 +22,8 @@ import javafx.scene.layout.Region;
 import javafx.stage.Stage;
 import logic.bean.TutoringSessionBean;
 import logic.bean.UserBean;
+import logic.control.logiccontrol.LoginController;
 import logic.control.logiccontrol.ManageNoticeBoardController;
-import logic.model.domain.SessionManager;
 import logic.model.domain.state.TutoringSessionStatus;
 import java.io.IOException;
 import java.time.LocalDate;
@@ -32,6 +32,8 @@ import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class ManageNoticeBoardGraphicControllerColored {
@@ -108,34 +110,42 @@ public class ManageNoticeBoardGraphicControllerColored {
     private LocalDate selectedDate;
 
     // Riferimento al controller logico ManageNoticeBoardController
-    private final ManageNoticeBoardController manageController = new ManageNoticeBoardController();
+    private final LoginController loginController = new LoginController();
+    private BookingSessionGraphicControllerColored bookingChildCtrl;
+    // Riferimento al controller logico ManageNoticeBoardController
+    private ManageNoticeBoardController manageController;
+
+    private UUID sessionId;
+    private UserBean userBean;
+
+    /* Chiamare subito dopo il FXMLLoader in HomeGraphicControllerColored */
+    public void initData(UUID sessionId, UserBean userBean) {
+        this.sessionId = sessionId;
+        this.userBean  = userBean;
+
+        this.manageController = new ManageNoticeBoardController(sessionId);
+        handleWelcomeArea(userBean); // può accedere ora a userBean
+
+        String role = null;
+        for (AccountBean account : userBean.getAccounts()) {
+            String r = account.getRole();
+            if (ROLE_STUDENT.equalsIgnoreCase(r) || ROLE_TUTOR.equalsIgnoreCase(r)) {
+                role = r;
+                break;
+            }
+        }
+
+        // Ora che manageController esiste possiamo popolare il calendario
+        currentYearMonth = YearMonth.now();
+        populateCalendar(currentYearMonth);
+
+        configureDayTable(role);
+        loadBookingSessionPart();
+    }
 
     // Logica per la scena ManageNoticeBoard.fxml
     @FXML
     public void initialize() {
-
-        UserBean user = SessionManager.getLoggedUser();
-        handleWelcomeArea(user);
-
-        currentYearMonth = YearMonth.now();
-        populateCalendar(currentYearMonth);
-
-        String role = null;
-        if (user != null) {
-            for (AccountBean account : user.getAccounts()) {
-                if ("Student".equalsIgnoreCase(account.getRole())) {
-                    role = "Student";
-                    break;
-                } else if ("Tutor".equalsIgnoreCase(account.getRole())) {
-                    role = "Tutor";
-                    break;
-                }
-            }
-        }
-
-        configureDayTable(role);
-
-        loadBookingSessionPart();
     }
 
     // Helper per la fattorizzazione
@@ -214,10 +224,14 @@ public class ManageNoticeBoardGraphicControllerColored {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/BookingSessionPart.fxml"));
             Parent childRoot  = loader.load();
-            BookingSessionGraphicControllerColored childCtrl = loader.getController();
-            childCtrl.setParentController(this);                 // per refresh
+
+            bookingChildCtrl = loader.getController();
+
+            bookingChildCtrl.setParentController(this);
+            bookingChildCtrl.initData(sessionId, userBean);
+
             bookingSessionPane.getChildren().add(childRoot);
-            addActionColumnForModCancel(childCtrl.getModCancelActionColumn());
+            addActionColumnForModCancel(bookingChildCtrl.getModCancelActionColumn());
         } catch (IOException ex) {
             LOGGER.warning("Unable to load BookingSessionPart.fxml: " + ex.getMessage());
         }
@@ -287,7 +301,7 @@ public class ManageNoticeBoardGraphicControllerColored {
         this.selectedDate = date;
 
         List<TutoringSessionBean> allSessions = loadSessionsForLoggedUser();
-        List<TutoringSessionBean> filtered     = new ArrayList<>();
+        List<TutoringSessionBean> filtered  = new ArrayList<>();
 
         for (TutoringSessionBean s : allSessions) {
             if (s.getDate() != null
@@ -302,11 +316,25 @@ public class ManageNoticeBoardGraphicControllerColored {
     public void refreshCalendarAndTable() {
 
         populateCalendar(currentYearMonth);
+        refreshSessionTable();
 
         // Se esiste un giorno selezionato, ricarica le sessioni per quel giorno
         if (selectedDate != null) {
             handleDayClick(selectedDate);
         }
+    }
+
+    // Ricarica completamente la sessionTable dal DAO
+    public void refreshSessionTable() {
+
+        // 1) se la tabella non esiste ancora, esco
+        if (bookingChildCtrl == null || bookingChildCtrl.getSessionTable() == null) return;
+
+        // 2) recupero le sessioni per l’utente loggato
+        List<TutoringSessionBean> list = manageController.loadSessionsForLoggedUser();
+
+        // 3) imposto i dati sulla vera tabella (del file figlio)
+        bookingChildCtrl.getSessionTable().setItems(FXCollections.observableArrayList(list));
     }
 
     @FXML
@@ -364,76 +392,74 @@ public class ManageNoticeBoardGraphicControllerColored {
 
     private void addActionColumnForModCancel(TableColumn<TutoringSessionBean, Void> modCancelActionColumn) {
         modCancelActionColumn.setCellFactory(col -> new TableCell<>() {
-
-            private final Button acceptBtn = new Button("Accept");
-            private final Button refuseBtn = new Button("Refuse");
-
-            {
-                acceptBtn.setOnAction(e -> handleAcceptClicked());
-                refuseBtn.setOnAction(e -> handleRefuseClicked());
-            }
+            private final Button acceptBtn = createButton(true);
+            private final Button refuseBtn = createButton(false);
 
             @Override
             protected void updateItem(Void item, boolean empty) {
-
                 super.updateItem(item, empty);
-                if (empty) { setGraphic(null); return; }
+                updateActionCell(this, empty);
+            }
 
-                TutoringSessionBean s = getTableView().getItems().get(getIndex());
+            private Button createButton(boolean accepted) {
+                return new Button(accepted ? "Accept" : "Refuse") {{
+                    setOnAction(e -> handleAction(accepted));
+                }};
+            }
 
-                boolean enable = manageController.canRespond(s.getSessionId());
-                if (!enable) {
-                    setGraphic(null);
+            private void updateActionCell(TableCell<?, ?> cell, boolean empty) {
+                if (empty) {
+                    cell.setGraphic(null);
                     return;
                 }
 
-                if (s.getStatus() == TutoringSessionStatus.MOD_REQUESTED) {
-                    setGraphic(new HBox(5, acceptBtn, refuseBtn));
-                    acceptBtn.setText("Accept Modif");
-                    refuseBtn.setText("Refuse Modif");
-                    /* boolean enable = manageController.canRespond(s.getSessionId());
-                    acceptBtn.setDisable(!enable);
-                    refuseBtn.setDisable(!enable); */
+                // getTableView().getItems().get(getIndex()); rappresenta la il TutoringSessionBean, l'ho modificato per Sonar
+                if (!manageController.canRespond(getTableView().getItems().get(getIndex()).getSessionId())) {
+                    cell.setGraphic(null);
+                    return;
+                }
 
-                } else if (s.getStatus() == TutoringSessionStatus.CANCEL_REQUESTED) {
-                    setGraphic(new HBox(5, acceptBtn, refuseBtn));
-                    acceptBtn.setText("Accept Canc");
-                    refuseBtn.setText("Refuse Canc");
-                    /* boolean enable = manageController.canRespond(s.getSessionId());
-                    acceptBtn.setDisable(!enable);
-                    refuseBtn.setDisable(!enable); */
-
-                } else {
-                    setGraphic(null);
+                switch (getTableView().getItems().get(getIndex()).getStatus()) {
+                    case MOD_REQUESTED -> {
+                        configureButtons("Accept Modif", "Refuse Modif");
+                        cell.setGraphic(new HBox(5, acceptBtn, refuseBtn));
+                    }
+                    case CANCEL_REQUESTED -> {
+                        configureButtons("Accept Cancel", "Refuse Cancel");
+                        cell.setGraphic(new HBox(5, acceptBtn, refuseBtn));
+                    }
+                    default -> cell.setGraphic(null);
                 }
             }
 
-            /* click-handler sul bean */
-            private void handleAcceptClicked() {
-                TutoringSessionBean s = getTableView().getItems().get(getIndex());
-                if (s.getStatus() == TutoringSessionStatus.MOD_REQUESTED) {
-                    manageController.acceptModification(s);
-                } else if (s.getStatus() == TutoringSessionStatus.CANCEL_REQUESTED) {
-                    manageController.acceptCancellation(s);
+            private void handleAction(boolean accepted) {
+                switch (getTableView().getItems().get(getIndex()).getStatus()) {
+                    case MOD_REQUESTED -> {
+                        if (accepted) {
+                            manageController.acceptModification(getTableView().getItems().get(getIndex()));
+                        } else {
+                            manageController.refuseModification(getTableView().getItems().get(getIndex()));
+                        }
+                    }
+                    case CANCEL_REQUESTED -> {
+                        if (accepted) {
+                            manageController.acceptCancellation(getTableView().getItems().get(getIndex()));
+                        } else {
+                            manageController.refuseCancellation(getTableView().getItems().get(getIndex()));
+                        }
+                    }
+
                 }
-                s.setStatus(TutoringSessionStatus.ACCEPTED);
-                getTableView().refresh();
                 refreshCalendarAndTable();
             }
 
-            private void handleRefuseClicked() {
-                TutoringSessionBean s = getTableView().getItems().get(getIndex());
-                if (s.getStatus() == TutoringSessionStatus.MOD_REQUESTED) {
-                    manageController.refuseModification(s);
-                } else if (s.getStatus() == TutoringSessionStatus.CANCEL_REQUESTED) {
-                    manageController.refuseCancellation(s);
-                }
-                s.setStatus(TutoringSessionStatus.ACCEPTED);
-                getTableView().refresh();
-                refreshCalendarAndTable();
+            private void configureButtons(String acceptText, String refuseText) {
+                acceptBtn.setText(acceptText);
+                refuseBtn.setText(refuseText);
             }
         });
     }
+
 
     // Metodo per mostrare il form necessario per specificare la nuova data
     @FXML
@@ -521,12 +547,47 @@ public class ManageNoticeBoardGraphicControllerColored {
     @FXML
     public void goToHome(ActionEvent event) {
         try {
-            Parent homeRoot = FXMLLoader.load(getClass().getResource("/fxml/Home.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Home.fxml"));
+            Parent homeRoot = loader.load();
+
+            HomeGraphicControllerColored homeGraphicControllerColored = loader.getController();
+            homeGraphicControllerColored.initData(sessionId, userBean);
+
+            // Imposto la scena
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
             Scene scene = new Scene(homeRoot, screenBounds.getWidth(), screenBounds.getHeight());
             stage.setTitle("Home");
             stage.setScene(scene);
+            stage.setMaximized(true);
+            stage.show();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "An error occurred while loading the Home screen.", e);
+        }
+    }
+
+    @FXML
+    public void goToLeaveASharedReview(ActionEvent event) {
+
+        // Verifichiamo se l’utente è loggato
+        if (userBean == null) {
+            showAlert("Booking", "You must be logged in to leave a shared review.");
+            return;
+        }
+
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/LeaveASharedReview.fxml"));
+            Parent root = loader.load();
+
+            LeaveASharedReviewGraphicControllerColored leaveASharedReviewGraphicControllerColored = loader.getController();
+            leaveASharedReviewGraphicControllerColored.initData(sessionId, userBean);
+
+            Stage stage = (Stage) leaveASharedReviewButton.getScene().getWindow();
+            Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
+            stage.setScene(new Scene(root, bounds.getWidth(), bounds.getHeight()));
+            stage.setTitle("Leave a Shared Review");
             stage.setMaximized(true);
             stage.show();
         } catch (Exception e) {
@@ -535,34 +596,14 @@ public class ManageNoticeBoardGraphicControllerColored {
     }
 
     @FXML
-    public void goToLeaveASharedReview(ActionEvent event) {
-        // 1) Verifichiamo se l’utente è loggato (SessionManager.getLoggedUser() != null)
-        if (SessionManager.getLoggedUser() == null) {
-            // Utente NON loggato: reindirizziamo alla form di accesso (o Login)
-            showAlert("Booking", "You must be logged in to leave a shared review.");
-        } else {
-            try {
-                Parent signUpRoot = FXMLLoader.load(getClass().getResource("/fxml/LeaveASharedReview.fxml"));
-                Stage stage = (Stage) leaveASharedReviewButton.getScene().getWindow();
-                Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
-                Scene scene = new Scene(signUpRoot, screenBounds.getWidth(), screenBounds.getHeight());
-                stage.setScene(scene);
-                stage.setTitle("Error in accessing the notice board");
-                stage.setMaximized(true);
-                stage.show();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    }
-    @FXML
     private void goToSignUp(ActionEvent event) {
         SignUpGraphicControllerColored.showSignUpScene(event);
     }
 
     @FXML
     private void goToLogin(ActionEvent event) {
-        LoginGraphicControllerColored.showLoginScene(event);
+        LoginGraphicControllerColored loginGraphicControllerColored = new LoginGraphicControllerColored();
+        loginGraphicControllerColored.showLoginScene(event);
     }
 
     @FXML
@@ -578,8 +619,12 @@ public class ManageNoticeBoardGraphicControllerColored {
 
         // Se l'utente ha premuto OK, effettuiamo il logout
         if (result.isPresent() && result.get() == ButtonType.OK) {
-            // 1) Azzeri la sessione, se hai un SessionManager
-            SessionManager.logout();
+            // Logout tramite LoginController + ripulisco ApplicationContext
+            if (sessionId != null) {
+                loginController.logout(sessionId);
+                sessionId = null;
+                userBean  = null;
+            }
 
             welcomeLabel.setVisible(false);
             logOutButton.setVisible(false);

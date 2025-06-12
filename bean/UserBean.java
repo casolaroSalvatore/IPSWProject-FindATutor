@@ -1,5 +1,8 @@
 package logic.bean;
 
+import logic.model.domain.Account;
+import logic.model.domain.User;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -11,23 +14,42 @@ public class UserBean {
     private List<AccountBean> accounts = new ArrayList<>();
 
     // Pattern necessari per i controlli sintattici
-    private static final Pattern EMAIL_PATTERN    = Pattern.compile("^[\\w.-]+@[\\w.-]+\\.[A-Za-z]{2,}$");
+    private static final Pattern EMAIL_PATTERN = Pattern.compile("^[\\w.-]+@[\\w.-]+\\.[A-Za-z]{2,}$");
     private static final Pattern USERNAME_PATTERN = Pattern.compile("^[A-Za-z\\d_]{3,}$");
+
+    public UserBean() {}
+
+    public UserBean(User user) {
+        this.email = user.getEmail();
+        this.username = user.getUsername();
+        for (Account acc : user.getAccounts()) {
+            this.accounts.add(new AccountBean(acc));
+        }
+    }
 
     public String getEmail() {
         return email;
     }
+
     public void setEmail(String email) {
         this.email = email;
     }
 
-    public String getUsername() { return username; }
+    public String getUsername() {
+        return username;
+    }
+
     public void setUsername(String username) {
         this.username = username;
     }
 
-    public List<AccountBean> getAccounts() { return accounts; }
-    public void setAccounts(List<AccountBean> accounts) { this.accounts = accounts; }
+    public List<AccountBean> getAccounts() {
+        return accounts;
+    }
+
+    public void setAccounts(List<AccountBean> accounts) {
+        this.accounts = accounts;
+    }
 
     public void addAccount(AccountBean accountBean) {
         accounts.add(accountBean);

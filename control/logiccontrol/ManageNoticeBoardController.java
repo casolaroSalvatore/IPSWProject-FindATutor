@@ -7,31 +7,38 @@ import logic.model.dao.AccountDAO;
 import logic.model.dao.DaoFactory;
 import logic.model.dao.TutoringSessionDAO;
 import logic.model.domain.Account;
-import logic.model.domain.SessionManager;
+import logic.model.domain.User;
 import logic.model.domain.state.TutoringSession;
 import logic.model.domain.state.TutoringSessionStatus;
-
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class ManageNoticeBoardController {
 
-    private static final String STATUS_MOD_REQUEST = "MOD_REQUESTED";
-    private static final String STATUS_CANCEL_REQUEST = "CANCEL_REQUESTED";
-    private static final String STATUS_ACCEPTED = "ACCEPTED";
+    private static final String ROLE_TUTOR = "Tutor";
+    private static final String ROLE_STUDENT = "Student";
 
     private final TutoringSessionDAO tutoringSessionDAO = DaoFactory.getInstance().getTutoringSessionDAO();
     private final AccountDAO accountDAO = DaoFactory.getInstance().getAccountDAO();
+    private final LoginController loginCtrl = new LoginController();
     private final BookingTutoringSessionController bookingCtrl = new BookingTutoringSessionController();
+
+    private UUID sessionId;
 
     /* Conta quante sessioni "nuove" devono essere viste o approvate dall'utente specificato.
        Esempio: sessioni con status PENDING, MOD_REQUESTED, CANCEL_REQUESTED
        e quell'utente è la "controparte" nonSeen. */
+    public ManageNoticeBoardController() {}
+
+    public ManageNoticeBoardController(UUID sessionId) {
+        this.sessionId = sessionId;
+    }
 
     public int countNewRequests(String userId, String role) {
-        boolean tutorRole = "Tutor".equalsIgnoreCase(role);
+        boolean tutorRole = ROLE_TUTOR.equalsIgnoreCase(role);
         int count = 0;
 
         for (TutoringSession s : tutoringSessionDAO.loadAllTutoringSession()) {
@@ -47,8 +54,7 @@ public class ManageNoticeBoardController {
 
     //  Helper privati – Ognuno con complessità minima
     private boolean belongsToUser(TutoringSession s, String userId, boolean tutorRole) {
-        return tutorRole ? userId.equals(s.getTutorId())
-                : userId.equals(s.getStudentId());
+        return tutorRole ? userId.equals(s.getTutorId()): userId.equals(s.getStudentId());
     }
 
     private boolean hasPendingUnseenRequest(TutoringSession s, boolean tutorRole) {
@@ -100,19 +106,20 @@ public class ManageNoticeBoardController {
 
     // Metodo per caricare le sessioni relative all’utente loggato
     public List<TutoringSessionBean> loadSessionsForLoggedUser() {
-        if (SessionManager.getLoggedUser() == null) {
+
+        UserBean me = getLoggedUser();
+        if (me == null) {
             return new ArrayList<>();
         }
+
         String role = null;
         String userId = null;
 
-        for (AccountBean account : SessionManager.getLoggedUser().getAccounts()) {
-            if ("Tutor".equalsIgnoreCase(account.getRole())) {
-                role = "Tutor";
-                userId = account.getAccountId();
-                break;
-            } else if ("Student".equalsIgnoreCase(account.getRole())) {
-                role = "Student";
+        for (AccountBean account: me.getAccounts()) {
+            String r = account.getRole();
+
+            if (ROLE_TUTOR.equalsIgnoreCase(r) || ROLE_STUDENT.equalsIgnoreCase(r)) {
+                role = r;
                 userId = account.getAccountId();
                 break;
             }
@@ -123,7 +130,7 @@ public class ManageNoticeBoardController {
         }
 
         BookingTutoringSessionController bookingController = new BookingTutoringSessionController();
-        if ("Tutor".equalsIgnoreCase(role)) {
+        if (ROLE_TUTOR.equalsIgnoreCase(role)) {
             return bookingController.loadAllSessionsForTutor(userId);
         } else {
             return bookingController.loadAllSessionsForStudent(userId);
@@ -131,13 +138,16 @@ public class ManageNoticeBoardController {
     }
 
     // Ritorna True se l’utente loggato è colui che deve rispondere.
-    public boolean canRespond(String sessionId) {                      // *** NEW ***
-        if (SessionManager.getLoggedUser()==null) return false;
+    public boolean canRespond(String sessionId) {
+
+        UserBean me = getLoggedUser();
+        if (me == null) return false;
+
         TutoringSession s = tutoringSessionDAO.load(sessionId);
         String myId = null;
 
-        for (AccountBean account : SessionManager.getLoggedUser().getAccounts()) {
-            if ("Tutor".equalsIgnoreCase(account.getRole()) || "Student".equalsIgnoreCase(account.getRole())) {
+        for (AccountBean account : me.getAccounts()) {
+            if (ROLE_TUTOR.equalsIgnoreCase(account.getRole()) || ROLE_STUDENT.equalsIgnoreCase(account.getRole())) {
                 myId = account.getAccountId();
                 break;
             }
@@ -158,7 +168,7 @@ public class ManageNoticeBoardController {
         TutoringSession s = loadEntity(b);
         if(s==null) return;
 
-        String me = SessionManager.getLoggedUserAccountId();
+        String me = getLoggedAccountId();
         s.askModification(newDate, newStart, newEnd, reason, me);
         flagUnseen(s);
 
@@ -169,7 +179,7 @@ public class ManageNoticeBoardController {
     public void acceptModification(TutoringSessionBean b){
 
         TutoringSession s = loadEntity(b);
-        if(s==null) return;
+        if(s == null) return;
 
         s.respondModification(true);
         flagUnseen(s);
@@ -191,9 +201,9 @@ public class ManageNoticeBoardController {
     public void requestCancellation(TutoringSessionBean b, String reason){
 
         TutoringSession s = loadEntity(b);
-        if(s==null) return;
+        if(s == null) return;
 
-        String me = SessionManager.getLoggedUserAccountId();
+        String me = getLoggedAccountId();
         s.askCancellation(reason, me);
         flagUnseenAndWho(s);
         tutoringSessionDAO.store(s);
@@ -259,17 +269,15 @@ public class ManageNoticeBoardController {
 
     // Imposta modifiedBy / modifiedTo e resetta i flag seen. */
     private void flagUnseenAndWho(TutoringSession s){
-        String myId = null;
-        String myRole = null;
 
-        for (AccountBean account : SessionManager.getLoggedUser().getAccounts()) {
-            if ("Student".equalsIgnoreCase(account.getRole())) {
+        UserBean me = getLoggedUser();
+        String myId = null;
+
+        for (AccountBean account : me.getAccounts()) {
+            String role = account.getRole();
+
+            if (ROLE_STUDENT.equalsIgnoreCase(role) || ROLE_TUTOR.equalsIgnoreCase(role)) {
                 myId = account.getAccountId();
-                myRole = "Student";
-                break;
-            } else if ("Tutor".equalsIgnoreCase(account.getRole())) {
-                myId = account.getAccountId();
-                myRole = "Tutor";
                 break;
             }
         }
@@ -286,16 +294,11 @@ public class ManageNoticeBoardController {
 
     private void flagUnseen(TutoringSession s){
 
-        String me = null;
-        for (AccountBean account : SessionManager.getLoggedUser().getAccounts()) {
-            if ("Tutor".equalsIgnoreCase(account.getRole()) || "Student".equalsIgnoreCase(account.getRole())) {
-                me = account.getAccountId();
-                break;
-            }
-        }
+        String me = getLoggedAccountId();
         if (me == null) {
             throw new IllegalStateException("No valid account (Tutor/Student) found for logged user.");
         }
+
         boolean iAmTutor = me.equals(s.getTutorId());
 
         s.setTutorSeen(iAmTutor);
@@ -303,29 +306,70 @@ public class ManageNoticeBoardController {
     }
 
     public String getLoggedRole() {
-        return SessionManager.getLoggedUser().getAccounts().stream()
-                .map(AccountBean::getRole)
-                .filter(r -> "Tutor".equalsIgnoreCase(r) || "Student".equalsIgnoreCase(r))
-                .findFirst().orElse(null);
+
+        UserBean me = getLoggedUser();
+        if (me == null) return null;
+
+        for (AccountBean account : me.getAccounts()) {
+            String role = account.getRole();
+            if (ROLE_TUTOR.equalsIgnoreCase(role) || ROLE_STUDENT.equalsIgnoreCase(role)) {
+                return role;
+            }
+        }
+        return null;
     }
+
     public String getLoggedAccountId() {
-        return SessionManager.getLoggedUser().getAccounts().stream()
-                .filter(a -> "Tutor".equalsIgnoreCase(a.getRole()) || "Student".equalsIgnoreCase(a.getRole()))
-                .map(AccountBean::getAccountId)
-                .findFirst().orElse(null);
+
+        UserBean me = getLoggedUser();
+        if (me == null) return null;
+
+        for (AccountBean account : me.getAccounts()) {
+            String role = account.getRole();
+            if (ROLE_TUTOR.equalsIgnoreCase(role) || ROLE_STUDENT.equalsIgnoreCase(role)) {
+                return account.getAccountId();
+            }
+        }
+        return null;
     }
 
     // Wrapper che delegano al BookingTutoringSessionController
-    public void acceptSession   (String id){ bookingCtrl.acceptSession(id);   }
-    public void refuseSession   (String id){ bookingCtrl.refuseSession(id);   }
+    public void acceptSession (String id){ bookingCtrl.acceptSession(id);   }
+    public void refuseSession (String id){ bookingCtrl.refuseSession(id);   }
 
     // Interazioni dirette con il SessionManager, in maniera tale che il controller grafico non lo conosca
     public UserBean getLoggedUser() {
-        return SessionManager.getLoggedUser();
+        return getLoggedUser(sessionId);
     }
 
     public void logout() {
-        SessionManager.logout();
+        logout(sessionId);
+    }
+
+    public UserBean getLoggedUser(UUID sid) {
+        if (sid == null || !loginCtrl.isSessionActive(sid)) return null;
+
+        User dom = loginCtrl.getUserFromSession(sid);
+        if (dom == null) return null;
+
+        UserBean ub = new UserBean();
+        ub.setEmail(dom.getEmail());
+        ub.setUsername(dom.getUsername());
+        for (Account a : dom.getAccounts()) {
+            AccountBean ab = new AccountBean();
+            ab.setAccountId(a.getAccountId());
+            ab.setRole(a.getRole());
+            ab.setName(a.getName());
+            ab.setSurname(a.getSurname());
+            ub.addAccount(ab);
+        }
+        return ub;
+    }
+
+    public void logout(UUID sid) {
+        if (sid != null) {
+            loginCtrl.logout(sid);
+        }
     }
 }
 

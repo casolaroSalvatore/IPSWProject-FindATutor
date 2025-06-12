@@ -1,16 +1,21 @@
 package logic.control.logiccontrol;
 
-import logic.bean.AccountBean;
-import logic.bean.AvailabilityBean;
-import logic.bean.UserBean;
+import logic.bean.*;
+import logic.model.domain.SessionManager;
 import logic.model.dao.AccountDAO;
 import logic.model.dao.DaoFactory;
 import logic.model.dao.UserDAO;
 import logic.model.domain.*;
 
+import java.util.UUID;
+
 public class SignUpController {
 
-    public boolean registerUser(UserBean userBean) {
+    /* Cache temporanea per consentire il Sign-Up del tutor in 2 step.
+       E' static in quanto deve sopravvivere al cambio di scena */
+    private static UserBean partialTutor;
+
+    public AuthResultBean registerUser(UserBean userBean) {
 
         if (userBean == null || userBean.getAccounts().isEmpty()) {
             throw new IllegalArgumentException("UserBean must not be null or empty.");
@@ -21,7 +26,6 @@ public class SignUpController {
 
         // Carichiamo l'utente se esiste già
         User user = userDAO.load(userBean.getEmail());
-
         if (user == null) {
             // Creiamo un nuovo utente
             user = new User(userBean.getEmail(), userBean.getUsername());
@@ -30,19 +34,18 @@ public class SignUpController {
 
         // Supporto a più account (Student/Tutor)
         for (AccountBean accountBean : userBean.getAccounts()) {
-
             // Controlliamo se ha già un account con quel ruolo
             if (user.hasAccount(accountBean.getRole())) {
                 throw new IllegalArgumentException("An account with this role already exists.");
             }
 
-            System.out.println("Tentativo di registrazione: " + userBean.getEmail());
+            /* System.out.println("Tentativo di registrazione: " + userBean.getEmail());
             System.out.println("DEBUG SignUpController: Sto per creare un nuovo Student/Tutor con i seguenti dati:");
             System.out.println("Name=" + accountBean.getName() +
                     ", Surname=" + accountBean.getSurname() +
                     ", Birthday=" + accountBean.getBirthday() +
                     ", Email=" + userBean.getEmail() +
-                    ", Institute=" + accountBean.getInstitute());
+                    ", Institute=" + accountBean.getInstitute()); */
 
             // Creiamo un nuovo account e lo associamo all'utente
             Account newAccount;
@@ -90,13 +93,14 @@ public class SignUpController {
             // Salviamo nelle DAO
             accountDAO.store(newAccount);
 
-            System.out.println("Utente salvato: " + userDAO.load(newAccount.getEmail()));
-            System.out.println("Account salvato: " + accountDAO.load(user.getEmail() + "_" + accountBean.getRole()));
+            /* System.out.println("Utente salvato: " + userDAO.load(newAccount.getEmail()));
+            System.out.println("Account salvato: " + accountDAO.load(user.getEmail() + "_" + accountBean.getRole())); */
         }
 
         userDAO.store(user);
 
-        SessionManager.setLoggedUser(userBean);
+        // Creo la sessione di dominio e la salvo nel SessionManager
+        UUID sid = SessionManager.getInstance().createSession(user);
 
         // Debug finale per ogni account
         for (AccountBean ab : userBean.getAccounts()) {
@@ -110,20 +114,21 @@ public class SignUpController {
                 System.out.println("Ricaricato account -> null");
             }
         }
-
-        return true;
+        return new AuthResultBean(sid, userBean);
     }
 
-    /* Cache parziale del Tutor – l’unico punto che tocca il Model, in maniera tale che il
-       Controller grafico non interagisca direttamente con il SessionManager
-     */
-    public void cachePartialTutor(UserBean bean) {
-        SessionManager.setUserBean(bean);
+    // Salva i dati preliminari (step 1)
+    public void cachePartialTutor(logic.bean.UserBean ub) {
+        partialTutor = ub;
     }
-    public UserBean retrievePartialTutor() {
-        return SessionManager.getUserBean();
+
+    // Recupera la cache (step 2).
+    public static UserBean getPartialTutor() {
+        return partialTutor;
     }
+
+    // Svuota la cache dopo il completamento o l’annullamento
     public void clearPartialTutor() {
-        SessionManager.clearUserBean();
+        partialTutor = null;
     }
 }

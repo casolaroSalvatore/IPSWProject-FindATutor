@@ -1,6 +1,7 @@
 package logic.control.graphiccontrol.bw;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
@@ -10,8 +11,15 @@ import logic.control.logiccontrol.LeaveASharedReviewController;
 
 public class LeaveASharedReviewGraphicControllerBW extends BaseCLIControllerBW {
 
+    private UUID sessionId;
+
+    public LeaveASharedReviewGraphicControllerBW(UUID sessionId) {
+        this.sessionId = sessionId;
+    }
+
     private static final Logger LOGGER = Logger.getLogger(LeaveASharedReviewGraphicControllerBW.class.getName());
     private LeaveASharedReviewController leaveASharedReviewController = new LeaveASharedReviewController();
+    private static final String ROLE_STUDENT = "Student";
 
     static {
         SystemOutConsoleHandler handler = new SystemOutConsoleHandler();
@@ -25,7 +33,8 @@ public class LeaveASharedReviewGraphicControllerBW extends BaseCLIControllerBW {
     private final LeaveASharedReviewController logic = new LeaveASharedReviewController();
 
     public void start() {
-        if (leaveASharedReviewController.getLoggedUser() == null) {
+
+        if (logic.getLoggedUser(sessionId) == null) {
             LOGGER.info("Please log in first!");
             pressEnter();
             return;
@@ -34,13 +43,11 @@ public class LeaveASharedReviewGraphicControllerBW extends BaseCLIControllerBW {
         String role = null;
         String userId = null;
 
-        for (AccountBean account : leaveASharedReviewController.getLoggedUser().getAccounts()) {
-            if ("Student".equalsIgnoreCase(account.getRole())) {
-                role = "Student";
-                userId = account.getAccountId();
-                break;
-            } else if ("Tutor".equalsIgnoreCase(account.getRole())) {
-                role = "Tutor";
+        for (AccountBean account : logic.getLoggedUser(sessionId).getAccounts()) {
+            String r = account.getRole();
+
+            if (ROLE_STUDENT.equalsIgnoreCase(r) || "Tutor".equalsIgnoreCase(r)) {
+                role = r;
                 userId = account.getAccountId();
                 break;
             }
@@ -51,7 +58,7 @@ public class LeaveASharedReviewGraphicControllerBW extends BaseCLIControllerBW {
         }
 
 
-        final boolean isStudent = "Student".equalsIgnoreCase(role);
+        final boolean isStudent = ROLE_STUDENT.equalsIgnoreCase(role);
         final String finalUserId = userId;
 
         List<SharedReviewBean> reviews = isStudent
@@ -96,11 +103,12 @@ public class LeaveASharedReviewGraphicControllerBW extends BaseCLIControllerBW {
         // Creo il nuovo bean
         SharedReviewBean bean = new SharedReviewBean();
         bean.setReviewId(bean.getReviewId());
-        bean.setStudentId(leaveASharedReviewController.getLoggedUser().getAccounts().stream()
-                .filter(a -> "Student".equalsIgnoreCase(a.getRole()))
+        String studentId = logic.getLoggedUser(sessionId).getAccounts().stream()
+                .filter(a -> ROLE_STUDENT.equalsIgnoreCase(a.getRole()))
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("Student account not found"))
-                .getAccountId());
+                .getAccountId();
+        bean.setStudentId(studentId);
         bean.setStudentStars(stars);
         bean.setStudentTitle(title);
         bean.setStudentComment(comment);

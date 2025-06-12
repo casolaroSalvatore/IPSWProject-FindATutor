@@ -23,11 +23,13 @@ import logic.bean.SharedReviewBean;
 import logic.bean.UserBean;
 import logic.control.logiccontrol.LeaveASharedReviewController;
 import logic.model.domain.ReviewStatus;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.IntStream;
 
 public class LeaveASharedReviewGraphicControllerColored {
@@ -76,7 +78,15 @@ public class LeaveASharedReviewGraphicControllerColored {
     @FXML
     private HBox starContainer;
     @FXML
-    private ImageView star1, star2, star3, star4, star5;
+    private ImageView star1;
+    @FXML
+    private ImageView star2;
+    @FXML
+    private ImageView star3;
+    @FXML
+    private ImageView star4;
+    @FXML
+    private ImageView star5;
     @FXML
     private TextArea studentReviewComment;
 
@@ -142,26 +152,40 @@ public class LeaveASharedReviewGraphicControllerColored {
     private Image emptyStar;
     private Image fullStar;
 
-    private LeaveASharedReviewController leaveASharedReviewController = new LeaveASharedReviewController();
+    private LeaveASharedReviewController leaveASharedReviewController;
+    private UUID sessionId;
+    private UserBean userBean;
+
+    private static final Logger LOGGER = Logger.getLogger(LeaveASharedReviewGraphicControllerColored.class.getName());
+
+    public void initData(UUID sid, UserBean user) {
+
+        this.sessionId = sid;
+        this.userBean  = user;
+
+        if (user == null) {
+            showLoggedOutUI();
+            return;
+        }
+
+        // Istanzio il controller logico con la sessione
+        this.leaveASharedReviewController = new LeaveASharedReviewController(sid);
+
+
+        showLoggedInUI(user);
+        configureStudentTableColumns();
+        configureTutorTableColumns();
+        configureStudentRowFactory();
+        configureTutorRowFactory();
+        showPaneByRoleAndLoadData();
+        initializeStarRating();
+    }
 
     @FXML
     public void initialize() {
-
-        UserBean user = leaveASharedReviewController.getLoggedUser();
-        if (user == null) {
-            showLoggedOutUI();
-            return;                              // fine: nessun utente loggato
-        }
-
-        showLoggedInUI(user);                   // messaggio + pulsanti visibilità
-        configureStudentTableColumns();         // colonne studente
-        configureTutorTableColumns();           // colonne tutor
-        configureStudentRowFactory();           // doppio‑click righe studente
-        configureTutorRowFactory();             // doppio‑click righe tutor
-        showPaneByRoleAndLoadData(user);        // mostra/gestisci pane + carica liste
+        // Solo caricamento delle immagini o risorse neutre
         emptyStar = new Image(getClass().getResourceAsStream("/images/empty_star.png"));
         fullStar  = new Image(getClass().getResourceAsStream("/images/full_star.png"));
-        initializeStarRating();                 // inizializza le stelle
     }
 
     // Helper per la fattorizzazione
@@ -249,10 +273,10 @@ public class LeaveASharedReviewGraphicControllerColored {
         });
     }
 
-    private void showPaneByRoleAndLoadData(UserBean user) {
+    private void showPaneByRoleAndLoadData() {
 
-        String role     = leaveASharedReviewController.getLoggedRole();
-        String accountId = leaveASharedReviewController.getLoggedAccountId();
+        String role     = leaveASharedReviewController.getLoggedRole(sessionId);
+        String accountId = leaveASharedReviewController.getLoggedAccountId(sessionId);
 
         if (role == null || accountId == null) {
             throw new IllegalStateException("No valid account found for logged user.");
@@ -272,11 +296,13 @@ public class LeaveASharedReviewGraphicControllerColored {
     // Esempio: "Studente" => carico i tutor con findAllTutorsForStudent, trovo/creo le review
     private void loadTutorListAndBuildReviews(String studentId) {
         var tutorIds = leaveASharedReviewController.findAllTutorsForStudent(studentId);
+        System.out.println("[DEBUG] tutorIds="+tutorIds);
         List<SharedReviewBean> rows = new ArrayList<>();
         for (String tutorId : tutorIds) {
             SharedReviewBean sharedReviewBean = leaveASharedReviewController.findOrCreateSharedReviewBean(studentId, tutorId);
             rows.add(sharedReviewBean);
         }
+        System.out.println("[DEBUG] rows.size="+rows.size());
         studentTable.setItems(FXCollections.observableArrayList(rows));
     }
 
@@ -505,8 +531,13 @@ public class LeaveASharedReviewGraphicControllerColored {
     @FXML
     public void goToHome(ActionEvent event) {
         try {
-            // Torna alla schermata Home
-            Parent homeRoot = FXMLLoader.load(getClass().getResource("/fxml/Home.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Home.fxml"));
+            Parent homeRoot = loader.load();
+
+            HomeGraphicControllerColored homeGraphicControllerColored = loader.getController();
+            homeGraphicControllerColored.initData(sessionId, userBean);
+
+            // Imposto la scena
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
             Scene scene = new Scene(homeRoot, screenBounds.getWidth(), screenBounds.getHeight());
@@ -514,35 +545,31 @@ public class LeaveASharedReviewGraphicControllerColored {
             stage.setScene(scene);
             stage.setMaximized(true);
             stage.show();
+
         } catch (Exception e) {
             e.printStackTrace();
-            System.err.println("An error occurred while loading the Home screen.");
+            LOGGER.log(Level.SEVERE, "An error occurred while loading the Home screen.", e);
         }
     }
 
 
     @FXML
     private void goToManageNoticeBoard(ActionEvent event) {
-        // 1) Verifichiamo se l’utente è loggato
-        if (leaveASharedReviewController.getLoggedUser() == null) {
-            // Utente NON loggato: reindirizziamo alla form di accesso (o Login)
-            showAlert("Booking", "You must be logged in to manage the notice board.");
-            try {
-                Parent loginRoot = FXMLLoader.load(getClass().getResource("/fxml/Login.fxml"));
-                Stage stage = (Stage) manageNoticeBoardButton.getScene().getWindow();
-                Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
-                Scene scene = new Scene(loginRoot, screenBounds.getWidth(), screenBounds.getHeight());
-                stage.setTitle("Error in accessing the notice board");
-                stage.setScene(scene);
-                stage.setMaximized(true);
-                stage.show();
-            } catch (Exception e) {
-                e.printStackTrace();
-                System.err.println("An error occurred while loading the Login screen for notice board.");
-            }
-        } else {
-            BookingSessionGraphicControllerColored controller = new BookingSessionGraphicControllerColored();
-            controller.goToManageNoticeBoard(event);
+
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/ManageNoticeBoard.fxml"));
+            Parent root  = loader.load();
+            ManageNoticeBoardGraphicControllerColored manageNoticeBoardGraphicControllerColored = loader.getController();
+            manageNoticeBoardGraphicControllerColored.initData(sessionId, userBean);
+            Rectangle2D sb  = Screen.getPrimary().getVisualBounds();
+            Scene scene  = new Scene(root, sb.getWidth(), sb.getHeight());
+            Stage stage  = (Stage) manageNoticeBoardButton.getScene().getWindow();
+            stage.setScene(scene);
+            stage.setTitle("Manage Notice Board");
+            stage.setMaximized(true);
+            stage.show();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -560,7 +587,7 @@ public class LeaveASharedReviewGraphicControllerColored {
         // Se l'utente ha premuto OK, effettuiamo il logout
         if (result.isPresent() && result.get() == ButtonType.OK) {
             // 1) Azzeri la sessione, se hai un SessionManager
-            leaveASharedReviewController.logout();
+            leaveASharedReviewController.logout(sessionId);
 
             goToHome(event);
 

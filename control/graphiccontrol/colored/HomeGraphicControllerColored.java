@@ -15,8 +15,6 @@ import logic.bean.UserBean;
 import logic.control.logiccontrol.HomeController;
 import logic.control.logiccontrol.LeaveASharedReviewController;
 import logic.control.logiccontrol.ManageNoticeBoardController;
-import logic.model.domain.Availability;
-import logic.model.domain.SessionManager;
 import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -25,15 +23,19 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
-
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 public class HomeGraphicControllerColored extends Application {
+
+    private static final Logger LOGGER = Logger.getLogger(HomeGraphicControllerColored.class.getName());
 
     @FXML
     private AnchorPane root;
@@ -76,14 +78,20 @@ public class HomeGraphicControllerColored extends Application {
     private static final double BADGE_SHIFT_X = 3;   // verso destra
     private static final double BADGE_SHIFT_Y = 5;   // verso il basso
 
+    private final HomeController homeController = new HomeController();
+    private UUID sessionId;
+    private UserBean userBean;
+
+    public void initData(UUID sessionId, UserBean userBean) {
+        this.sessionId = sessionId;
+        this.userBean  = userBean;
+        showLoggedInUI(userBean);
+    }
+
     @FXML
     public void initialize() {
-        if (SessionManager.getLoggedUser() == null) {
-            showLoggedOutUI();
-            return;
-        }
-        UserBean user = SessionManager.getLoggedUser();
-        showLoggedInUI(user);
+
+        showLoggedOutUI();
 
         // Comando necessario per posizionare dinamicamente i pulsanti e la label
         Platform.runLater(() -> {
@@ -95,7 +103,7 @@ public class HomeGraphicControllerColored extends Application {
         addRepositionListeners(leaveASharedReviewButton, redCircle2, redDotLabel2);
     }
 
-    // Aggancia alcuni listener alle proprietà che cambiano quando la finestra si ridimensiona */
+    // Aggancia alcuni listener alle proprietà che cambiano quando la finestra si ridimensiona
     private void addRepositionListeners(Button source, Circle badge, Label text) {
         ChangeListener<Number> l = (obs, o, n) -> updateBadgePosition(source, badge, text);
 
@@ -128,6 +136,10 @@ public class HomeGraphicControllerColored extends Application {
         logOutButton.setVisible(false);
         logInButton.setVisible(true);
         signUpButton.setVisible(true);
+        redDotLabel1.setVisible(false);
+        redCircle1.setVisible(false);
+        redDotLabel2.setVisible(false);
+        redCircle2.setVisible(false);
     }
 
     private void showLoggedInUI(UserBean user) {
@@ -140,6 +152,11 @@ public class HomeGraphicControllerColored extends Application {
 
         String accountId = null;
         String role = null;
+
+        System.out.println("DEBUG - In HomeGraphicController, account disponibili:");
+        for (AccountBean ab : user.getAccounts()) {
+            System.out.println(" - Role: " + ab.getRole());
+        }
 
         for (AccountBean account : user.getAccounts()) {
             if ("Student".equalsIgnoreCase(account.getRole())) {
@@ -158,7 +175,7 @@ public class HomeGraphicControllerColored extends Application {
         }
 
         // Pallino rosso “Notice Board”
-        ManageNoticeBoardController mCtrl = new ManageNoticeBoardController();
+        ManageNoticeBoardController mCtrl = new ManageNoticeBoardController(sessionId);
         toggleRedDot(mCtrl.countNewRequests(accountId, role), redDotLabel1, redCircle1);
 
         // Pallino rosso “Shared Reviews”
@@ -181,31 +198,21 @@ public class HomeGraphicControllerColored extends Application {
 
     @FXML
     public void handleLogOut(ActionEvent event) {
-
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Confirm Logout");
         alert.setHeaderText("Are you sure you want to log out?");
         alert.setContentText("Click OK to end your current session.");
 
-        // Mostriamo la finestra di dialogo e attendiamo la risposta
         Optional<ButtonType> result = alert.showAndWait();
-
-        // Se l'utente ha premuto OK, effettuiamo il logout
         if (result.isPresent() && result.get() == ButtonType.OK) {
-            // 1) Azzeri la sessione, se hai un SessionManager
-            HomeController homeController = new HomeController();
-            homeController.logout();
-            // SessionManager.logout();
+            // logout tramite HomeController
+            if (sessionId != null) {
+                homeController.logout(sessionId);
+                sessionId = null;
+                userBean  = null;
+            }
 
-            welcomeLabel.setVisible(false);
-            logOutButton.setVisible(false);
-            logInButton.setVisible(true);
-            signUpButton.setVisible(true);
-            redDotLabel1.setVisible(false);
-            redCircle1.setVisible(false);
-            redDotLabel2.setVisible(false);
-            redCircle2.setVisible(false);
-
+            showLoggedOutUI();
         }
     }
 
@@ -231,7 +238,8 @@ public class HomeGraphicControllerColored extends Application {
 
     @FXML
     private void goToLogin(ActionEvent event) {
-        LoginGraphicControllerColored.showLoginScene(event);
+        LoginGraphicControllerColored loginGraphicControllerColored = new LoginGraphicControllerColored();
+        loginGraphicControllerColored.showLoginScene(event);
     }
 
     @FXML
@@ -241,61 +249,75 @@ public class HomeGraphicControllerColored extends Application {
 
     @FXML
     private void goToBookingTutoringSession(ActionEvent event) {
-        BookingSessionGraphicControllerColored bookingSessionGraphicControllerColored = new BookingSessionGraphicControllerColored();
-        bookingSessionGraphicControllerColored.showTutorListScene(event);
+        try {
+            Stage stage = (Stage) ((Button) event.getSource()).getScene().getWindow();
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/BookingTutoringSession.fxml"));
+            Parent root = loader.load();
+
+            BookingSessionGraphicControllerColored bookingSessionGraphicControllerColored = loader.getController();
+            bookingSessionGraphicControllerColored.initData(sessionId, userBean);
+
+            Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
+            Scene scene = new Scene(root, screenBounds.getWidth(), screenBounds.getHeight());
+            stage.setTitle("Book a Tutoring Session");
+            stage.setScene(scene);
+            stage.setMaximized(true);
+            stage.show();
+        } catch (Exception e) {
+            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "An error occurred while loading the Tutor List screen.", e);
+        }
     }
 
     @FXML
     private void goToManageNoticeBoard(ActionEvent event) {
-        if (SessionManager.getLoggedUser() == null) {
+
+        if (userBean == null) {
             showAlert("Booking", "You must be logged in to manage the notice board.");
-            try {
-                Parent signUpRoot = FXMLLoader.load(getClass().getResource("/fxml/Login.fxml"));
-                Stage stage = (Stage) manageNoticeBoardButton.getScene().getWindow();
-                stage.setScene(new Scene(signUpRoot));
-                stage.setTitle("Error in accessing the notice board");
-                stage.show();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        } else {
-            try {
-                Parent root = FXMLLoader.load(getClass().getResource("/fxml/ManageNoticeBoard.fxml"));
-                Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
-                Stage stage = (Stage) manageNoticeBoardButton.getScene().getWindow();
-                Scene scene = new Scene(root, screenBounds.getWidth(), screenBounds.getHeight());
-                stage.setTitle("Manage Notice Board");
-                stage.setScene(scene);
-                stage.setMaximized(true);
-                stage.show();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            goToLogin(event);
+            return;
+        }
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/ManageNoticeBoard.fxml"));
+            Parent root  = loader.load();
+            ManageNoticeBoardGraphicControllerColored manageNoticeBoardGraphicControllerColored = loader.getController();
+            manageNoticeBoardGraphicControllerColored.initData(sessionId, userBean);
+            Rectangle2D sb  = Screen.getPrimary().getVisualBounds();
+            Scene scene  = new Scene(root, sb.getWidth(), sb.getHeight());
+            Stage stage  = (Stage) manageNoticeBoardButton.getScene().getWindow();
+            stage.setScene(scene);
+            stage.setTitle("Manage Notice Board");
+            stage.setMaximized(true);
+            stage.show();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
     @FXML
     private void goToLeaveASharedReview(ActionEvent event) {
-        if (SessionManager.getLoggedUser() == null) {
-            showAlert("Booking", "You must be logged in to manage the notice board.");
-            try {
-                goToLogin(event);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        } else {
-            try {
-                Parent root = FXMLLoader.load(getClass().getResource("/fxml/LeaveASharedReview.fxml"));
-                Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
-                Stage stage = (Stage) leaveASharedReviewButton.getScene().getWindow();
-                Scene scene = new Scene(root, screenBounds.getWidth(), screenBounds.getHeight());
-                stage.setTitle("Leave a Shared Review");
-                stage.setScene(scene);
-                stage.setMaximized(true);
-                stage.show();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+
+        if (userBean == null) {
+            showAlert("Booking", "You must be logged in to leave a shared review.");
+            goToLogin(event);
+            return;
+        }
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/LeaveASharedReview.fxml"));
+            Parent root = loader.load();
+
+            LeaveASharedReviewGraphicControllerColored leaveASharedReviewGraphicControllerColored = loader.getController();
+            leaveASharedReviewGraphicControllerColored.initData(sessionId, userBean);
+
+            Rectangle2D sb = Screen.getPrimary().getVisualBounds();
+            Scene scene  = new Scene(root, sb.getWidth(), sb.getHeight());
+            Stage stage = (Stage) leaveASharedReviewButton.getScene().getWindow();
+            stage.setScene(scene);
+            stage.setTitle("Leave a Shared Review");
+            stage.setMaximized(true);
+            stage.show();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -331,10 +353,8 @@ public class HomeGraphicControllerColored extends Application {
             return;
         }
 
-        HomeController homeController = new HomeController();
-        homeController.cacheSearchParams(chosenLocation, chosenSubject, availabilityBean);
-        /* 2) Imposto i parametri nel BookingSessionGraphicControllerColored
-        BookingSessionGraphicControllerColored.setSearchParameters(chosenLocation, chosenSubject, availability); */
+        // Imposto i parametri nel BookingSessionGraphicControllerColored
+        BookingSessionGraphicControllerColored.setSearchParameters(chosenLocation, chosenSubject, availabilityBean);
 
         // 3) Vado alla scena "BookingTutoringSession.fxml"
         goToBookingTutoringSession(event);
@@ -356,4 +376,3 @@ public class HomeGraphicControllerColored extends Application {
         alert.showAndWait();
     }
 }
-

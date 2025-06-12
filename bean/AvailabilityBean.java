@@ -11,17 +11,29 @@ public class AvailabilityBean {
     private LocalDate endDate;
     private List<DayOfWeek> days;
 
-    public LocalDate getStartDate()           { return startDate; }
-    public void setStartDate(LocalDate d)     { this.startDate = d; }
+    public LocalDate getStartDate() {
+        return startDate;
+    }
 
-    public LocalDate getEndDate()             { return endDate; }
-    public void setEndDate(LocalDate d)       { this.endDate = d; }
+    public void setStartDate(LocalDate d) {
+        this.startDate = d;
+    }
 
-    public List<DayOfWeek> getDays()          { return days; }
-    public void setDays(List<DayOfWeek> ds)   { this.days = ds; }
+    public LocalDate getEndDate() {
+        return endDate;
+    }
 
-    public List<DayOfWeek> getDaysOfWeek()               { return days; }
-    public void setDaysOfWeek(List<DayOfWeek> l){ this.days = l;  }
+    public void setEndDate(LocalDate d) {
+        this.endDate = d;
+    }
+
+    public List<DayOfWeek> getDays() {
+        return days;
+    }
+
+    public void setDays(List<DayOfWeek> ds) {
+        this.days = ds;
+    }
 
     // Controllo di forma: range coerente + almeno un giorno selezionato
     public void checkSyntax() {

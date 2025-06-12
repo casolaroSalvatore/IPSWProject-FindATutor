@@ -1,18 +1,24 @@
 package logic.control.graphiccontrol.bw;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/* Classe all'interno della quale definiamo le operazioni necessarie per supportare la versione CLI */
 public abstract class BaseCLIControllerBW {
 
     private static final Logger LOGGER = Logger.getLogger(BaseCLIControllerBW.class.getName());
-    protected static final Scanner IN = new Scanner(System.in);
 
+    /* Lettore basato su java.io */
+    private static final BufferedReader IN =
+            new BufferedReader(new InputStreamReader(System.in));
+
+    /* Configurazione del logger */
     static {
-        // Configuro il logger per stampare su console (per rendere il codice SonarQube-compliant)
         SystemOutConsoleHandler handler = new SystemOutConsoleHandler();
         handler.setLevel(Level.INFO);
         handler.setFormatter(new SimpleConsoleFormatter());
@@ -21,9 +27,16 @@ public abstract class BaseCLIControllerBW {
         LOGGER.setLevel(Level.INFO);
     }
 
+    /* Chiede una stringa all’utente e la restituisce ripulita */
     protected String ask(String prompt) {
         LOGGER.info(prompt);
-        return IN.nextLine().trim();
+        try {
+            String line = IN.readLine();
+            return line == null ? "" : line.trim();
+        } catch (IOException e) {
+            LOGGER.warning("Errore di I/O durante la lettura dell’input: " + e.getMessage());
+            return "";
+        }
     }
 
     protected int askInt(String prompt) {
@@ -60,8 +73,9 @@ public abstract class BaseCLIControllerBW {
     }
 
     protected void pressEnter() {
-        ask("Press ENTER to continue...");
+        ask("Premi INVIO per continuare...");
     }
 }
+
 
 
