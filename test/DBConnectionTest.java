@@ -1,37 +1,31 @@
 package test;
 
 import logic.model.dao.db.ConnectionFactory;
-
+import org.junit.jupiter.api.Test;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Optional;
+import static org.junit.Assert.*;
 
-public class DBConnectionTest {
+/* Verifica l’integrità della connessione restituendo un singolo assert per ciascun metodo di test. */
+class DBConnectionTest {
 
-    public static void main(String[] args) {
-        try {
-            Connection conn = ConnectionFactory.getConnection();
+    /* La stessa connessione condivisa da tutti i test */
+    private final Connection conn = ConnectionFactory.getConnection();
 
-            if (conn == null || conn.isClosed()) {
-                System.out.println("❌ Connessione NULL o CHIUSA");
-                return;
-            }
+    @Test
+    void connectionIsNotNull() {
+        assertNotNull(String.valueOf(conn), Optional.of("The connection should not be null"));
+    }
 
-            System.out.println("✅ Connessione riuscita!");
+    @Test
+    void connectionIsOpen() throws SQLException {
+        assertFalse("The connection should be open", conn.isClosed());
+    }
 
-            String sql = "SELECT COUNT(*) AS count FROM users";
-
-            try (PreparedStatement ps = conn.prepareStatement(sql);
-                 ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    int count = rs.getInt("count");
-                    System.out.println("📊 Utenti trovati: " + count);
-                }
-            }
-        } catch (SQLException e) {
-            System.out.println("❌ Errore SQL:");
-            e.printStackTrace();
-        }
+    @Test
+    void connectionIsValid() throws SQLException {
+        assertTrue("The connection should be valid", conn.isValid(2));
     }
 }
+
