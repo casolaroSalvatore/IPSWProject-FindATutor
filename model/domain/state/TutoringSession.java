@@ -6,23 +6,23 @@ import java.time.LocalTime;
 // Incarna il Client
 public class TutoringSession {
 
-    public String sessionId;
-    public String tutorId;
-    public String studentId;
-    public String location;
-    public String subject;
-    public LocalDate date;
-    public LocalTime startTime;
-    public LocalTime endTime;
-    public String comment;
-    public TutoringSessionStatus status;
+    private String sessionId;
+    private String tutorId;
+    private String studentId;
+    private String location;
+    private String subject;
+    private LocalDate date;
+    private LocalTime startTime;
+    private LocalTime endTime;
+    private String comment;
+    private TutoringSessionStatus status;
     // Riferimento alla TutoringSessionStateMachine (pattern GoF State)
-    private final TutoringSessionEvents fsm = new TutoringSessionStateMachine(this);
-    public String modifiedBy;
-    public String modifiedTo;
-    public LocalDate proposedDate;
-    public LocalTime proposedStartTime;
-    public LocalTime proposedEndTime;
+    private TutoringSessionEvents fsm = new TutoringSessionStateMachine(this);
+    private String modifiedBy;
+    private String modifiedTo;
+    private LocalDate proposedDate;
+    private LocalTime proposedStartTime;
+    private LocalTime proposedEndTime;
 
     // Booleani per implementare l'animazione della notifica
     private boolean tutorSeen;
@@ -109,8 +109,8 @@ public class TutoringSession {
 
     public TutoringSessionStatus getStatus(){ return status; }
 
-     /* Questo metodo è utilizzato ESCLUSIVAMENTE dai DAO per ripristinare lo stato letto dal DB/file.
-      Non passa dalla FSM, quindi va chiamato SOLO in fase di load. */
+    /* Questo metodo è utilizzato ESCLUSIVAMENTE dai DAO per ripristinare lo stato letto dal DB/file.
+     Non passa dalla FSM, quindi va chiamato SOLO in fase di load. */
     public void restoreStatusFromPersistence(TutoringSessionStatus status) {
         this.status = status;
         if (fsm instanceof TutoringSessionStateMachine sm) {

@@ -1,388 +1,229 @@
 package logic.model.dao.db;
 
 import logic.model.dao.AccountDAO;
-import logic.model.domain.Account;
-import logic.model.domain.Availability;
-import logic.model.domain.Tutor;
-import logic.model.domain.Student;
+import logic.model.domain.*;
+
 import java.sql.*;
+import java.sql.Date;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
+import java.time.LocalTime;
+import java.util.*;
 import java.util.stream.Collectors;
 
-public class DBAccountDAO implements AccountDAO {
+public class DBAccountDAO extends DBDAO<String, Account> implements AccountDAO {
 
-    private static Connection conn;
-    private static final String PROFILE_PIC = "profile_picture_path";
-    private static final String PROFILE_COMMENT  = "profile_comment";
+    private static final String PROFILE_PIC     = "profile_picture_path";
+    private static final String PROFILE_COMMENT = "profile_comment";
 
-    static {
-        conn = ConnectionFactory.getConnection();
+
+    @Override protected String getTableName() { return "accounts"; }
+    @Override protected String getPkColumn()  { return "account_id"; }
+    @Override protected String getId(Account a) { return a.getAccountId(); }
+
+    @Override
+    protected Account map(ResultSet rs) throws SQLException {
+
+        String email    = rs.getString("email");
+        String role     = rs.getString("role");
+        String pwd      = rs.getString("password");
+        String name     = rs.getString("name");
+        String surname  = rs.getString("surname");
+        LocalDate birth = toLocal(rs.getDate("birthday"));
+        Availability av = buildAvailability(rs);
+
+        Account a = switch (role.toUpperCase()) {
+            case "TUTOR"   -> buildTutor  (rs, email, name, surname, birth, av);
+            case "STUDENT" -> buildStudent(rs, email, name, surname, birth);
+            default        -> new Account(email, role, name, surname, birth,
+                    rs.getString(PROFILE_PIC),
+                    rs.getString(PROFILE_COMMENT));
+        };
+        a.setPassword(pwd);
+        return a;
     }
 
     @Override
-    public Account load(String accountId) {
-        final String sql = "SELECT email, role, password, name, surname, birthday, "
-                + "institute, location, educational_title, subject, "
-                + "hourly_rate, offers_in_person, offers_online, "
-                + "offers_group, first_lesson_free, "
-                + "availability_start_date, availability_end_date, "
-                + "availability_days_of_week, profile_picture_path, "
-                + "profile_comment, rating "
-                + "FROM accounts WHERE account_id = ?";
+    protected void insert(Account acc) throws SQLException {
 
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, accountId);
+        final String SQL = """
+        INSERT INTO accounts(
+          account_id,email,role,password,name,surname,birthday,
+          institute,location,educational_title,subject,
+          hourly_rate,offers_in_person,offers_online,
+          offers_group,first_lesson_free,
+          profile_picture_path,profile_comment,
+          availability_start_date,availability_end_date,availability_days_of_week,
+          rating)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""";
 
-            try (ResultSet rs = ps.executeQuery()) {
-                if (!rs.next()) {
-                    return null;
-                }
-
-                String email    = rs.getString("email");
-                String role     = rs.getString("role");
-                String password = rs.getString("password");
-                String name     = rs.getString("name");
-                String surname  = rs.getString("surname");
-                LocalDate birth = toLocalDate(rs.getDate("birthday"));
-
-                Availability avail = buildAvailability(rs);
-
-                Account account;
-                switch (role.toUpperCase()) {
-                    case "TUTOR"   -> account = buildTutor(rs, email, name, surname, birth, avail);
-                    case "STUDENT" -> account = buildStudent(rs, email, name, surname, birth);
-                    default        -> account = new Account(email, role, name, surname, birth,
-                            rs.getString(PROFILE_PIC),
-                            rs.getString(PROFILE_COMMENT));
-                }
-                account.setPassword(password);
-                return account;
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return null;
+        try (PreparedStatement ps = conn.prepareStatement(SQL)) {
+            fillInsertOrUpdate(ps, acc, /* isUpdate */ false);
+            ps.executeUpdate();
         }
     }
 
-    //  Helper privati — ognuno fa una sola cosa (introdotti per ridurre la complessità)
-    private static LocalDate toLocalDate(java.sql.Date d) {
+    @Override
+    protected void update(Account acc) throws SQLException {
+
+        final String SQL = """
+        UPDATE accounts SET
+          email = ?, role = ?, password = ?,
+          name  = ?, surname = ?, birthday = ?,
+          institute = ?, location = ?, educational_title = ?, subject = ?, hourly_rate = ?,
+          offers_in_person = ?, offers_online = ?, offers_group = ?, first_lesson_free = ?,
+          profile_picture_path = ?, profile_comment = ?,
+          availability_start_date = ?, availability_end_date = ?, availability_days_of_week = ?,
+          rating = ?
+        WHERE account_id = ?""";
+
+        try (PreparedStatement ps = conn.prepareStatement(SQL)) {
+            fillInsertOrUpdate(ps, acc, /* isUpdate */ true);
+            ps.executeUpdate();
+        }
+    }
+
+    private void fillInsertOrUpdate(PreparedStatement ps,
+                                    Account acc,
+                                    boolean update) throws SQLException {
+
+        List<Object> params = new ArrayList<>();
+
+        if (update) {
+            params.addAll(Arrays.asList(
+                    acc.getEmail(), acc.getRole(), acc.getPassword(),
+                    acc.getName(), acc.getSurname(), acc.getBirthday()
+            ));
+        } else {
+            params.add(acc.getAccountId());
+            params.addAll(Arrays.asList(
+                    acc.getEmail(), acc.getRole(), acc.getPassword(),
+                    acc.getName(), acc.getSurname(), acc.getBirthday()
+            ));
+        }
+
+        /* campo Institute (solo STUDENT) */
+        params.add(acc instanceof Student s ? s.getInstitute() : null);
+
+        /* campi specifici del TUTOR (oppure placeholder per altri ruoli) */
+        if (acc instanceof Tutor t) {
+            params.addAll(Arrays.asList(
+                    t.getLocation(), t.getEducationalTitle(), t.getSubject(),
+                    t.getHourlyRate(), t.offersInPerson(), t.offersOnline(),
+                    t.offersGroup(), t.isFirstLessonFree()
+            ));
+        } else {
+            params.addAll(Arrays.asList(
+                    null, null, null, 0f, false, false, false, false
+            ));
+        }
+
+        /* campi comuni di profilo */
+        params.addAll(Arrays.asList(
+                acc.getProfilePicturePath(), acc.getProfileComment()
+        ));
+
+        /* disponibilità + rating (solo Tutor con availability valorizzata) */
+        if (acc instanceof Tutor t && t.getAvailability() != null) {
+            Availability av = t.getAvailability();
+            params.addAll(Arrays.asList(
+                    av.getStartDate(), av.getEndDate(),
+                    av.getDaysOfWeek().stream()
+                            .map(DayOfWeek::name)
+                            .collect(Collectors.joining(","))
+            ));
+            params.add(t.getRating());
+        } else {
+            params.addAll(Arrays.asList(null, null, null, 0f));
+        }
+
+        if (update) params.add(acc.getAccountId()); // ultimo param: WHERE
+
+        for (int i = 0; i < params.size(); i++) {
+            Object o = params.get(i);
+            int idx = i + 1;
+            if      (o instanceof LocalDate d)  ps.setDate(idx, Date.valueOf(d));
+            else if (o instanceof LocalTime t)  ps.setTime(idx, Time.valueOf(t));
+            else if (o instanceof Float f)      ps.setFloat(idx, f);
+            else if (o instanceof Boolean b)    ps.setBoolean(idx, b);
+            else                                ps.setObject(idx, o);
+        }
+    }
+
+    @Override
+    public List<Account> loadAllAccountsOfType(String role) {
+        return loadMany("SELECT account_id FROM accounts WHERE role = ?", role);
+    }
+
+    public List<Account> loadAllAccountsOfUser(String email) {
+        return loadMany("SELECT account_id FROM accounts WHERE email = ?", email);
+    }
+
+    @Override
+    public Account create(String key) { return new Account(key, null); }
+
+    /* Converte java.sql.Date in java.time.LocalDate (accetta null). */
+    private static LocalDate toLocal(java.sql.Date d) {
         return d == null ? null : d.toLocalDate();
     }
 
-    private static Availability buildAvailability(ResultSet rs) throws SQLException {
-        LocalDate start = toLocalDate(rs.getDate("availability_start_date"));
-        LocalDate end   = toLocalDate(rs.getDate("availability_end_date"));
-        String   days   = rs.getString("availability_days_of_week");
-
-        if (start == null || end == null || days == null) {
-            return null;
-        }
-        List<DayOfWeek> list = new ArrayList<>();
-        for (String d : days.split(",")) {
-            list.add(DayOfWeek.valueOf(d.trim().toUpperCase()));
-        }
-        return new Availability(start, end, list);
+    /* Esegue una query che restituisce N account_id e li mappa in oggetti Account. */
+    private List<Account> loadMany(String sql, String param) {
+        List<Account> out = new ArrayList<>();
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            if (param != null) ps.setString(1, param);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Account a = load(rs.getString("account_id"));
+                    if (a != null) out.add(a);
+                }
+            }
+        } catch (SQLException e) { e.printStackTrace(); }
+        return out;
     }
 
-    private static Tutor buildTutor(ResultSet rs, String email, String name,
-                                    String surname, LocalDate birth,
-                                    Availability avail) throws SQLException {
+    private static Availability buildAvailability(ResultSet rs) throws SQLException {
+        LocalDate s = toLocal(rs.getDate("availability_start_date"));
+        LocalDate e = toLocal(rs.getDate("availability_end_date"));
+        String dws = rs.getString("availability_days_of_week");
+        if (s == null || e == null || dws == null) return null;
 
-        Tutor t = new Tutor(email, name, surname, birth,
+        List<DayOfWeek> days = Arrays.stream(dws.split(","))
+                .map(String::trim)
+                .map(String::toUpperCase)
+                .map(DayOfWeek::valueOf)
+                .toList();
+        return new Availability(s, e, days);
+    }
+
+    private static Tutor buildTutor(ResultSet rs,
+                                    String email, String n, String sn,
+                                    LocalDate b, Availability av) throws SQLException {
+        Tutor t = new Tutor(
+                email, n, sn, b,
                 rs.getString("educational_title"),
-                rs.getString("location"),
-                null,                        // availability sarà settata dopo
+                rs.getString("location"), null,
                 rs.getString("subject"),
-                rs.getFloat("hourly_rate"),
+                rs.getFloat ("hourly_rate"),
                 rs.getBoolean("offers_in_person"),
                 rs.getBoolean("offers_online"),
                 rs.getBoolean("offers_group"),
                 rs.getBoolean("first_lesson_free"));
 
         t.setProfilePicturePath(rs.getString(PROFILE_PIC));
-        t.setProfileComment(rs.getString(PROFILE_COMMENT));
-        t.setAvailability(avail);
+        t.setProfileComment    (rs.getString(PROFILE_COMMENT));
+        t.setAvailability(av);
         t.setRating(rs.getFloat("rating"));
         return t;
     }
 
-    private static Student buildStudent(ResultSet rs, String email, String name,
-                                        String surname, LocalDate birth) throws SQLException {
-
-        Student s = new Student(email, name, surname, birth, rs.getString("institute"));
+    private static Student buildStudent(ResultSet rs,
+                                        String email, String n, String sn,
+                                        LocalDate b) throws SQLException {
+        Student s = new Student(email, n, sn, b, rs.getString("institute"));
         s.setProfilePicturePath(rs.getString(PROFILE_PIC));
-        s.setProfileComment(rs.getString(PROFILE_COMMENT));
+        s.setProfileComment    (rs.getString(PROFILE_COMMENT));
         return s;
     }
-
-
-    @Override
-    public void store(Account entity) {
-        // Se l'account non esiste, INSERT, altrimenti UPDATE
-        boolean exists = exists(entity.getAccountId());
-        if (!exists) {
-            insert(entity);
-        } else {
-            update(entity);
-        }
-    }
-
-    private void insert(Account acc) {
-
-        final String SQL = """
-        INSERT INTO accounts(
-            account_id, email, role, password, name, surname, birthday,
-            institute, location, educational_title, subject,
-            hourly_rate, offers_in_person, offers_online,
-            offers_group, first_lesson_free,
-            profile_picture_path, profile_comment,
-            availability_start_date, availability_end_date, availability_days_of_week,
-            rating)
-        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-        """;
-
-        try (PreparedStatement ps = conn.prepareStatement(SQL)) {
-
-            ps.setString(1,  acc.getAccountId());
-            ps.setString(2,  acc.getEmail());
-            ps.setString(3,  acc.getRole());
-            ps.setString(4,  acc.getPassword());
-            ps.setString(5,  acc.getName());
-            ps.setString(6,  acc.getSurname());
-            setDateOrNull(ps, 7, acc.getBirthday());
-
-            // Campi Student
-            ps.setString(8,  (acc instanceof Student s) ? s.getInstitute() : null);
-
-            // Campi Tutor
-            if (acc instanceof Tutor t) {
-                fillTutorFields(ps, t);
-            } else {
-                fillEmptyTutorFields(ps);
-            }
-
-            ps.setString(17, acc.getProfilePicturePath());
-            ps.setString(18, acc.getProfileComment());
-
-            ps.executeUpdate();
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-
-    // Helper privati (fattorizzazione per ridurre la complessità)
-    private static void setDateOrNull(PreparedStatement ps, int index, LocalDate date) throws SQLException {
-        if (date != null)  ps.setDate(index, Date.valueOf(date));
-        else               ps.setNull(index, Types.DATE);
-    }
-
-     // Riempie tutti i campi specifici del Tutor
-    private static void fillTutorFields(PreparedStatement ps, Tutor t) throws SQLException {
-
-        ps.setString (9,  t.getLocation());
-        ps.setString (10,  t.getEducationalTitle());
-        ps.setString (11, t.getSubject());
-        ps.setFloat  (12, t.getHourlyRate());
-        ps.setBoolean(13, t.offersInPerson());
-        ps.setBoolean(14, t.offersOnline());
-        ps.setBoolean(15, t.offersGroup());
-        ps.setBoolean(16, t.isFirstLessonFree());
-
-        Availability av = t.getAvailability();
-        if (av != null) {
-            setDateOrNull(ps, 19, av.getStartDate());
-            setDateOrNull(ps, 20, av.getEndDate());
-            ps.setString(21, av.getDaysOfWeek().stream()
-                    .map(DayOfWeek::name)
-                    .collect(Collectors.joining(",")));
-        } else {
-            ps.setNull(19, Types.DATE);
-            ps.setNull(20, Types.DATE);
-            ps.setNull(21, Types.VARCHAR);
-        }
-
-        ps.setFloat(22, t.getRating());
-    }
-
-    // Per gli account non-Tutor: imposta NULL/0 ai campi tutor-specifici
-    private static void fillEmptyTutorFields(PreparedStatement ps) throws SQLException {
-        for (int idx = 9; idx <= 11; idx++) ps.setNull(idx, Types.VARCHAR);
-
-        ps.setFloat  (12, 0f);
-        for (int idx = 13; idx <= 16; idx++) ps.setBoolean(idx, false);
-
-        ps.setNull(19, Types.DATE);
-        ps.setNull(20, Types.DATE);
-        ps.setNull(21, Types.VARCHAR);
-
-        ps.setFloat(22, 0f);
-    }
-
-
-    private void update(Account acc) {
-
-        final String SQL = """
-        UPDATE accounts SET
-            name = ?, surname = ?, birthday = ?,
-            institute = ?, location = ?, educational_title = ?, subject = ?, hourly_rate = ?,
-            offers_in_person = ?, offers_online = ?, offers_group = ?, first_lesson_free = ?,
-            profile_picture_path = ?, profile_comment = ?,
-            availability_start_date = ?, availability_end_date = ?, availability_days_of_week = ?,
-            rating = ?
-        WHERE account_id = ?""";
-
-        try (PreparedStatement ps = conn.prepareStatement(SQL)) {
-
-            ps.setString(1,  acc.getName());
-            ps.setString(2,  acc.getSurname());
-            setDateOrNull(ps, 3, acc.getBirthday());
-
-            // Campi Student
-            ps.setString(4, (acc instanceof Student s) ? s.getInstitute() : null);
-
-            // Campi Tutor
-            if (acc instanceof Tutor t) {
-                fillTutorFieldsForUpdate(ps, t);          // indici 5-12, 15-18
-            } else {
-                fillEmptyTutorFieldsForUpdate(ps);        // azzera campi Tutor
-            }
-
-            ps.setString(13, acc.getProfilePicturePath());
-            ps.setString(14, acc.getProfileComment());
-
-            ps.setString(19, acc.getAccountId());
-
-            ps.executeUpdate();
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    // Helper privati (fattorizzazione per ridurre la complessità)
-    private static void fillTutorFieldsForUpdate(PreparedStatement ps, Tutor t) throws SQLException {
-
-        ps.setString (5,  t.getLocation());
-        ps.setString (6,  t.getEducationalTitle());
-        ps.setString (7,  t.getSubject());
-        ps.setFloat  (8,  t.getHourlyRate());
-
-        ps.setBoolean(9,  t.offersInPerson());
-        ps.setBoolean(10, t.offersOnline());
-        ps.setBoolean(11, t.offersGroup());
-        ps.setBoolean(12, t.isFirstLessonFree());
-
-        Availability av = t.getAvailability();
-        if (av != null) {
-            setDateOrNull(ps, 15, av.getStartDate());
-            setDateOrNull(ps, 16, av.getEndDate());
-            ps.setString(17, av.getDaysOfWeek().stream()
-                    .map(DayOfWeek::name)
-                    .collect(Collectors.joining(",")));
-        } else {
-            ps.setNull(15, Types.DATE);
-            ps.setNull(16, Types.DATE);
-            ps.setNull(17, Types.VARCHAR);
-        }
-
-        ps.setFloat(18, t.getRating());
-    }
-
-    private static void fillEmptyTutorFieldsForUpdate(PreparedStatement ps) throws SQLException {
-
-        for (int idx = 5; idx <= 7; idx++) ps.setNull(idx, Types.VARCHAR);
-
-        ps.setFloat  (8, 0f);        // hourly_rate
-        for (int idx = 9; idx <= 12; idx++) ps.setBoolean(idx, false);
-
-        // availability start/end/days
-        ps.setNull(15, Types.DATE);
-        ps.setNull(16, Types.DATE);
-        ps.setNull(17, Types.VARCHAR);
-
-        ps.setFloat(18, 0f);
-    }
-
-
-    @Override
-    public void delete(String accountId) {
-        String sql = "DELETE FROM accounts WHERE account_id = ?";
-        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, accountId);
-            pstmt.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public boolean exists(String accountId) {
-        String sql = "SELECT account_id FROM accounts WHERE account_id = ?";
-        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, accountId);
-            try (ResultSet rs = pstmt.executeQuery()) {
-                return rs.next();
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
-    @Override
-    public Account create(String key) {
-        // Esempio: crea un generico Account
-        return new Account(key, null);
-    }
-
-    @Override
-    public List<Account> loadAllAccountsOfType(String role) {
-        List<Account> result = new ArrayList<>();
-        String sql = "SELECT account_id FROM accounts WHERE role = ?";
-
-        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, role);
-            try (ResultSet rs = pstmt.executeQuery()) {
-                while (rs.next()) {
-                    String accountId = rs.getString("account_id");
-                    Account a = load(accountId);
-                    if (a != null) {
-                        result.add(a);
-                    }
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return result;
-    }
-
-    // Metodo comodo per DBUserDAO
-    public List<Account> loadAllAccountsOfUser(String email) {
-        List<Account> result = new ArrayList<>();
-        String sql = "SELECT account_id FROM accounts WHERE email = ?";
-
-        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, email);
-            try (ResultSet rs = pstmt.executeQuery()) {
-                while (rs.next()) {
-                    String accountId = rs.getString("account_id");
-                    Account a = load(accountId);
-                    if (a != null) {
-                        result.add(a);
-                    }
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return result;
-    }
 }
+

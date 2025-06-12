@@ -1,89 +1,48 @@
 package logic.model.domain;
 
-import javafx.beans.property.*;
-
 import java.time.LocalDate;
 import java.time.LocalTime;
 
 public class DayBooking {
 
-    private final ObjectProperty<LocalDate> date;
-    private final StringProperty startTime;
-    private final StringProperty endTime;
-    private final StringProperty comment;
-    private final BooleanProperty selected;
+    private LocalDate date;
+    private String startTime;
+    private String endTime;
+    private String comment;
+    private boolean selected;
 
     public DayBooking(LocalDate date) {
-        this.date = new SimpleObjectProperty<>(date);
-        this.startTime = new SimpleStringProperty("");
-        this.endTime = new SimpleStringProperty("");
-        this.comment = new SimpleStringProperty("");
-        this.selected = new SimpleBooleanProperty(false);
+        this.date = date;
+        this.startTime = "";
+        this.endTime = "";
+        this.comment = "";
+        this.selected = false;
     }
 
-    // Getters (per la tabella) e property
-    public LocalDate getDate() {
-        return date.get();
-    }
-    public ObjectProperty<LocalDate> dateProperty() {
-        return date;
-    }
+    public LocalDate getDate()             { return date; }
+    public void      setDate(LocalDate d)  { this.date = d; }
 
-    public String getStartTime() {
-        return startTime.get();
-    }
-    public StringProperty startTimeProperty() {
-        return startTime;
-    }
-    public void setStartTime(String value) {
-        this.startTime.set(value);
-    }
+    public String getStartTime()           { return startTime; }
+    public void   setStartTime(String s)   { this.startTime = s; }
 
-    public String getEndTime() {
-        return endTime.get();
-    }
-    public StringProperty endTimeProperty() {
-        return endTime;
-    }
-    public void setEndTime(String value) {
-        this.endTime.set(value);
-    }
+    public String getEndTime()             { return endTime; }
+    public void   setEndTime(String e)     { this.endTime = e; }
 
-    public String getComment() {
-        return comment.get();
-    }
-    public StringProperty commentProperty() {
-        return comment;
-    }
-    public void setComment(String value) {
-        this.comment.set(value);
-    }
+    public String getComment()             { return comment; }
+    public void   setComment(String c)     { this.comment = c; }
 
-    public boolean isSelected() {
-        return selected.get();
-    }
-    public BooleanProperty selectedProperty() {
-        return selected;
-    }
-    public void setSelected(boolean value) {
-        this.selected.set(value);
-    }
+    public boolean isSelected()            { return selected; }
+    public void   setSelected(boolean sel) { this.selected = sel; }
 
-    // restituisce lo startTime già convertito in LocalTime
     public LocalTime getStartTimeParsed() {
-        return (startTime.get() == null || startTime.get().isBlank())
-                ? null : LocalTime.parse(startTime.get());
+        return (startTime == null || startTime.isBlank()) ? null : LocalTime.parse(startTime);
     }
-
-    // restituisce l’endTime già convertito in LocalTime
-    public LocalTime getEndTimeParsed() {
-        return (endTime.get() == null || endTime.get().isBlank())
-                ? null : LocalTime.parse(endTime.get());
+    public LocalTime getEndTimeParsed()   {
+        return (endTime   == null || endTime  .isBlank()) ? null : LocalTime.parse(endTime);
     }
-
-    // comodità per capire se mancano gli orari (usato dal controller grafico)
-    public boolean missingTimes() {
-        return startTime.get() == null || startTime.get().isBlank()
-                || endTime  .get() == null || endTime  .get().isBlank();
+    public boolean   missingTimes() {
+        return startTime == null || startTime.isBlank()
+                || endTime   == null || endTime  .isBlank();
     }
 }
+

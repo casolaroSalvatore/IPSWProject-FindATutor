@@ -1,7 +1,5 @@
 package logic.model.domain.state;
 
-import jdk.jfr.Percentage;
-
 import java.time.LocalDate;
 import java.time.LocalTime;
 
@@ -61,6 +59,5 @@ public class TutoringSessionStateMachine implements TutoringSessionEvents {
             case CANCELLED -> current = new CancelledState(this, tutoringSession);
         }
     }
-
 }
 

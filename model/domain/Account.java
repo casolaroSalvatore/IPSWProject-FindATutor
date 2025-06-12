@@ -9,7 +9,6 @@ public class Account {
     private String email;     // Collegamento all'utente
     private String role;      // Es. "Student" o "Tutor"
     private String password;
-
     private String name;
     private String surname;
     private LocalDate birthday;

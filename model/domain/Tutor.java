@@ -4,12 +4,12 @@ import java.time.LocalDate;
 
 public class Tutor extends Account {
 
-    public String educationalTitle;
-    public String location;
+    private String educationalTitle;
+    private String location;
     private Availability availability;
-    public String subject;
-    public float hourlyRate;
-    public float rating;
+    private String subject;
+    private float hourlyRate;
+    private float rating;
     private boolean offersInPerson;
     private boolean offersOnline;
     private boolean offersGroup;

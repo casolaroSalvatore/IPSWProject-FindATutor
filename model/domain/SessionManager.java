@@ -1,66 +1,33 @@
 package logic.model.domain;
 
-import logic.bean.AccountBean;
-import logic.bean.UserBean;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
+// Gestore centralizzato delle Session
 public class SessionManager {
 
-    private SessionManager() {}
+    private static final SessionManager INSTANCE = new SessionManager();
+    private final Map<UUID, Session> sessions = new ConcurrentHashMap<>();
 
-    private static UserBean loggedUser; // Usa SignUpBean come "contenitore" dell'utente
+    private SessionManager() { }
 
-    public static UserBean getLoggedUser() {
-        return loggedUser;
+    public static SessionManager getInstance() { return INSTANCE; }
+
+    public UUID createSession(User u) {
+        Session s = new Session(u);
+        sessions.put(s.getSessionId(), s);
+        return s.getSessionId();
     }
 
-    public static String getLoggedUserAccountId() {
-        if (getLoggedUser() == null) return null;
-        for (AccountBean acc : getLoggedUser().getAccounts()) {
-            if ("Tutor".equalsIgnoreCase(acc.getRole()) ||
-                    "Student".equalsIgnoreCase(acc.getRole()))
-                return acc.getAccountId();
-        }
-        return null;
-    }
+    public Session getSession(UUID id)        { return (id==null)? null : sessions.get(id); }
+    public boolean isSessionActive(UUID id)   { return id!=null && sessions.containsKey(id); }
+    public void    invalidateSession(UUID id) { if (id!=null) sessions.remove(id); }
 
-    // (Solo a scopo demo) Memorizza i dati di registrazione del Tutor
-    // nel passaggio dalla prima form (username, email, password)
-    // alla seconda form (location, subject, date).
-    private static UserBean partialSignUpBean;
-
-    // (Facoltativo) Memorizza l'eventuale Tutor selezionato
-    private static Tutor selectedTutor;
-
-    // Se in futuro hai altre necessità, potrai aggiungere campi
-    // o usare un Map<String, Object>.
-
-    // GETTER/SETTER per partialSignUpBean
-    public static void setUserBean(UserBean bean) {
-        partialSignUpBean = bean;
-    }
-    public static UserBean getUserBean() {
-        return partialSignUpBean;
-    }
-    public static void clearUserBean() {
-        partialSignUpBean = null;
-    }
-
-    // GETTER/SETTER per selectedTutor (prenotazione) --
-    public static void setSelectedTutor(Tutor t) {
-        selectedTutor = t;
-    }
-    public static Tutor getSelectedTutor() {
-        return selectedTutor;
-    }
-    public static void clearSelectedTutor() {
-        selectedTutor = null;
-    }
-
-    public static void setLoggedUser(UserBean user) {
-        loggedUser = user;
-    }
-
-    public static void logout() {
-        loggedUser = null;
+    Session findSessionByEmail(String email) {
+        return sessions.values().stream()
+                .filter(s -> s.getUser().getEmail().equalsIgnoreCase(email))
+                .findFirst().orElse(null);
     }
 }
+

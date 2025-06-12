@@ -53,7 +53,7 @@ class FileSystemUserDAO extends FileSystemDAO<String,User> implements UserDAO {
     private Map<String,String> toMap(List<String> ls){
         Map<String,String> m=new HashMap<>();
         for (String s:ls){
-            int i=s.indexOf(':'); if(i>0) m.put(s.substring(0,i), s.substring(i+1));
+            int i=s.indexOf(':'); if(i > 0) m.put(s.substring(0,i), s.substring(i+1));
         }
         return m;
     }

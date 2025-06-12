@@ -25,7 +25,7 @@ public class ConfigurationBoundary {
             case 2 -> DaoFactory.setPersistenceProvider(PersistenceProvider.FILE_SYSTEM);
             case 3 -> DaoFactory.setPersistenceProvider(PersistenceProvider.DB);
             default -> {
-                System.out.println("Invalid choice. Defaulting to In-Memory.");
+                System.err.println("Invalid choice. Defaulting to In-Memory.");
                 DaoFactory.setPersistenceProvider(PersistenceProvider.IN_MEMORY);
             }
         }
@@ -44,7 +44,7 @@ public class ConfigurationBoundary {
             case 1 -> interfaceProvider = InterfaceProvider.COLORED;
             case 2 -> interfaceProvider = InterfaceProvider.BW;
             default -> {
-                System.out.println("Invalid choice. Defaulting to GUI Colored.");
+                System.err.println("Invalid choice. Defaulting to GUI Colored.");
                 interfaceProvider = InterfaceProvider.COLORED;
             }
         }
@@ -59,3 +59,4 @@ public class ConfigurationBoundary {
         return interfaceProvider;
     }
 }
+

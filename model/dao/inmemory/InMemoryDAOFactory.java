@@ -23,4 +23,5 @@ public class InMemoryDAOFactory extends DaoFactory {
     public SharedReviewDAO getSharedReviewDAO() {
         return InMemorySharedReviewDAO.getInstance();
     }
+
 }

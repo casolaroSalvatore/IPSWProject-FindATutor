@@ -7,7 +7,7 @@ import java.lang.reflect.InvocationTargetException;
 
 public abstract class DaoFactory {
 
-    private static DaoFactory instance = null;// Riferimento a se stessa
+    private static DaoFactory instance = null;
     private static PersistenceProvider persistenceProvider = null;
 
     public static void setPersistenceProvider(PersistenceProvider provider) {
