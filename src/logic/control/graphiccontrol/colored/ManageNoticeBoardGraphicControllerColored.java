@@ -560,53 +560,16 @@ public class ManageNoticeBoardGraphicControllerColored {
 
     @FXML
     public void goToHome(ActionEvent event) {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Home.fxml"));
-            Parent homeRoot = loader.load();
-
-            HomeGraphicControllerColored homeGraphicControllerColored = loader.getController();
-            homeGraphicControllerColored.initData(sessionId, userBean);
-
-            // Imposto la scena
-            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
-            Scene scene = new Scene(homeRoot, screenBounds.getWidth(), screenBounds.getHeight());
-            stage.setTitle("Home");
-            stage.setScene(scene);
-            stage.setMaximized(true);
-            stage.show();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            LOGGER.log(Level.SEVERE, "An error occurred while loading the Home screen.", e);
-        }
+        SceneNavigator.navigate("/fxml/Home.fxml", (Node) event.getSource(), sessionId, userBean, "Home");
     }
 
     @FXML
     public void goToLeaveASharedReview(ActionEvent event) {
-
-        // Verifichiamo se l’utente è loggato
         if (userBean == null) {
             showAlert("Booking", "You must be logged in to leave a shared review.");
             return;
         }
-
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/LeaveASharedReview.fxml"));
-            Parent root = loader.load();
-
-            LeaveASharedReviewGraphicControllerColored leaveASharedReviewGraphicControllerColored = loader.getController();
-            leaveASharedReviewGraphicControllerColored.initData(sessionId, userBean);
-
-            Stage stage = (Stage) leaveASharedReviewButton.getScene().getWindow();
-            Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
-            stage.setScene(new Scene(root, bounds.getWidth(), bounds.getHeight()));
-            stage.setTitle("Leave a Shared Review");
-            stage.setMaximized(true);
-            stage.show();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        SceneNavigator.navigate("/fxml/LeaveASharedReview.fxml", (Node) event.getSource(), sessionId, userBean, "Leave a Shared Review");
     }
 
     @FXML

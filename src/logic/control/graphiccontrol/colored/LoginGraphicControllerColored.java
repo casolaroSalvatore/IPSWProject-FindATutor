@@ -106,48 +106,13 @@ public class LoginGraphicControllerColored {
 
     @FXML
     public void goToHome(ActionEvent event) {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Home.fxml"));
-            Parent root = loader.load();
-
-            // Inizializza la Home con entrambi i parametri
-            HomeGraphicControllerColored controller = loader.getController();
-
-            // Se l'utente è loggato, passiamo i dati
-            if (sessionId != null && userBean != null) {
-                controller.initData(sessionId, userBean);
-            }
-
-            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
-            Scene scene = new Scene(root, screenBounds.getWidth(), screenBounds.getHeight());
-            stage.setTitle("Home");
-            stage.setScene(scene);
-            stage.setMaximized(true);
-            stage.show();
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.err.println("An error occurred while loading the Home screen.");
-        }
+        SceneNavigator.navigate("/fxml/Home.fxml", (Node) event.getSource(), sessionId, userBean, "Home");
     }
 
     @FXML
     public void goToSignUp(ActionEvent event) {
-        try {
-            Parent signUpRoot = FXMLLoader.load(getClass().getResource("/fxml/SignUp.fxml"));
-            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
-            Scene scene = new Scene(signUpRoot, screenBounds.getWidth(), screenBounds.getHeight());
-            stage.setTitle("Sign Up");
-            stage.setScene(scene);
-            stage.setMaximized(true);
-            stage.show();
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.err.println("An error occurred while loading the SignUp screen.");
-        }
+        SceneNavigator.navigate("/fxml/SignUp.fxml", (Node) event.getSource(), sessionId, userBean, "Sign Up");
     }
-
 
     @FXML
     private void goToManageNoticeBoard(ActionEvent event) {

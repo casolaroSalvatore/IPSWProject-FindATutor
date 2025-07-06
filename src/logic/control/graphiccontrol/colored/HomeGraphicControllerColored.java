@@ -5,6 +5,7 @@ import javafx.beans.value.ChangeListener;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.geometry.Rectangle2D;
+import javafx.scene.Node;
 import javafx.scene.image.Image;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.shape.Circle;
@@ -235,91 +236,6 @@ public class HomeGraphicControllerColored extends Application {
     }
 
     @FXML
-    private void goToLogin(ActionEvent event) {
-        LoginGraphicControllerColored loginGraphicControllerColored = new LoginGraphicControllerColored();
-        loginGraphicControllerColored.showLoginScene(event);
-    }
-
-    @FXML
-    private void goToSignUp(ActionEvent event) {
-        SignUpGraphicControllerColored.showSignUpScene(event);
-    }
-
-    @FXML
-    private void goToBookingTutoringSession(ActionEvent event) {
-        try {
-            Stage stage = (Stage) ((Button) event.getSource()).getScene().getWindow();
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/BookingTutoringSession.fxml"));
-            Parent bookingRoot = loader.load();
-
-            BookingSessionGraphicControllerColored bookingSessionGraphicControllerColored = loader.getController();
-            bookingSessionGraphicControllerColored.initData(sessionId, userBean);
-
-            Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
-            Scene scene = new Scene(bookingRoot, screenBounds.getWidth(), screenBounds.getHeight());
-            stage.setTitle("Book a Tutoring Session");
-            stage.setScene(scene);
-            stage.setMaximized(true);
-            stage.show();
-        } catch (Exception e) {
-            e.printStackTrace();
-            LOGGER.log(Level.SEVERE, "An error occurred while loading the Tutor List screen.", e);
-        }
-    }
-
-    @FXML
-    private void goToManageNoticeBoard(ActionEvent event) {
-
-        if (userBean == null) {
-            showAlert("Booking", "You must be logged in to manage the notice board.");
-            goToLogin(event);
-            return;
-        }
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/ManageNoticeBoard.fxml"));
-            Parent noticeBoardRoot  = loader.load();
-            ManageNoticeBoardGraphicControllerColored manageNoticeBoardGraphicControllerColored = loader.getController();
-            manageNoticeBoardGraphicControllerColored.initData(sessionId, userBean);
-            Rectangle2D sb  = Screen.getPrimary().getVisualBounds();
-            Scene scene  = new Scene(noticeBoardRoot, sb.getWidth(), sb.getHeight());
-            Stage stage  = (Stage) manageNoticeBoardButton.getScene().getWindow();
-            stage.setScene(scene);
-            stage.setTitle("Manage Notice Board");
-            stage.setMaximized(true);
-            stage.show();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    @FXML
-    private void goToLeaveASharedReview(ActionEvent event) {
-
-        if (userBean == null) {
-            showAlert("Booking", "You must be logged in to leave a shared review.");
-            goToLogin(event);
-            return;
-        }
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/LeaveASharedReview.fxml"));
-            Parent reviewRoot = loader.load();
-
-            LeaveASharedReviewGraphicControllerColored leaveASharedReviewGraphicControllerColored = loader.getController();
-            leaveASharedReviewGraphicControllerColored.initData(sessionId, userBean);
-
-            Rectangle2D sb = Screen.getPrimary().getVisualBounds();
-            Scene scene  = new Scene(reviewRoot, sb.getWidth(), sb.getHeight());
-            Stage stage = (Stage) leaveASharedReviewButton.getScene().getWindow();
-            stage.setScene(scene);
-            stage.setTitle("Leave a Shared Review");
-            stage.setMaximized(true);
-            stage.show();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    @FXML
     private void handleSearch(ActionEvent event) {
 
         String chosenLocation = locationField.getText();
@@ -356,6 +272,41 @@ public class HomeGraphicControllerColored extends Application {
 
         // 3) Vado alla scena "BookingTutoringSession.fxml"
         goToBookingTutoringSession(event);
+    }
+
+    @FXML
+    private void goToLogin(ActionEvent event) {
+        SceneNavigator.navigate("/fxml/Login.fxml", (Node) event.getSource(), sessionId, userBean, "Login");
+    }
+
+    @FXML
+    private void goToSignUp(ActionEvent event) {
+        SceneNavigator.navigate("/fxml/SignUp.fxml", (Node) event.getSource(), sessionId, userBean, "Sign Up");
+    }
+
+    @FXML
+    private void goToBookingTutoringSession(ActionEvent event) {
+        SceneNavigator.navigate("/fxml/BookingTutoringSession.fxml", (Node) event.getSource(), sessionId, userBean, "Book a Tutoring Session");
+    }
+
+    @FXML
+    private void goToManageNoticeBoard(ActionEvent event) {
+        if (userBean == null) {
+            showAlert("Booking", "You must be logged in to manage the notice board.");
+            goToLogin(event);
+            return;
+        }
+        SceneNavigator.navigate("/fxml/ManageNoticeBoard.fxml", (Node) event.getSource(), sessionId, userBean, "Manage Notice Board");
+    }
+
+    @FXML
+    private void goToLeaveASharedReview(ActionEvent event) {
+        if (userBean == null) {
+            showAlert("Booking", "You must be logged in to leave a shared review.");
+            goToLogin(event);
+            return;
+        }
+        SceneNavigator.navigate("/fxml/LeaveASharedReview.fxml", (Node) event.getSource(), sessionId, userBean, "Leave a Shared Review");
     }
 
     @FXML

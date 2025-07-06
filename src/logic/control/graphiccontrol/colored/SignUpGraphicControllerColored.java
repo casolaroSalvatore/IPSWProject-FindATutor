@@ -376,19 +376,7 @@ public class SignUpGraphicControllerColored {
 
     @FXML
     public void goToHome(ActionEvent event) {
-        try {
-            Parent homeRoot = FXMLLoader.load(getClass().getResource("/fxml/Home.fxml"));
-            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
-            Scene scene = new Scene(homeRoot, screenBounds.getWidth(), screenBounds.getHeight());
-            stage.setTitle("Home");
-            stage.setScene(scene);
-            stage.setMaximized(true);
-            stage.show();
-        } catch (Exception e) {
-            e.printStackTrace();
-            LOGGER.log(Level.SEVERE, "An error occurred while loading the Home screen.", e);
-        }
+        SceneNavigator.navigate("/fxml/Home.fxml", (Node) event.getSource(), null, null, "Home");
     }
 
     @FXML
@@ -398,19 +386,7 @@ public class SignUpGraphicControllerColored {
 
     @FXML
     public void goToSignUpTutor(ActionEvent event) {
-        try {
-            Parent tutorRoot = FXMLLoader.load(getClass().getResource("/fxml/SignUpTutor.fxml"));
-            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
-            Scene scene = new Scene(tutorRoot, screenBounds.getWidth(), screenBounds.getHeight());
-            stage.setTitle("Sign Up Tutor");
-            stage.setScene(scene);
-            stage.setMaximized(true);
-            stage.show();
-        } catch (Exception e) {
-            e.printStackTrace();
-            LOGGER.log(Level.SEVERE, "An error occurred while loading the Sign Up Tutor screen.", e);
-        }
+        SceneNavigator.navigate("/fxml/SignUpTutor.fxml", (Node) event.getSource(), null, null, "Sign Up Tutor");
     }
 
     @FXML

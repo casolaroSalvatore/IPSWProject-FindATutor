@@ -5,7 +5,6 @@ import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -17,18 +16,17 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.stage.Screen;
 import javafx.stage.Stage;
 import logic.bean.SharedReviewBean;
 import logic.bean.UserBean;
 import logic.control.logiccontrol.LeaveASharedReviewController;
 import logic.model.domain.ReviewStatus;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
 
@@ -156,12 +154,10 @@ public class LeaveASharedReviewGraphicControllerColored {
     private UUID sessionId;
     private UserBean userBean;
 
-    private static final Logger LOGGER = Logger.getLogger(LeaveASharedReviewGraphicControllerColored.class.getName());
-
     public void initData(UUID sid, UserBean user) {
 
         this.sessionId = sid;
-        this.userBean  = user;
+        this.userBean = user;
 
         if (user == null) {
             showLoggedOutUI();
@@ -185,7 +181,7 @@ public class LeaveASharedReviewGraphicControllerColored {
     public void initialize() {
         // Solo caricamento delle immagini o risorse neutre
         emptyStar = new Image(getClass().getResourceAsStream("/images/empty_star.png"));
-        fullStar  = new Image(getClass().getResourceAsStream("/images/full_star.png"));
+        fullStar = new Image(getClass().getResourceAsStream("/images/full_star.png"));
     }
 
     // Helper per la fattorizzazione
@@ -211,13 +207,13 @@ public class LeaveASharedReviewGraphicControllerColored {
     private void configureStudentTableColumns() {
 
         tutorInfoColumnStudent.setCellValueFactory(cd ->               /// info già calcolata nel bean
-        new SimpleStringProperty(cd.getValue().getCounterpartyInfo()));
+                new SimpleStringProperty(cd.getValue().getCounterpartyInfo()));
 
         tutorSubjectColumnStudent.setCellValueFactory(cd ->
-        new SimpleStringProperty(cd.getValue().getTutorAccount().getSubject()));
+                new SimpleStringProperty(cd.getValue().getTutorAccount().getSubject()));
 
         tutorLocationColumnStudent.setCellValueFactory(cd ->
-        new SimpleStringProperty(cd.getValue().getTutorAccount().getLocation()));
+                new SimpleStringProperty(cd.getValue().getTutorAccount().getLocation()));
 
         statusColumnStudent.setCellValueFactory(cd ->
                 new SimpleStringProperty(cd.getValue().getStatus().name()));
@@ -230,10 +226,10 @@ public class LeaveASharedReviewGraphicControllerColored {
                 new SimpleStringProperty(cd.getValue().getCounterpartyInfo()));
 
         studentSubjectColumnTutor.setCellValueFactory(cd ->
-        new SimpleStringProperty(cd.getValue().getTutorAccount().getSubject()));
+                new SimpleStringProperty(cd.getValue().getTutorAccount().getSubject()));
 
         studentLocationColumnTutor.setCellValueFactory(cd ->
-        new SimpleStringProperty(cd.getValue().getTutorAccount().getLocation()));
+                new SimpleStringProperty(cd.getValue().getTutorAccount().getLocation()));
 
         statusColumnTutor.setCellValueFactory(cd ->
                 new SimpleStringProperty(cd.getValue().getStatus().name()));
@@ -275,7 +271,7 @@ public class LeaveASharedReviewGraphicControllerColored {
 
     private void showPaneByRoleAndLoadData() {
 
-        String role     = leaveASharedReviewController.getLoggedRole(sessionId);
+        String role = leaveASharedReviewController.getLoggedRole(sessionId);
         String accountId = leaveASharedReviewController.getLoggedAccountId(sessionId);
 
         if (role == null || accountId == null) {
@@ -283,12 +279,16 @@ public class LeaveASharedReviewGraphicControllerColored {
         }
 
         if ("Student".equalsIgnoreCase(role)) {
-            studentPane.setVisible(true);  studentPane.setManaged(true);
-            tutorPane.setVisible(false);   tutorPane.setManaged(false);
+            studentPane.setVisible(true);
+            studentPane.setManaged(true);
+            tutorPane.setVisible(false);
+            tutorPane.setManaged(false);
             loadTutorListAndBuildReviews(accountId);
         } else {
-            tutorPane.setVisible(true);    tutorPane.setManaged(true);
-            studentPane.setVisible(false); studentPane.setManaged(false);
+            tutorPane.setVisible(true);
+            tutorPane.setManaged(true);
+            studentPane.setVisible(false);
+            studentPane.setManaged(false);
             loadStudentListAndBuildReviews(accountId);
         }
     }
@@ -340,8 +340,7 @@ public class LeaveASharedReviewGraphicControllerColored {
 
             studentCompletedBox.setVisible(true);
             studentCompletedBox.setManaged(true);
-        }
-        else {
+        } else {
             // NOT_STARTED o PENDING
             studentCompletedBox.setVisible(false);
             studentCompletedBox.setManaged(false);
@@ -389,8 +388,7 @@ public class LeaveASharedReviewGraphicControllerColored {
 
             tutorCompletedBox.setVisible(true);
             tutorCompletedBox.setManaged(true);
-        }
-        else {
+        } else {
             tutorCompletedBox.setVisible(false);
             tutorCompletedBox.setManaged(false);
 

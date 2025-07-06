@@ -829,34 +829,12 @@ public class BookingSessionGraphicControllerColored {
 
     @FXML
     public void goToHome(ActionEvent event) {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Home.fxml"));
-            Parent root = loader.load();
-
-            // Inizializza la Home con entrambi i parametri
-            HomeGraphicControllerColored controller = loader.getController();
-
-            // Se l'utente è loggato, passiamo i dati
-            if (sessionId != null && userBean != null) {
-                controller.initData(sessionId, userBean);
-            }
-
-            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
-            Scene scene = new Scene(root, screenBounds.getWidth(), screenBounds.getHeight());
-            stage.setTitle("Home");
-            stage.setScene(scene);
-            stage.setMaximized(true);
-            stage.show();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        SceneNavigator.navigate("/fxml/Home.fxml", (Node) event.getSource(), sessionId, userBean, "Home");
     }
 
     @FXML
     public void goToLogin(ActionEvent event) {
-        LoginGraphicControllerColored loginGraphicControllerColored = new LoginGraphicControllerColored();
-        loginGraphicControllerColored.showLoginScene(event);
+        SceneNavigator.navigate("/fxml/Login.fxml", (Node) event.getSource(), sessionId, userBean, "Login");
     }
 
     @FXML
@@ -866,52 +844,22 @@ public class BookingSessionGraphicControllerColored {
 
     @FXML
     private void goToManageNoticeBoard(ActionEvent event) {
-
         if (userBean == null) {
             showAlert(BOOKING_TITLE, "You must be logged in to manage the notice board.");
             goToLogin(event);
             return;
         }
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/ManageNoticeBoard.fxml"));
-            Parent root  = loader.load();
-            ManageNoticeBoardGraphicControllerColored manageNoticeBoardGraphicControllerColored = loader.getController();
-            manageNoticeBoardGraphicControllerColored.initData(sessionId, userBean);
-            Rectangle2D sb  = Screen.getPrimary().getVisualBounds();
-            Scene scene  = new Scene(root, sb.getWidth(), sb.getHeight());
-            Stage stage  = (Stage) manageNoticeBoardButton.getScene().getWindow();
-            stage.setScene(scene);
-            stage.setTitle("Manage Notice Board");
-            stage.setMaximized(true);
-            stage.show();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        SceneNavigator.navigate("/fxml/ManageNoticeBoard.fxml", (Node) event.getSource(), sessionId, userBean, "Manage Notice Board");
     }
 
     @FXML
     private void goToLeaveASharedReview(ActionEvent event) {
-
         if (userBean == null) {
             showAlert(BOOKING_TITLE, "You must be logged in to leave a shared review.");
             goToLogin(event);
             return;
         }
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/LeaveASharedReview.fxml"));
-            Parent root = loader.load();
-            LeaveASharedReviewGraphicControllerColored leaveASharedReviewGraphicControllerColored = loader.getController();
-            leaveASharedReviewGraphicControllerColored.initData(sessionId, userBean);
-            Rectangle2D sb = Screen.getPrimary().getVisualBounds();
-            Scene scene  = new Scene(root, sb.getWidth(), sb.getHeight());
-            Stage stage = (Stage) leaveASharedReviewButton.getScene().getWindow();
-            stage.setScene(scene);
-            stage.setTitle("Leave a Shared Review");
-            stage.setMaximized(true);
-            stage.show();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        SceneNavigator.navigate("/fxml/LeaveASharedReview.fxml", (Node) event.getSource(), sessionId, userBean, "Leave a Shared Review");
     }
 
     @FXML
