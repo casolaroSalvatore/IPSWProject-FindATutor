@@ -7,6 +7,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import logic.bean.UserBean;
 import logic.control.logiccontrol.HomeController;
+import logic.exception.NoTutorFoundException;
 
 public class HomeGraphicControllerBW extends BaseCLIControllerBW {
 
@@ -29,7 +30,7 @@ public class HomeGraphicControllerBW extends BaseCLIControllerBW {
         LOGGER.setLevel(Level.INFO);
     }
 
-    public void start() {
+    public void start() throws NoTutorFoundException {
         while (true) {
             LOGGER.info("\n=== HOME ===");
 
@@ -43,7 +44,7 @@ public class HomeGraphicControllerBW extends BaseCLIControllerBW {
         }
     }
 
-    private void showNotLoggedMenu() {
+    private void showNotLoggedMenu() throws NoTutorFoundException {
         LOGGER.info("1) Log In");
         LOGGER.info("2) Sign Up");
         LOGGER.info("0) Exit");
@@ -56,7 +57,7 @@ public class HomeGraphicControllerBW extends BaseCLIControllerBW {
         }
     }
 
-    private void showLoggedMenu(UserBean user) {
+    private void showLoggedMenu(UserBean user) throws NoTutorFoundException {
         String role = getLoggedRole(user);
 
         LOGGER.log(Level.INFO, "Logged in as: {0} ({1})",

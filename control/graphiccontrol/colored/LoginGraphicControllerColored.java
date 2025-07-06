@@ -84,16 +84,6 @@ public class LoginGraphicControllerColored {
         accountBean.setPassword(password);
         userBean.addAccount(accountBean);
 
-
-        /* Controllo superfluo, viene già effettuato all'interno della registrazione
-        try {
-            userBean.checkEmailSyntax();
-            accountBean.checkPasswordSyntax();
-        } catch (IllegalArgumentException ex) {
-            showAlert(ERROR, ex.getMessage());
-            return;
-        } */
-
         try {
             AuthResultBean loggedProfile = loginController.login(userBean);
             if (loggedProfile == null) {

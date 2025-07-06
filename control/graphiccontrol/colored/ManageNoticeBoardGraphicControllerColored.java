@@ -143,9 +143,10 @@ public class ManageNoticeBoardGraphicControllerColored {
         loadBookingSessionPart();
     }
 
-    // Logica per la scena ManageNoticeBoard.fxml
+
     @FXML
     public void initialize() {
+        // Lasciato intenzionalmente vuoto, non abbiamo bisogno di inizializzazione per ManageNoticeBoard.fxml
     }
 
     // Helper per la fattorizzazione
@@ -390,6 +391,11 @@ public class ManageNoticeBoardGraphicControllerColored {
         }
     }
 
+    @SuppressWarnings("java:S1854")
+    /* Sopprimo il falso positivo di SonarQube: le variabili locali come 'btn', 'acceptBtn' e 'refuseBtn'
+    vengono effettivamente usate per configurare i pulsanti e aggiungerli alla cella,
+    ma SonarQube segnala erroneamente che le assegnazioni sono inutili. */
+
     private void addActionColumnForModCancel(TableColumn<TutoringSessionBean, Void> modCancelActionColumn) {
         modCancelActionColumn.setCellFactory(col -> new TableCell<>() {
             private final Button acceptBtn = createButton(true);
@@ -398,58 +404,45 @@ public class ManageNoticeBoardGraphicControllerColored {
             @Override
             protected void updateItem(Void item, boolean empty) {
                 super.updateItem(item, empty);
-                updateActionCell(this, empty);
+                updateActionCell(empty);
             }
 
             private Button createButton(boolean accepted) {
-                return new Button(accepted ? "Accept" : "Refuse") {{
-                    setOnAction(e -> handleAction(accepted));
-                }};
+                Button btn = new Button(accepted ? "Accept" : "Refuse");
+                btn.setOnAction(e -> handleAction(accepted));
+                return btn;
             }
 
-            private void updateActionCell(TableCell<?, ?> cell, boolean empty) {
-                if (empty) {
-                    cell.setGraphic(null);
+            private void updateActionCell(boolean empty) {
+                if (empty || !canRespond()) {
+                    setGraphic(null);
                     return;
                 }
 
-                // getTableView().getItems().get(getIndex()); rappresenta la il TutoringSessionBean, l'ho modificato per Sonar
-                if (!manageController.canRespond(getTableView().getItems().get(getIndex()).getSessionId())) {
-                    cell.setGraphic(null);
-                    return;
+                TutoringSessionBean session = getSession();
+                switch (session.getStatus()) {
+                    case MOD_REQUESTED -> setupCell("Accept Modif", "Refuse Modif");
+                    case CANCEL_REQUESTED -> setupCell("Accept Cancel", "Refuse Cancel");
+                    default -> setGraphic(null);
                 }
+            }
 
-                switch (getTableView().getItems().get(getIndex()).getStatus()) {
-                    case MOD_REQUESTED -> {
-                        configureButtons("Accept Modif", "Refuse Modif");
-                        cell.setGraphic(new HBox(5, acceptBtn, refuseBtn));
-                    }
-                    case CANCEL_REQUESTED -> {
-                        configureButtons("Accept Cancel", "Refuse Cancel");
-                        cell.setGraphic(new HBox(5, acceptBtn, refuseBtn));
-                    }
-                    default -> cell.setGraphic(null);
-                }
+            private boolean canRespond() {
+                return manageController.canRespond(getSession().getSessionId());
+            }
+
+            private TutoringSessionBean getSession() {
+                return getTableView().getItems().get(getIndex());
+            }
+
+            private void setupCell(String acceptText, String refuseText) {
+                configureButtons(acceptText, refuseText);
+                setGraphic(new HBox(5, acceptBtn, refuseBtn));
             }
 
             private void handleAction(boolean accepted) {
-                switch (getTableView().getItems().get(getIndex()).getStatus()) {
-                    case MOD_REQUESTED -> {
-                        if (accepted) {
-                            manageController.acceptModification(getTableView().getItems().get(getIndex()));
-                        } else {
-                            manageController.refuseModification(getTableView().getItems().get(getIndex()));
-                        }
-                    }
-                    case CANCEL_REQUESTED -> {
-                        if (accepted) {
-                            manageController.acceptCancellation(getTableView().getItems().get(getIndex()));
-                        } else {
-                            manageController.refuseCancellation(getTableView().getItems().get(getIndex()));
-                        }
-                    }
-
-                }
+                TutoringSessionBean session = getSession();
+                handleSessionAction(session, accepted);
                 refreshCalendarAndTable();
             }
 
@@ -458,6 +451,27 @@ public class ManageNoticeBoardGraphicControllerColored {
                 refuseBtn.setText(refuseText);
             }
         });
+    }
+
+    @SuppressWarnings("java:S1144")
+
+    /* Sopprimo il falso positivo: il metodo 'handleSessionAction' è effettivamente
+    usato all'interno della classe anonima per gestire l'azione sui pulsanti */
+
+    private void handleSessionAction(TutoringSessionBean session, boolean accepted) {
+        if (session.getStatus() == TutoringSessionStatus.MOD_REQUESTED) {
+            if (accepted) {
+                manageController.acceptModification(session);
+            } else {
+                manageController.refuseModification(session);
+            }
+        } else if (session.getStatus() == TutoringSessionStatus.CANCEL_REQUESTED) {
+            if (accepted) {
+                manageController.acceptCancellation(session);
+            } else {
+                manageController.refuseCancellation(session);
+            }
+        }
     }
 
 

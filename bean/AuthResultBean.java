@@ -10,7 +10,7 @@ public class AuthResultBean {
 
     public AuthResultBean(UUID sessionId, UserBean user) {
         this.sessionId = sessionId;
-        this.user      = user;
+        this.user = user;
     }
 
     public UUID getSessionId() { return sessionId; }

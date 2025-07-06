@@ -26,6 +26,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
+import logic.exception.NoTutorFoundException;
 import logic.model.domain.state.TutoringSessionStatus;
 import java.io.IOException;
 import java.time.LocalDate;
@@ -42,10 +43,10 @@ public class BookingSessionGraphicControllerColored {
     // Per evitare ripetizioni
     private static final String ROLE_TUTOR = "Tutor";
     private static final String ROLE_STUDENT = "Student";
+    private static final String BOOKING_TITLE = "Booking";
     private final BookingTutoringSessionController bookingCtrl = new BookingTutoringSessionController();
-    private static final Logger LOGGER = Logger.getLogger(BookingSessionGraphicControllerColored.class.getName());
 
-    // *** FXML comuni: logOutButton, signUpButton, logInButton, welcomeLabel...
+    // FXML comuni: logOutButton, signUpButton, logInButton, welcomeLabel...
     @FXML
     private Label welcomeLabel;
 
@@ -175,7 +176,6 @@ public class BookingSessionGraphicControllerColored {
     private TableColumn<TutoringSessionBean, Void> modCancelActionColumn;
 
     private final LoginController loginCtrl = new LoginController();
-    private final BookingTutoringSessionController bookingTutoringSessionController = new BookingTutoringSessionController();
     private UUID sessionId;
     private UserBean userBean;
 
@@ -318,6 +318,9 @@ public class BookingSessionGraphicControllerColored {
                 new SimpleDoubleProperty(cd.getValue().getHourlyRate()).asObject());
     }
 
+    @SuppressWarnings("java:S1854")
+    /* Sopprimo i falsi positivi: la variabile 'star' viene usata per
+       configurare e aggiungere l'ImageView a starsBox */
     private void setupRatingColumnWithStars(Image fullStarImage, Image emptyStarImage) {
         ratingColumn.setCellFactory(col -> new TableCell<>() {
             private final HBox starsBox = new HBox(2);
@@ -333,6 +336,7 @@ public class BookingSessionGraphicControllerColored {
                 }
 
                 starsBox.getChildren().clear();
+
 
                 for (int i = 0; i < 5; i++) {
                     ImageView star = new ImageView(i < rating.intValue() ? fullStarImage : emptyStarImage);
@@ -352,20 +356,25 @@ public class BookingSessionGraphicControllerColored {
     private void updateTutorTable() {
 
         // Costruisco l'oggetto criteria necessario per la chiamata di searchTutor
-        TutorSearchCriteriaBean criteria = new TutorSearchCriteriaBean(
-                chosenSubject,
-                chosenLocation,
-                chosenAvailability,
-                inPersonCheck.isSelected(),
-                onlineCheck.isSelected(),
-                groupCheck.isSelected(),
-                rating4Check.isSelected(),
-                firstLessonFreeCheck.isSelected(),
-                orderComboBox.getValue()
-        );
+        TutorSearchCriteriaBean criteria = new TutorSearchCriteriaBean.Builder()
+                .subject(chosenSubject)
+                .location(chosenLocation)
+                .availability(chosenAvailability)
+                .inPerson(inPersonCheck.isSelected())
+                .online(onlineCheck.isSelected())
+                .group(groupCheck.isSelected())
+                .rating4Plus(rating4Check.isSelected())
+                .firstLessonFree(firstLessonFreeCheck.isSelected())
+                .orderCriteria(orderComboBox.getValue())
+                .build();
 
-        List<TutorBean> list = bookingCtrl.searchTutors(criteria);
-        tutorTable.setItems(FXCollections.observableArrayList(list));
+        try {
+            List<TutorBean> list = bookingCtrl.searchTutors(criteria);
+            tutorTable.setItems(FXCollections.observableArrayList(list));
+        } catch (NoTutorFoundException ex) {
+            tutorTable.setItems(FXCollections.observableArrayList());
+            showAlert("No tutors matched your search.\nPlease try adjusting your filters and try again.", ex.getMessage());
+        }
     }
 
     private void setupRowDoubleClick() {
@@ -557,7 +566,8 @@ public class BookingSessionGraphicControllerColored {
         UserBean me = getLoggedUser();
         if (me == null) return;
 
-        String uid = null, role = null;
+        String uid = null;
+        String role = null;
         for (AccountBean ab : me.getAccounts()) {
             if (ROLE_STUDENT.equalsIgnoreCase(ab.getRole())
                     || ROLE_TUTOR.equalsIgnoreCase(ab.getRole())) {
@@ -609,17 +619,15 @@ public class BookingSessionGraphicControllerColored {
         return false;
     }
 
+    @SuppressWarnings("java:S1854")
+    /* Sopprimo i falsi positivi: la variabile 'btn'
+    viene configurata e restituita, l'assegnazione è necessaria e la
+    variabile 'btn' viene configurata e restituita, l'assegnazione è necessaria */
 
     private void setupBookingActionButtons() {
         bookingActionColumn.setCellFactory(col -> new TableCell<>() {
-            private final Button acceptBtn;
-            private final Button refuseBtn;
-
-            {
-                acceptBtn = new Button("Accept");
-                refuseBtn = new Button("Refuse");
-                configureActionButtons();
-            }
+            private final Button acceptBtn = createAcceptButton();
+            private final Button refuseBtn = createRefuseButton();
 
             @Override
             protected void updateItem(Void item, boolean empty) {
@@ -637,13 +645,21 @@ public class BookingSessionGraphicControllerColored {
                 }
             }
 
-            private void configureActionButtons() {
-                acceptBtn.setOnAction(e -> handleAccept(getIndex()));
-                refuseBtn.setOnAction(e -> handleRefuse(getIndex()));
+            private Button createAcceptButton() {
+                Button btn = new Button("Accept");
+                btn.setOnAction(e -> handleAccept(getIndex()));
+                return btn;
+            }
+
+            private Button createRefuseButton() {
+                Button btn = new Button("Refuse");
+                btn.setOnAction(e -> handleRefuse(getIndex()));
+                return btn;
             }
         });
     }
 
+    @SuppressWarnings("java:S1144") // Il metodo è usato in setupBookingActionButtons
     private void handleAccept(int index) {
         if (userConfirmed(
                 "Confirm Booking's approval",
@@ -660,6 +676,7 @@ public class BookingSessionGraphicControllerColored {
         }
     }
 
+    @SuppressWarnings("java:S1144") // Il metodo è usato in setupBookingActionButtons
     private void handleRefuse(int index) {
         if (userConfirmed(
                 "Confirm Booking's refusal",
@@ -780,7 +797,7 @@ public class BookingSessionGraphicControllerColored {
 
         if (isLogged()) return true;
 
-        showAlert("Booking", "You must be logged in to book a session.");
+        showAlert(BOOKING_TITLE, "You must be logged in to book a session.");
         try {
             Parent root = FXMLLoader.load(getClass().getResource("/fxml/Login.fxml"));
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
@@ -834,7 +851,6 @@ public class BookingSessionGraphicControllerColored {
             stage.show();
         } catch (Exception e) {
             e.printStackTrace();
-            System.err.println("An error occurred while loading the Home screen.");
         }
     }
 
@@ -853,7 +869,7 @@ public class BookingSessionGraphicControllerColored {
     private void goToManageNoticeBoard(ActionEvent event) {
 
         if (userBean == null) {
-            showAlert("Booking", "You must be logged in to manage the notice board.");
+            showAlert(BOOKING_TITLE, "You must be logged in to manage the notice board.");
             goToLogin(event);
             return;
         }
@@ -878,7 +894,7 @@ public class BookingSessionGraphicControllerColored {
     private void goToLeaveASharedReview(ActionEvent event) {
 
         if (userBean == null) {
-            showAlert("Booking", "You must be logged in to leave a shared review.");
+            showAlert(BOOKING_TITLE, "You must be logged in to leave a shared review.");
             goToLogin(event);
             return;
         }

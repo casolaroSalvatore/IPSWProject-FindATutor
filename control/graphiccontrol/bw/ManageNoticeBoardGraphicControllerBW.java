@@ -37,7 +37,7 @@ public class ManageNoticeBoardGraphicControllerBW extends BaseCLIControllerBW {
     private final ManageNoticeBoardController manageController = new ManageNoticeBoardController();
 
     public void start() {
-        if (manageNoticeBoardController.getLoggedUser() == null) {
+        if (manageNoticeBoardController.getLoggedUser(sessionId) == null) {
             LOGGER.warning("Please log in first!");
             pressEnter();
             return;
@@ -245,7 +245,7 @@ public class ManageNoticeBoardGraphicControllerBW extends BaseCLIControllerBW {
 
         String role = null;
 
-        for (AccountBean account : manageNoticeBoardController.getLoggedUser().getAccounts()) {
+        for (AccountBean account : manageNoticeBoardController.getLoggedUser(sessionId).getAccounts()) {
             String r = account.getRole();
 
             if ("Student".equalsIgnoreCase(r) || ROLE_TUTOR.equalsIgnoreCase(r)) {

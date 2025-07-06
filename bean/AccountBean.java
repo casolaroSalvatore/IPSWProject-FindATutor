@@ -198,10 +198,12 @@ public class AccountBean {
 
     // Validazione sintattica e semantica incapsulata
     public void checkBasicSyntax() {
-        if (name == null || !name.matches("[A-Za-zÀ-ÖØ-öø-ÿ' \\-]{2,30}"))
-            throw new IllegalArgumentException("Name must be alphabetic (2‑30 chars).");
-        if (surname == null || !surname.matches("[A-Za-zÀ-ÖØ-öø-ÿ' \\-]{2,30}"))
-            throw new IllegalArgumentException("Surname must be alphabetic (2‑30 chars).");
+        if (name == null || !name.matches("[A-Za-z\\u00C0-\\u00D6\\u00D8-\\u00F6\\u00F8-\\u00FF' \\-]{2,30}")) {
+            throw new IllegalArgumentException("Name must be alphabetic (2–30 chars).");
+        }
+        if (surname == null || !surname.matches("[A-Za-z\\u00C0-\\u00D6\\u00D8-\\u00F6\\u00F8-\\u00FF' \\-]{2,30}")) {
+            throw new IllegalArgumentException("Surname must be alphabetic (2–30 chars).");
+        }
         if (birthday == null || birthday.isAfter(LocalDate.now()) ||
                 Period.between(birthday, LocalDate.now()).getYears() < 13)
             throw new IllegalArgumentException("Invalid birth date (min 13 years).");
@@ -210,7 +212,10 @@ public class AccountBean {
         if (profileComment.length() > 250){
             throw new IllegalArgumentException("Comment max 250 characters.");
         }
-        if (!profilePicturePath.matches(".*\\.(png|jpg|jpeg)$") && profilePicturePath != null) {
+        if (profilePicturePath != null
+                && !profilePicturePath.isEmpty()
+                && !profilePicturePath.matches(".*\\.(png|jpg|jpeg)$")) {
+
             throw new IllegalArgumentException("Profile picture must be PNG/JPG.");
         }
     }

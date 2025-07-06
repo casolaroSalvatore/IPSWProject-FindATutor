@@ -35,6 +35,8 @@ import java.util.stream.Stream;
 
 public class HomeGraphicControllerColored extends Application {
 
+    private static final String ROLE_STUDENT = "Student";
+    private static final String ROLE_TUTOR = "Tutor";
     private static final Logger LOGGER = Logger.getLogger(HomeGraphicControllerColored.class.getName());
 
     @FXML
@@ -159,13 +161,10 @@ public class HomeGraphicControllerColored extends Application {
         }
 
         for (AccountBean account : user.getAccounts()) {
-            if ("Student".equalsIgnoreCase(account.getRole())) {
+            String accRole = account.getRole();
+            if (ROLE_STUDENT.equalsIgnoreCase(accRole) || ROLE_TUTOR.equalsIgnoreCase(accRole)) {
                 accountId = account.getAccountId();
-                role = "Student";
-                break;
-            } else if ("Tutor".equalsIgnoreCase(account.getRole())) {
-                accountId = account.getAccountId();
-                role = "Tutor";
+                role = ROLE_STUDENT.equalsIgnoreCase(accRole) ? ROLE_STUDENT : ROLE_TUTOR;
                 break;
             }
         }
@@ -180,7 +179,7 @@ public class HomeGraphicControllerColored extends Application {
 
         // Pallino rosso “Shared Reviews”
         LeaveASharedReviewController rCtrl = new LeaveASharedReviewController();
-        int pending = "Student".equalsIgnoreCase(role)
+        int pending = ROLE_STUDENT.equalsIgnoreCase(role)
                 ? rCtrl.countPendingForStudent(accountId)
                 : rCtrl.countPendingForTutor(accountId);
         toggleRedDot(pending, redDotLabel2, redCircle2);
@@ -219,9 +218,9 @@ public class HomeGraphicControllerColored extends Application {
     @Override
     public void start(Stage primaryStage) {
         try {
-            Parent root = FXMLLoader.load(getClass().getResource("/fxml/Home.fxml"));
+            Parent startRoot = FXMLLoader.load(getClass().getResource("/fxml/Home.fxml"));
             Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
-            Scene scene = new Scene(root, screenBounds.getWidth(), screenBounds.getHeight());
+            Scene scene = new Scene(startRoot, screenBounds.getWidth(), screenBounds.getHeight());
             primaryStage.setTitle("Schermata Home");
             primaryStage.setScene(scene);
             primaryStage.setMaximized(true);
@@ -252,13 +251,13 @@ public class HomeGraphicControllerColored extends Application {
         try {
             Stage stage = (Stage) ((Button) event.getSource()).getScene().getWindow();
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/BookingTutoringSession.fxml"));
-            Parent root = loader.load();
+            Parent bookingRoot = loader.load();
 
             BookingSessionGraphicControllerColored bookingSessionGraphicControllerColored = loader.getController();
             bookingSessionGraphicControllerColored.initData(sessionId, userBean);
 
             Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
-            Scene scene = new Scene(root, screenBounds.getWidth(), screenBounds.getHeight());
+            Scene scene = new Scene(bookingRoot, screenBounds.getWidth(), screenBounds.getHeight());
             stage.setTitle("Book a Tutoring Session");
             stage.setScene(scene);
             stage.setMaximized(true);
@@ -279,11 +278,11 @@ public class HomeGraphicControllerColored extends Application {
         }
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/ManageNoticeBoard.fxml"));
-            Parent root  = loader.load();
+            Parent noticeBoardRoot  = loader.load();
             ManageNoticeBoardGraphicControllerColored manageNoticeBoardGraphicControllerColored = loader.getController();
             manageNoticeBoardGraphicControllerColored.initData(sessionId, userBean);
             Rectangle2D sb  = Screen.getPrimary().getVisualBounds();
-            Scene scene  = new Scene(root, sb.getWidth(), sb.getHeight());
+            Scene scene  = new Scene(noticeBoardRoot, sb.getWidth(), sb.getHeight());
             Stage stage  = (Stage) manageNoticeBoardButton.getScene().getWindow();
             stage.setScene(scene);
             stage.setTitle("Manage Notice Board");
@@ -304,13 +303,13 @@ public class HomeGraphicControllerColored extends Application {
         }
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/LeaveASharedReview.fxml"));
-            Parent root = loader.load();
+            Parent reviewRoot = loader.load();
 
             LeaveASharedReviewGraphicControllerColored leaveASharedReviewGraphicControllerColored = loader.getController();
             leaveASharedReviewGraphicControllerColored.initData(sessionId, userBean);
 
             Rectangle2D sb = Screen.getPrimary().getVisualBounds();
-            Scene scene  = new Scene(root, sb.getWidth(), sb.getHeight());
+            Scene scene  = new Scene(reviewRoot, sb.getWidth(), sb.getHeight());
             Stage stage = (Stage) leaveASharedReviewButton.getScene().getWindow();
             stage.setScene(scene);
             stage.setTitle("Leave a Shared Review");

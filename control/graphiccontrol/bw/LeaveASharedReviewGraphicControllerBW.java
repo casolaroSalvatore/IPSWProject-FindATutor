@@ -18,7 +18,6 @@ public class LeaveASharedReviewGraphicControllerBW extends BaseCLIControllerBW {
     }
 
     private static final Logger LOGGER = Logger.getLogger(LeaveASharedReviewGraphicControllerBW.class.getName());
-    private LeaveASharedReviewController leaveASharedReviewController = new LeaveASharedReviewController();
     private static final String ROLE_STUDENT = "Student";
 
     static {

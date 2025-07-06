@@ -39,14 +39,6 @@ public class SignUpController {
                 throw new IllegalArgumentException("An account with this role already exists.");
             }
 
-            /* System.out.println("Tentativo di registrazione: " + userBean.getEmail());
-            System.out.println("DEBUG SignUpController: Sto per creare un nuovo Student/Tutor con i seguenti dati:");
-            System.out.println("Name=" + accountBean.getName() +
-                    ", Surname=" + accountBean.getSurname() +
-                    ", Birthday=" + accountBean.getBirthday() +
-                    ", Email=" + userBean.getEmail() +
-                    ", Institute=" + accountBean.getInstitute()); */
-
             // Creiamo un nuovo account e lo associamo all'utente
             Account newAccount;
             if ("Tutor".equalsIgnoreCase(accountBean.getRole())) {
@@ -93,8 +85,6 @@ public class SignUpController {
             // Salviamo nelle DAO
             accountDAO.store(newAccount);
 
-            /* System.out.println("Utente salvato: " + userDAO.load(newAccount.getEmail()));
-            System.out.println("Account salvato: " + accountDAO.load(user.getEmail() + "_" + accountBean.getRole())); */
         }
 
         userDAO.store(user);
@@ -102,23 +92,11 @@ public class SignUpController {
         // Creo la sessione di dominio e la salvo nel SessionManager
         UUID sid = SessionManager.getInstance().createSession(user);
 
-        // Debug finale per ogni account
-        for (AccountBean ab : userBean.getAccounts()) {
-            Account reloadedAcc = accountDAO.load(user.getEmail() + "_" + ab.getRole());
-            if (reloadedAcc != null) {
-                System.out.println("Ricaricato account -> email=" + reloadedAcc.getEmail() +
-                        ", name=" + reloadedAcc.getName() +
-                        ", surname=" + reloadedAcc.getSurname() +
-                        ", role=" + reloadedAcc.getRole());
-            } else {
-                System.out.println("Ricaricato account -> null");
-            }
-        }
         return new AuthResultBean(sid, userBean);
     }
 
     // Salva i dati preliminari (step 1)
-    public void cachePartialTutor(logic.bean.UserBean ub) {
+    public static void cachePartialTutor(logic.bean.UserBean ub) {
         partialTutor = ub;
     }
 
@@ -128,7 +106,7 @@ public class SignUpController {
     }
 
     // Svuota la cache dopo il completamento o l’annullamento
-    public void clearPartialTutor() {
+    public static void clearPartialTutor() {
         partialTutor = null;
     }
 }

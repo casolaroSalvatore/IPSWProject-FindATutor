@@ -209,25 +209,14 @@ public class ManageNoticeBoardController {
         tutoringSessionDAO.store(s);
     }
 
-    /* Metodo tramite cui riesco a capire l'id
-    private String getOtherUserId(TutoringSession s) {
-        String currentId = SessionManager.getLoggedUser().getId();
-        if (currentId.equals(s.getStudentId())) {
-            return s.getTutorId();
-        }
-        else {
-            return s.getStudentId();
-        }
-    } */
-
     // Accettazione della cancellazione della sessione di tutoraggio
-    public void acceptCancellation(TutoringSessionBean b){             // ★ BEAN
+    public void acceptCancellation(TutoringSessionBean b){
         TutoringSession s = loadEntity(b);
         if(s==null) return;
 
         s.respondCancellation(true);
         flagUnseen(s);
-        tutoringSessionDAO.store(s);     // In demo teniamo la traccia; se vuoi eliminarla: tsDao.delete(s.getSessionId());
+        tutoringSessionDAO.store(s);
     }
 
     // Rifiuto della cancellazione della sessione di tutoraggio
@@ -241,27 +230,6 @@ public class ManageNoticeBoardController {
         tutoringSessionDAO.store(s);
     }
 
-    // Conversione Entity → Bean
-    private TutoringSessionBean toBean(TutoringSession s) {           // *** NEW ***
-        if (s == null) return null;
-        TutoringSessionBean b = new TutoringSessionBean();
-        b.setSessionId (s.getSessionId());
-        b.setTutorId   (s.getTutorId());
-        b.setStudentId (s.getStudentId());
-        b.setDate      (s.getDate());
-        b.setStartTime (s.getStartTime());
-        b.setEndTime   (s.getEndTime());
-        b.setLocation  (s.getLocation());
-        b.setSubject   (s.getSubject());
-        b.setComment   (s.getComment());
-        b.setStatus    (s.getStatus());
-        b.setProposedDate     (s.getProposedDate());
-        b.setProposedStartTime(s.getProposedStartTime());
-        b.setProposedEndTime  (s.getProposedEndTime());
-        b.setModifiedBy(s.getModifiedBy());
-        b.setModifiedTo(s.getModifiedTo());
-        return b;
-    }
 
     private TutoringSession loadEntity(TutoringSessionBean b){
         return (b==null)? null : tutoringSessionDAO.load(b.getSessionId());

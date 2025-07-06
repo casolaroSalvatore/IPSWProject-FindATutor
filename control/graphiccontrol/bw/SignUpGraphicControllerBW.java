@@ -5,6 +5,8 @@ import logic.bean.AvailabilityBean;
 import logic.bean.AccountBean;
 import logic.bean.UserBean;
 import logic.control.logiccontrol.SignUpController;
+import logic.exception.NoTutorFoundException;
+
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -27,7 +29,7 @@ public class SignUpGraphicControllerBW extends BaseCLIControllerBW {
 
     private final SignUpController logic = new SignUpController();
 
-    public void start() {
+    public void start() throws NoTutorFoundException {
 
         LOGGER.info("\n=== SIGN UP ===");
         String role = ask("Role (Student/Tutor):");

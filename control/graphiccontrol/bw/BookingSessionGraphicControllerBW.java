@@ -13,6 +13,7 @@ import logic.bean.TutorBean;
 import logic.bean.TutorSearchCriteriaBean;
 import logic.bean.TutoringSessionBean;
 import logic.control.logiccontrol.BookingTutoringSessionController;
+import logic.exception.NoTutorFoundException;
 
 public class BookingSessionGraphicControllerBW extends BaseCLIControllerBW {
 
@@ -36,7 +37,7 @@ public class BookingSessionGraphicControllerBW extends BaseCLIControllerBW {
 
     private final BookingTutoringSessionController logic = new BookingTutoringSessionController();
 
-    public void start() {
+    public void start() throws NoTutorFoundException {
         LOGGER.log(Level.INFO, "\n=== BOOK A TUTORING SESSION ===");
 
         String subject = ask("Subject (leave empty to search all):");
@@ -50,17 +51,17 @@ public class BookingSessionGraphicControllerBW extends BaseCLIControllerBW {
         av.setEndDate(endDate);
 
         // Costruisco l'oggetto criteria necessario per la chiamata di searchTutor
-        TutorSearchCriteriaBean criteria = new TutorSearchCriteriaBean();
-        criteria.setSubject(subject);
-        criteria.setLocation(location);
-        criteria.setAvailability(av);
-
-        criteria.setInPerson(false);
-        criteria.setOnline(false);
-        criteria.setGroup(false);
-        criteria.setRating4Plus(false);
-        criteria.setFirstLessonFree(false);
-        criteria.setOrderCriteria(null);
+        TutorSearchCriteriaBean criteria = new TutorSearchCriteriaBean.Builder()
+                .subject(subject)
+                .location(location)
+                .availability(av)
+                .inPerson(false)
+                .online(false)
+                .group(false)
+                .rating4Plus(false)
+                .firstLessonFree(false)
+                .orderCriteria(null)
+                .build();
 
         List<TutorBean> tutors = logic.searchTutors(criteria);
 
@@ -85,7 +86,7 @@ public class BookingSessionGraphicControllerBW extends BaseCLIControllerBW {
         }
         TutorBean selectedTutor = tutors.get(choice);
 
-        if (logic.getLoggedUser() == null) {
+        if (logic.getLoggedUser(sessionId) == null) {
             LOGGER.info("Please log in first!");
             pressEnter();
             return;

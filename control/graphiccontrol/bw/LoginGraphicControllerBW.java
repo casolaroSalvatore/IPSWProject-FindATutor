@@ -4,6 +4,7 @@ import logic.bean.AccountBean;
 import logic.bean.AuthResultBean;
 import logic.bean.UserBean;
 import logic.control.logiccontrol.LoginController;
+import logic.exception.NoTutorFoundException;
 
 import java.util.UUID;
 import java.util.logging.Level;
@@ -25,7 +26,7 @@ public class LoginGraphicControllerBW extends BaseCLIControllerBW {
 
     private final LoginController logic = new LoginController();
 
-    public void start() {
+    public void start() throws NoTutorFoundException {
 
         LOGGER.info("\n=== LOGIN ===");
         String email    = ask("Email:");
@@ -63,7 +64,7 @@ public class LoginGraphicControllerBW extends BaseCLIControllerBW {
         homeGraphicControllerBW.start();
     }
 
-    private void showNotLoggedMenu() {
+    private void showNotLoggedMenu() throws NoTutorFoundException {
         LOGGER.info("\n1) Log In\n2) Sign Up\n0) Exit");
         switch (askInt("> ")) {
             case 1 -> start();
@@ -73,7 +74,7 @@ public class LoginGraphicControllerBW extends BaseCLIControllerBW {
         }
     }
 
-    private void showLoggedMenu(UUID sid) {
+    private void showLoggedMenu(UUID sid) throws NoTutorFoundException {
         UserBean ub = rebuildBean(sid);
         if (ub == null) {
             showNotLoggedMenu();

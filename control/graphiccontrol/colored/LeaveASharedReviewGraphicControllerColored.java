@@ -296,13 +296,11 @@ public class LeaveASharedReviewGraphicControllerColored {
     // Esempio: "Studente" => carico i tutor con findAllTutorsForStudent, trovo/creo le review
     private void loadTutorListAndBuildReviews(String studentId) {
         var tutorIds = leaveASharedReviewController.findAllTutorsForStudent(studentId);
-        System.out.println("[DEBUG] tutorIds="+tutorIds);
         List<SharedReviewBean> rows = new ArrayList<>();
         for (String tutorId : tutorIds) {
             SharedReviewBean sharedReviewBean = leaveASharedReviewController.findOrCreateSharedReviewBean(studentId, tutorId);
             rows.add(sharedReviewBean);
         }
-        System.out.println("[DEBUG] rows.size="+rows.size());
         studentTable.setItems(FXCollections.observableArrayList(rows));
     }
 

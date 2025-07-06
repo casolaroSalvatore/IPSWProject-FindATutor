@@ -234,7 +234,7 @@ public class SignUpGraphicControllerColored {
             SignUpController signUpController = new SignUpController();
             AuthResultBean authResultBean = signUpController.registerUser(userBean);
             if (authResultBean != null) {
-                showAlert("Sign-up completed","Registration completed successfully!\n You can now log in to your account");
+                showAlert("Sign-up completed","Registration completed successfully!\nYou can now log in to your account");
                 goToLogin();
             } else {
                 showAlert(ERROR,"Account already exists.");
@@ -320,7 +320,7 @@ public class SignUpGraphicControllerColored {
         SignUpController signUpController = new SignUpController();
         AuthResultBean authResultBean = signUpController.registerUser(userBean);
         if (authResultBean != null) {
-            showAlert("Sign-up completed","Registration completed successfully!\n You can now log in to your account");
+            showAlert("Sign-up completed","Registration completed successfully!\nYou can now log in to your account");
             signUpController.clearPartialTutor();
             goToLogin1();
         } else {

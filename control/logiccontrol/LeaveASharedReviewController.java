@@ -74,50 +74,6 @@ public class LeaveASharedReviewController {
         return newSharedReview;
     }
 
-    /* Lo studente invia la propria parte di recensione
-    public void studentSubmitReview(String reviewId, int stars, String title, String comment) {
-        SharedReview sharedReview = sharedReviewDAO.load(reviewId);
-        if (sharedReview == null) return;
-
-        sharedReview.setStudentStars(stars);
-        sharedReview.setStudentTitle(title);
-        sharedReview.setStudentComment(comment);
-        sharedReview.setStudentSubmitted(true);
-
-        boolean completed = sharedReview.isTutorSubmitted();
-        sharedReview.setStatus(completed ? COMPLETED : PENDING);
-
-        // 1) Persisto subito lo stato aggiornato
-        sharedReviewDAO.store(sharedReview);
-        // 2) Se la review è completa ricalcolo la media
-        if (completed) {
-            float newRating = computeAverageTutorRating(sharedReview.getTutorId());
-            assignRatingToTutorAccount(sharedReview.getTutorId(), newRating);
-        }
-    }
-
-    // Il tutor invia la propria parte di recensione
-    public void tutorSubmitReview(String reviewId, String title, String comment) {
-        SharedReview sharedReview = sharedReviewDAO.load(reviewId);
-        if (sharedReview == null) return;
-
-        sharedReview.setTutorTitle(title);
-        sharedReview.setTutorComment(comment);
-        sharedReview.setTutorSubmitted(true);
-
-        // Se anche lo studente ha inviato => COMPLETA
-        boolean completed = sharedReview.isStudentSubmitted();
-        sharedReview.setStatus(completed ? COMPLETED : PENDING);
-
-        // 1) Persisto subito lo stato aggiornato
-        sharedReviewDAO.store(sharedReview);
-        if (completed) {
-            // 2) Se la review è completa ricalcolo la media
-            float newRating = computeAverageTutorRating(sharedReview.getTutorId());
-            assignRatingToTutorAccount(sharedReview.getTutorId(), newRating);
-        }
-    } */
-
     public SharedReviewBean submitReview(SharedReviewBean bean) {
 
         bean.checkSyntax();
@@ -160,7 +116,6 @@ public class LeaveASharedReviewController {
     }
 
     private void assignRatingToTutorAccount(String tutorKeyOrId, float newRating) {
-        // System.out.println("DEBUG: assignRatingToTutorAccount() called with " + tutorKeyOrId + " -> newRating=" + newRating);
 
         AccountDAO accountDAO1 = DaoFactory.getInstance().getAccountDAO();
         Account account = accountDAO1.load(tutorKeyOrId); // Proviamo con la chiave diretta
@@ -179,13 +134,8 @@ public class LeaveASharedReviewController {
         }
 
         if (account instanceof Tutor tutorAcc) {
-            // System.out.println("DEBUG: old rating = " + tutorAcc.getRating());
             tutorAcc.setRating(newRating);
-            // System.out.println("DEBUG: new rating set to " + newRating);
             accountDAO1.store(tutorAcc);
-            // System.out.println("DEBUG: stored " + tutorAcc.getEmail() + "_" + tutorAcc.getRole());
-        } else {
-            // System.out.println("WARNING: Tutor account not found for key: " + tutorKeyOrId);
         }
     }
 
@@ -210,13 +160,6 @@ public class LeaveASharedReviewController {
             if (sr.getStatus() != COMPLETED && !sr.isTutorSubmitted()) n++;
         }
         return n;
-    }
-
-    // Factory che restituisce la lista controparti già impacchettata in bean
-    public List<String> loadCounterparts(String userId, SharedReviewBean.SenderRole role) {
-        return (role == SharedReviewBean.SenderRole.STUDENT)
-                ? findAllTutorsForStudent(userId)
-                : findAllStudentsForTutor(userId);
     }
 
     // Conversioni Bean <--> Entity

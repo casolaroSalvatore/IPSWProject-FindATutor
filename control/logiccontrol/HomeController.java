@@ -13,7 +13,6 @@ import java.util.*;
 
 public class HomeController {
 
-    private final UserDAO userDAO = DaoFactory.getInstance().getUserDAO();
     private final Map<UUID, List<AccountBean>> accountCache = new HashMap<>();
     private final Map<UUID, AvailabilityBean> availCache   = new HashMap<>();
 

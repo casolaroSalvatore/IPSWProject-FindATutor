@@ -14,28 +14,59 @@ public class TutorSearchCriteriaBean implements Serializable {
     private boolean firstLessonFree;
     private String orderCriteria;
 
-    public TutorSearchCriteriaBean() {};
+    // Utilizzo un Builder per annullare l'errore di SonarQube "Constructor has 9 parameters, which is greater than 7 authorized."
+    public static class Builder {
+        private final TutorSearchCriteriaBean bean = new TutorSearchCriteriaBean();
 
-    public TutorSearchCriteriaBean(String subject,
-                                   String location,
-                                   AvailabilityBean availability,
-                                   boolean inPerson,
-                                   boolean online,
-                                   boolean group,
-                                   boolean rating4Plus,
-                                   boolean firstLessonFree,
-                                   String orderCriteria) {
-        this.subject = subject;
-        this.location = location;
-        this.availability = availability;
-        this.inPerson = inPerson;
-        this.online = online;
-        this.group = group;
-        this.rating4Plus = rating4Plus;
-        this.firstLessonFree = firstLessonFree;
-        this.orderCriteria = orderCriteria;
+        public Builder subject(String subject) {
+            bean.subject = subject;
+            return this;
+        }
+
+        public Builder location(String location) {
+            bean.location = location;
+            return this;
+        }
+
+        public Builder availability(AvailabilityBean availability) {
+            bean.availability = availability;
+            return this;
+        }
+
+        public Builder inPerson(boolean inPerson) {
+            bean.inPerson = inPerson;
+            return this;
+        }
+
+        public Builder online(boolean online) {
+            bean.online = online;
+            return this;
+        }
+
+        public Builder group(boolean group) {
+            bean.group = group;
+            return this;
+        }
+
+        public Builder rating4Plus(boolean rating4Plus) {
+            bean.rating4Plus = rating4Plus;
+            return this;
+        }
+
+        public Builder firstLessonFree(boolean firstLessonFree) {
+            bean.firstLessonFree = firstLessonFree;
+            return this;
+        }
+
+        public Builder orderCriteria(String orderCriteria) {
+            bean.orderCriteria = orderCriteria;
+            return this;
+        }
+
+        public TutorSearchCriteriaBean build() {
+            return bean;
+        }
     }
-
 
     /* Getter e Setter standard */
 

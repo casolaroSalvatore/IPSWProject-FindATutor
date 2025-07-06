@@ -1,6 +1,7 @@
 package logic.control.logiccontrol;
 
 import logic.bean.*;
+import logic.exception.NoTutorFoundException;
 import logic.model.dao.AccountDAO;
 import logic.model.dao.DaoFactory;
 import logic.model.dao.TutoringSessionDAO;
@@ -28,7 +29,7 @@ public class BookingTutoringSessionController {
         this.sessionId = sessionId;
     }
 
-    public List<TutorBean> searchTutors(TutorSearchCriteriaBean bean) {
+    public List<TutorBean> searchTutors(TutorSearchCriteriaBean bean) throws NoTutorFoundException {
         TutorSearchCriteria crit = new TutorSearchCriteria(
                 bean.getSubject(),
                 bean.getLocation(),
@@ -55,6 +56,9 @@ public class BookingTutoringSessionController {
         }
 
         sort(candidates, crit.orderCriteria());
+        if (candidates.isEmpty()) {
+            throw new NoTutorFoundException("No tutor meets the selected filters. Please try again!");
+        }
         return candidates;
     }
 
@@ -293,19 +297,8 @@ public class BookingTutoringSessionController {
             case "Hourly Rate (desc)" -> list.sort(Comparator.comparingDouble(TutorBean::getHourlyRate).reversed());
             case "Rating (asc)" -> list.sort(Comparator.comparingDouble(TutorBean::getRating));
             case "Rating (desc)" -> list.sort(Comparator.comparingDouble(TutorBean::getRating).reversed());
-            default -> {}
+            default -> { /* Nessun filtraggio applicato */ }
         }
-    }
-
-    public Availability getTutorAvailability(String tutorAccountId) {
-        AccountDAO accDao = DaoFactory.getInstance().getAccountDAO();
-        Account acc = accDao.load(tutorAccountId);
-
-        // Se esiste ed è davvero un Tutor restituiamo la sua availability, altrimenti null
-        if (acc instanceof Tutor tutor) {
-            return tutor.getAvailability();
-        }
-        return null;
     }
 
     public UserBean getLoggedUser() {
