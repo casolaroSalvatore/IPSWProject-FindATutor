@@ -17,6 +17,8 @@ public class SceneNavigator {
 
     private static final Logger LOGGER = Logger.getLogger(SceneNavigator.class.getName());
 
+    private SceneNavigator() {}
+
     public static void navigate(String fxmlPath, Node sourceNode, UUID sessionId, UserBean userBean, String title) {
         try {
             FXMLLoader loader = new FXMLLoader(SceneNavigator.class.getResource(fxmlPath));
@@ -39,7 +41,7 @@ public class SceneNavigator {
             stage.setMaximized(true);
             stage.show();
         } catch (IOException e) {
-            LOGGER.log(Level.SEVERE, "Error while navigating to " + fxmlPath, e);
+            LOGGER.log(Level.SEVERE, e, () -> "Error while navigating to " + fxmlPath);
         }
     }
 }

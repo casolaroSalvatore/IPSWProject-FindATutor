@@ -30,14 +30,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 public class HomeGraphicControllerColored extends Application {
 
     private static final String ROLE_STUDENT = "Student";
     private static final String ROLE_TUTOR = "Tutor";
-    private static final Logger LOGGER = Logger.getLogger(HomeGraphicControllerColored.class.getName());
 
     @FXML
     private AnchorPane root;

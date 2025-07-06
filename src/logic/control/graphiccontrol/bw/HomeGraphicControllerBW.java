@@ -31,17 +31,21 @@ public class HomeGraphicControllerBW extends BaseCLIControllerBW {
     }
 
     public void start() throws NoTutorFoundException {
-        while (true) {
+        boolean running = true;
+
+        while (running) {
             LOGGER.info("\n=== HOME ===");
 
             UserBean user = homeController.getLoggedUser(sessionId);
             if (user == null) {
                 LOGGER.warning("Session expired – returning to Login.");
-                showNotLoggedMenu();
+                running = showNotLoggedMenu();
             } else {
-                showLoggedMenu(user);
+                running = showLoggedMenu(user);
             }
         }
+
+        LOGGER.info("Application terminated.");
     }
 
     private boolean showNotLoggedMenu() throws NoTutorFoundException {
