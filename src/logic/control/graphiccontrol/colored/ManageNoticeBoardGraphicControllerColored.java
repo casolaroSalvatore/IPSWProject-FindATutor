@@ -33,7 +33,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.logging.Logger;
 
-public class ManageNoticeBoardGraphicControllerColored implements NavigableController {
+public class ManageNoticeBoardGraphicControllerColored implements NavigableController, BookingSessionParent {
 
     private static final String ROLE_TUTOR   = "Tutor";
     private static final String ROLE_STUDENT = "Student";

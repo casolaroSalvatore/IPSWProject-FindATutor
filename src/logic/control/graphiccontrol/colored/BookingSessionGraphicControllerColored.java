@@ -179,7 +179,7 @@ public class BookingSessionGraphicControllerColored implements NavigableControll
 
     // Riferimento al ManageNoticeBoardGraphicControllerColored (servirà per permettere l'aggiornamento
     // del calendario al seguito di una prenotazione
-    private ManageNoticeBoardGraphicControllerColored parentController;
+    private BookingSessionParent parentController;
 
     // Variabili statiche per i parametri di ricerca (Booking scene)
     private static String chosenLocation;
@@ -191,7 +191,7 @@ public class BookingSessionGraphicControllerColored implements NavigableControll
     private Image emptyStarImage;
 
     // Serve per passare il riferimento al controller del ManageNoticeBoardGraphicControllerColored
-    public void setParentController(ManageNoticeBoardGraphicControllerColored parentController) {
+    public void setParentController(BookingSessionParent parentController) {
         this.parentController = parentController;
     }
 
