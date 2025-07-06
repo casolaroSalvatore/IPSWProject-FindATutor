@@ -23,19 +23,54 @@ public class Tutor extends Account {
         this.hourlyRate = 0;
     }
 
-    public Tutor(String email, String name, String surname, LocalDate birthday,
-                 String educationalTitle, String location, Availability availability, String subject, float hourlyRate,
-                 boolean offersInPerson, boolean offersOnline, boolean offersGroup, boolean firstLessonFree) {
-        super(email, "Tutor", name, surname, birthday);
-        this.educationalTitle = educationalTitle;
-        this.location = location;
-        this.availability = availability;
-        this.subject = subject;
-        this.hourlyRate = hourlyRate;
-        this.offersInPerson = offersInPerson;
-        this.offersOnline = offersOnline;
-        this.offersGroup = offersGroup;
-        this.firstLessonFree = firstLessonFree;
+    private Tutor(Builder builder) {
+        super(builder.email, "Tutor", builder.name, builder.surname, builder.birthday);
+        this.educationalTitle = builder.educationalTitle;
+        this.location = builder.location;
+        this.availability = builder.availability;
+        this.subject = builder.subject;
+        this.hourlyRate = builder.hourlyRate;
+        this.offersInPerson = builder.offersInPerson;
+        this.offersOnline = builder.offersOnline;
+        this.offersGroup = builder.offersGroup;
+        this.firstLessonFree = builder.firstLessonFree;
+    }
+
+    public static class Builder {
+        private String email;
+        private String name;
+        private String surname;
+        private LocalDate birthday;
+        private String educationalTitle;
+        private String location;
+        private Availability availability;
+        private String subject;
+        private float hourlyRate;
+        private boolean offersInPerson;
+        private boolean offersOnline;
+        private boolean offersGroup;
+        private boolean firstLessonFree;
+
+        public Builder(String email) {
+            this.email = email;
+        }
+
+        public Builder name(String name) { this.name = name; return this; }
+        public Builder surname(String surname) { this.surname = surname; return this; }
+        public Builder birthday(LocalDate birthday) { this.birthday = birthday; return this; }
+        public Builder educationalTitle(String educationalTitle) { this.educationalTitle = educationalTitle; return this; }
+        public Builder location(String location) { this.location = location; return this; }
+        public Builder availability(Availability availability) { this.availability = availability; return this; }
+        public Builder subject(String subject) { this.subject = subject; return this; }
+        public Builder hourlyRate(float hourlyRate) { this.hourlyRate = hourlyRate; return this; }
+        public Builder offersInPerson(boolean offersInPerson) { this.offersInPerson = offersInPerson; return this; }
+        public Builder offersOnline(boolean offersOnline) { this.offersOnline = offersOnline; return this; }
+        public Builder offersGroup(boolean offersGroup) { this.offersGroup = offersGroup; return this; }
+        public Builder firstLessonFree(boolean firstLessonFree) { this.firstLessonFree = firstLessonFree; return this; }
+
+        public Tutor build() {
+            return new Tutor(this);
+        }
     }
 
     public String getEducationalTitle() { return educationalTitle; }

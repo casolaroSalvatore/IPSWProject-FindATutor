@@ -223,16 +223,20 @@ public class DBAccountDAO extends DBDAO<String, Account> implements AccountDAO {
     private static Tutor buildTutor(ResultSet rs,
                                     String email, String n, String sn,
                                     LocalDate b, Availability av) throws SQLException {
-        Tutor t = new Tutor(
-                email, n, sn, b,
-                rs.getString("educational_title"),
-                rs.getString("location"), null,
-                rs.getString("subject"),
-                rs.getFloat ("hourly_rate"),
-                rs.getBoolean("offers_in_person"),
-                rs.getBoolean("offers_online"),
-                rs.getBoolean("offers_group"),
-                rs.getBoolean("first_lesson_free"));
+        Tutor t = new Tutor.Builder(email)
+                .name(n)
+                .surname(sn)
+                .birthday(b)
+                .educationalTitle(rs.getString("educational_title"))
+                .location(rs.getString("location"))
+                .availability(null)
+                .subject(rs.getString("subject"))
+                .hourlyRate(rs.getFloat("hourly_rate"))
+                .offersInPerson(rs.getBoolean("offers_in_person"))
+                .offersOnline(rs.getBoolean("offers_online"))
+                .offersGroup(rs.getBoolean("offers_group"))
+                .firstLessonFree(rs.getBoolean("first_lesson_free"))
+                .build();
 
         t.setProfilePicturePath(rs.getString(PROFILE_PIC));
         t.setProfileComment    (rs.getString(PROFILE_COMMENT));

@@ -70,21 +70,21 @@ public class FileSystemAccountDAO extends FileSystemDAO<String,Account> implemen
             fillCommon(s,m);
             return s;
         } else { // Tutor
-            Tutor t = new Tutor(
-                    m.get("email"),
-                    m.get("name"),
-                    m.get("surname"),
-                    parseDate(m.get("birthday")),
-                    m.get("educationalTitle"),
-                    m.get("location"),
-                    parseAvailability(m.get("availability")),
-                    m.get("subject"),
-                    Float.parseFloat(def(m.get("hourlyRate"),"0")),
-                    Boolean.parseBoolean(def(m.get("offersInPerson"),FALSE)),
-                    Boolean.parseBoolean(def(m.get("offersOnline"),FALSE)),
-                    Boolean.parseBoolean(def(m.get("offersGroup"),FALSE)),
-                    Boolean.parseBoolean(def(m.get("firstLessonFree"),FALSE))
-            );
+            Tutor t = new Tutor.Builder(m.get("email"))
+                    .name(m.get("name"))
+                    .surname(m.get("surname"))
+                    .birthday(parseDate(m.get("birthday")))
+                    .educationalTitle(m.get("educationalTitle"))
+                    .location(m.get("location"))
+                    .availability(parseAvailability(m.get("availability")))
+                    .subject(m.get("subject"))
+                    .hourlyRate(Float.parseFloat(def(m.get("hourlyRate"), "0")))
+                    .offersInPerson(Boolean.parseBoolean(def(m.get("offersInPerson"), FALSE)))
+                    .offersOnline(Boolean.parseBoolean(def(m.get("offersOnline"), FALSE)))
+                    .offersGroup(Boolean.parseBoolean(def(m.get("offersGroup"), FALSE)))
+                    .firstLessonFree(Boolean.parseBoolean(def(m.get("firstLessonFree"), FALSE)))
+                    .build();
+
             t.setRating(Float.parseFloat(def(m.get("rating"),"0")));
             fillCommon(t,m);
             return t;
