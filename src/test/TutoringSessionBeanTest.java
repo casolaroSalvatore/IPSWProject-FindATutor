@@ -4,7 +4,7 @@ import logic.bean.TutoringSessionBean;
 import org.junit.jupiter.api.Test;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import static org.testng.AssertJUnit.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /* Valida il metodo checkSyntax() di TutoringSessionBean in due scenari opposti */
 class TutoringSessionBeanTest {
