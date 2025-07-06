@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane prefHeight="400" prefWidth="600" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="logic.control.graphiccontrol.colored.TutorProfileGraphicControllerColored">
+    <children>
+
+        <Label fx:id="nameLabel" layoutX="200.0" layoutY="20" prefHeight="26.0" prefWidth="400.0" style="-fx-font-size: 16;">
+         <font>
+            <Font size="18.0" />
+         </font></Label>
+        <Label fx:id="titleLabel" layoutX="200.0" layoutY="50.0" prefHeight="18.0" prefWidth="400.0" />
+        <Label fx:id="locationLabel" layoutX="200.0" layoutY="70.0" prefHeight="18.0" prefWidth="400.0" />
+        <Label fx:id="ratingLabel" layoutX="200.0" layoutY="90" prefHeight="18.0" prefWidth="400.0" />
+        <ImageView fx:id="profilePictureView" fitHeight="100" fitWidth="100" layoutX="40.0" layoutY="29.0" preserveRatio="true" />
+        <Label fx:id="profileCommentLabel" layoutX="20.0" layoutY="130" prefHeight="79.0" prefWidth="550.0" wrapText="true" />
+
+        <!-- Tabella per mostrare le recensioni completate ricevute dal tutor -->
+        <TableView fx:id="reviewsTable" layoutX="26.0" layoutY="230.0" prefHeight="100.0" prefWidth="550.0">
+            <columns>
+                <TableColumn fx:id="studentNameColumn" prefWidth="140" text="Student" />
+                <TableColumn fx:id="starsColumn" prefWidth="60" text="Stars" />
+                <TableColumn fx:id="reviewTitleColumn" prefWidth="150" text="Title" />
+                <TableColumn fx:id="reviewCommentColumn" prefWidth="200" text="Comment" />
+            </columns>
+        </TableView>
+
+    </children>
+</AnchorPane>

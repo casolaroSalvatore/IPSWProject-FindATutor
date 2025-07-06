@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.String?>
+<?import javafx.collections.FXCollections?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Rectangle?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane prefHeight="864.0" prefWidth="1536.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="logic.control.graphiccontrol.colored.SignUpGraphicControllerColored">
+
+    <!-- 1) Barra blu in alto, full‑width -->
+    <Pane prefHeight="60.0" style="-fx-background-color:#0e3aa1;" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+
+    <!-- 2) Logo “FindATutor”: resta a 14px dal bordo sinistro -->
+    <Label prefHeight="60.0" prefWidth="96.0" text="FindATutor" textFill="WHITE" AnchorPane.leftAnchor="14.0" AnchorPane.topAnchor="0.0">
+        <font><Font name="System Bold" size="18" /></font>
+    </Label>
+
+    <!-- 3) HBox con i tre pulsanti: già full‑width, basta ancorarlo -->
+    <HBox alignment="CENTER" layoutX="-4.0" layoutY="83.0" prefHeight="34.0" prefWidth="1030.0" spacing="20" AnchorPane.leftAnchor="-4.0" AnchorPane.rightAnchor="-1.599999999999909" AnchorPane.topAnchor="83.0">
+        <Button onAction="#goToHome" prefWidth="250.0" text="Return to Home">
+            <graphic><ImageView fitHeight="26" fitWidth="26"><Image url="@../images/home.png" /></ImageView></graphic>
+        </Button>
+
+        <Button onAction="#goToManageNoticeBoard" prefWidth="250.0" text="Manage Notice Board">
+            <graphic><ImageView fitHeight="26" fitWidth="26"><Image url="@../images/modify-calendar.png" /></ImageView></graphic>
+        </Button>
+
+        <Button prefWidth="250.0" text="Leave a Shared Review">
+            <graphic><ImageView fitHeight="26" fitWidth="26"><Image url="@../images/review.png" /></ImageView></graphic>
+        </Button>
+    </HBox>
+
+    <!-- ───────── TITOLO + SOTTOTITOLO ───────── -->
+    <VBox alignment="TOP_CENTER" spacing="6" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="150">
+        <Label style="-fx-font-size:24px; -fx-font-weight:bold;" text="Complete the Sign Up" textFill="#0e3aa1" />
+        <Label text="Please insert your credentials in order to create a new account as a Tutor:" />
+    </VBox>
+
+    <!-- ───────── CORNICE BLU (640 px) ───────── -->
+    <Rectangle arcHeight="5" arcWidth="5" fill="TRANSPARENT" height="540" layoutX="448" layoutY="140" stroke="#0e3aa1" strokeWidth="2" width="640" />
+
+    <!-- ───────── FORM (stessa larghezza di SignUp.fxml) ───────── -->
+    <VBox alignment="CENTER" layoutX="503.0" layoutY="232.0" maxWidth="570.0" prefHeight="355.0" prefWidth="494.0" spacing="18">
+
+        <!-- City -->
+        <HBox spacing="15">
+            <Label alignment="CENTER_RIGHT" minWidth="140" text="City:" />
+            <TextField fx:id="locationField" prefWidth="262.0" promptText="Insert your city" HBox.hgrow="ALWAYS" />
+        </HBox>
+
+        <!-- Availability (date) -->
+        <HBox spacing="15">
+            <Label alignment="CENTER_RIGHT" minWidth="140" text="Time availability:" />
+            <HBox spacing="8">
+                <Label style="-fx-font-size:12;" text="From" />
+                <DatePicker fx:id="startDatePicker" prefWidth="120" />
+                <Label style="-fx-font-size:12;" text="To" />
+                <DatePicker fx:id="endDatePicker" prefWidth="120" />
+            </HBox>
+        </HBox>
+
+        <!-- Days of week -->
+        <HBox alignment="CENTER_LEFT" spacing="8">
+            <Label alignment="CENTER_RIGHT" minWidth="140" text="Days:" />
+            <CheckBox fx:id="mondayCheck" text="Mon" />
+            <CheckBox fx:id="tuesdayCheck" text="Tue" />
+            <CheckBox fx:id="wednesdayCheck" text="Wed" />
+            <CheckBox fx:id="thursdayCheck" text="Thu" />
+            <CheckBox fx:id="fridayCheck" text="Fri" />
+            <CheckBox fx:id="saturdayCheck" text="Sat" />
+            <CheckBox fx:id="sundayCheck" text="Sun" />
+        </HBox>
+
+        <!-- Subject -->
+        <HBox spacing="15">
+            <Label alignment="CENTER_RIGHT" minWidth="140" text="Subject:" />
+            <ComboBox fx:id="subjectComboBox" HBox.hgrow="ALWAYS">
+                <items>
+                    <FXCollections fx:factory="observableArrayList">
+                        <String fx:value="Math" /><String fx:value="Physics" /><String fx:value="Chemistry" />
+                        <String fx:value="Biology" /><String fx:value="Computer Science" />
+                        <String fx:value="Natural Sciences" /><String fx:value="History" />
+                        <String fx:value="Geography" /><String fx:value="Philosophy" />
+                        <String fx:value="Italian Literature" /><String fx:value="English Language" />
+                        <String fx:value="French Language" /><String fx:value="Spanish Language" />
+                        <String fx:value="Latin" /><String fx:value="Ancient Greek" />
+                        <String fx:value="Economics" /><String fx:value="Law" />
+                        <String fx:value="Statistics" /><String fx:value="Mathematical Analysis" />
+                        <String fx:value="Engineering" /><String fx:value="Art History" />
+                        <String fx:value="Music Theory" /><String fx:value="Psychology" />
+                        <String fx:value="Sociology" /><String fx:value="Business Administration" />
+                    </FXCollections>
+                </items>
+            </ComboBox>
+        </HBox>
+
+        <!-- Educational Title -->
+        <HBox spacing="15">
+            <Label alignment="CENTER_RIGHT" minWidth="140" text="Educational Title:" />
+            <TextField fx:id="educationalTitleField" prefHeight="26.0" prefWidth="316.0" promptText="e.g. Bachelor's in Math" HBox.hgrow="ALWAYS" />
+        </HBox>
+
+        <!-- Hourly Rate -->
+        <HBox spacing="15">
+            <Label alignment="CENTER_RIGHT" minWidth="140" text="Hourly rate ($):" />
+            <TextField fx:id="hourlyRateField" promptText="Insert your hourly rate" HBox.hgrow="ALWAYS" />
+        </HBox>
+
+        <!-- Lesson options -->
+        <HBox spacing="15">
+            <Label alignment="CENTER_RIGHT" minWidth="140" text="Lesson options:" />
+            <VBox spacing="6">
+                <HBox spacing="8">
+                    <CheckBox fx:id="inPersonTutorCheck" text="Offers In‑person Lessons" />
+                    <CheckBox fx:id="firstLessonFreeCheck" text="First Lesson is Free" />
+                </HBox>
+                <HBox spacing="8">
+                    <CheckBox fx:id="groupTutorCheck" text="Offers Group Sessions" />
+                    <CheckBox fx:id="onlineTutorCheck" text="Offers Online Lessons" />
+                </HBox>
+            </VBox>
+        </HBox>
+
+    </VBox>
+
+    <!-- ───────── PULSANTE FINALE ───────── -->
+    <VBox alignment="TOP_CENTER" AnchorPane.leftAnchor="715.0" AnchorPane.rightAnchor="721.0" AnchorPane.topAnchor="725.0">
+        <Button fx:id="registerButton" minWidth="160" onAction="#handleTutorData" text="Complete the Sign Up" />
+    </VBox>
+
+</AnchorPane>

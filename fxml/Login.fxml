@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Hyperlink?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.RadioButton?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Rectangle?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="logic.control.graphiccontrol.colored.LoginGraphicControllerColored">
+
+    <!-- 1) Barra blu in alto, full‑width -->
+    <Pane prefHeight="60.0" style="-fx-background-color:#0e3aa1;" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+
+    <!-- 2) Logo “FindATutor”: resta a 14px dal bordo sinistro -->
+    <Label prefHeight="60.0" prefWidth="96.0" text="FindATutor" textFill="WHITE" AnchorPane.leftAnchor="14.0" AnchorPane.topAnchor="0.0">
+        <font><Font name="System Bold" size="18" /></font>
+    </Label>
+
+    <!-- 3) HBox con i tre pulsanti: già full‑width, basta ancorarlo -->
+    <HBox alignment="CENTER" layoutX="-4.0" layoutY="83.0" prefHeight="34.0" prefWidth="1030.0" spacing="20" AnchorPane.leftAnchor="-4.0" AnchorPane.rightAnchor="-1.599999999999909" AnchorPane.topAnchor="83.0">
+        <Button onAction="#goToHome" prefWidth="250.0" text="Return to Home">
+            <graphic><ImageView fitHeight="26" fitWidth="26"><Image url="@../images/home.png" /></ImageView></graphic>
+        </Button>
+
+        <Button onAction="#goToManageNoticeBoard" prefWidth="250.0" text="Manage Notice Board">
+            <graphic><ImageView fitHeight="26" fitWidth="26"><Image url="@../images/modify-calendar.png" /></ImageView></graphic>
+        </Button>
+
+        <Button onAction="#goToLeaveASharedReview" prefWidth="250.0" text="Leave a Shared Review">
+            <graphic><ImageView fitHeight="26" fitWidth="26"><Image url="@../images/review.png" /></ImageView></graphic>
+        </Button>
+    </HBox>
+
+    <!-- ▸ 4) titolo + sottotitolo -->
+    <VBox alignment="TOP_CENTER" layoutY="170.6" spacing="6" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="170.6">
+        <Label style="-fx-font-size:24px; -fx-font-weight:bold;" text="Log in" textFill="#0e3aa1" />
+        <Label text="Please insert your credentials in order to access our services:" />
+    </VBox>
+
+    <!-- ▸ 5) cornice blu fissa (640 px) -->
+    <Rectangle arcHeight="5" arcWidth="5" fill="TRANSPARENT" height="440" layoutX="448" layoutY="170" stroke="#0e3aa1" strokeWidth="2" width="640" />
+
+    <!-- ▸ 6) form all’interno della cornice -->
+    <VBox layoutX="610.0" layoutY="266.0" prefHeight="158.0" prefWidth="318.0" spacing="20">
+
+        <!-- Email -->
+        <VBox alignment="CENTER_LEFT" spacing="6">
+            <Label style="-fx-font-weight:bold;" text="Email address" />
+            <TextField fx:id="emailField" prefWidth="300" promptText="Enter your email address" />
+        </VBox>
+
+        <!-- Password -->
+        <VBox alignment="CENTER_LEFT" spacing="6">
+            <Label style="-fx-font-weight:bold;" text="Password" />
+            <PasswordField fx:id="passwordField" prefWidth="300" promptText="Enter your password" />
+        </VBox>
+
+        <!-- Role -->
+        <HBox alignment="CENTER_LEFT" spacing="20">
+            <Label style="-fx-font-weight:bold;" text="Role" />
+            <RadioButton fx:id="studentButton" text="Student">
+                <toggleGroup><ToggleGroup fx:id="roleToggleGroup" /></toggleGroup>
+            </RadioButton>
+            <RadioButton fx:id="tutorButton" text="Tutor" toggleGroup="$roleToggleGroup" />
+        </HBox>
+    </VBox>
+
+    <!-- ▸ 7) “or alternatively …” + icone social -->
+    <VBox alignment="TOP_CENTER" layoutY="617.8" spacing="12" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="617.8">
+        <Label style="-fx-font-size:12;" text="or alternatively you can use one of these:" />
+        <HBox alignment="CENTER" spacing="24">
+            <ImageView fitHeight="42" fitWidth="42">
+                <Image url="@../images/iconaGoogle.png" />
+            </ImageView>
+            <ImageView fitHeight="48" fitWidth="50">
+                <Image url="@../images/iconaFacebook.png" />
+            </ImageView>
+        </HBox>
+    </VBox>
+
+     <!-- Bottone Log In -->
+     <Button fx:id="loginButton" layoutX="718.0" layoutY="461.0" minWidth="100" onAction="#handleLogin" text="Log In" />
+
+     <!-- Link sign‑up -->
+     <HBox alignment="CENTER" layoutX="618.0" layoutY="498.0" prefWidth="300.0" spacing="6">
+         <Label text="Don’t you have an account?" />
+         <Hyperlink fx:id="signUpLink" onAction="#goToSignUp" text="Sign up" />
+     </HBox>
+
+</AnchorPane>

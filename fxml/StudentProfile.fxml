@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+
+<AnchorPane prefHeight="400" prefWidth="600" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="logic.control.graphiccontrol.colored.StudentProfileGraphicControllerColored">
+    <children>
+        <Label fx:id="nameLabel" layoutX="200.0" layoutY="20" prefHeight="26.0" prefWidth="400.0" style="-fx-font-size: 16;" />
+        <Label fx:id="instituteLabel" layoutX="200.0" layoutY="50" prefHeight="18.0" prefWidth="400.0" />
+        <Label fx:id="ageLabel" layoutX="200.0" layoutY="70" prefHeight="18.0" prefWidth="400.0" />
+        <Label fx:id="profileCommentLabel" layoutX="200.0" layoutY="110" prefWidth="400" wrapText="true" />
+        <ImageView fx:id="profilePictureView" fitHeight="100" fitWidth="100" layoutX="24.0" layoutY="38.0" preserveRatio="true" />
+    </children>
+</AnchorPane>
