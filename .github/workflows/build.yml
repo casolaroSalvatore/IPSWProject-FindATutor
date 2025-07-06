@@ -42,9 +42,9 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          mvn -B -Dmaven.test.skip=true clean compile org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+            mvn -B -Dmaven.test.skip=true verify \
+            org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
             -Dsonar.projectKey=casolaroSalvatore_IPSWProject-FindATutor \
             -Dsonar.organization=casolarosalvatore \
             -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.sources=src \
-            -Dsonar.test.exclusions=src/test/**
+            -Dsonar.sources=src
