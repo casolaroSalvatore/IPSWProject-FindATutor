@@ -2,7 +2,6 @@ package logic.control.graphiccontrol.colored;
 
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleStringProperty;
-import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.ComboBoxTableCell;
@@ -12,7 +11,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
-import javafx.stage.Screen;
 import logic.bean.*;
 import logic.control.logiccontrol.BookingTutoringSessionController;
 import logic.control.logiccontrol.LoginController;
@@ -28,6 +26,7 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
 import logic.exception.NoTutorFoundException;
 import logic.model.domain.state.TutoringSessionStatus;
+
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -570,7 +569,7 @@ public class BookingSessionGraphicControllerColored {
         for (AccountBean ab : me.getAccounts()) {
             if (ROLE_STUDENT.equalsIgnoreCase(ab.getRole())
                     || ROLE_TUTOR.equalsIgnoreCase(ab.getRole())) {
-                uid  = ab.getAccountId();
+                uid = ab.getAccountId();
                 role = ab.getRole();
                 break;
             }
@@ -592,7 +591,10 @@ public class BookingSessionGraphicControllerColored {
     // Aggiunge i pulsanti Accept/Refuse se l'utente è un Tutor
     private void addBookingActionColumn() {
 
-        if (!isLogged()) { hideBookingActionColumn(); return; }
+        if (!isLogged()) {
+            hideBookingActionColumn();
+            return;
+        }
 
         if (isUserTutor()) {
             setupBookingActionButtons();
@@ -755,8 +757,8 @@ public class BookingSessionGraphicControllerColored {
     }
 
     // Helper centrale per recuperare l'utente loggato
-    private UserBean getLoggedUser(){
-        return (sessionId == null)? null : loginCtrl.getLoggedUser(sessionId);
+    private UserBean getLoggedUser() {
+        return (sessionId == null) ? null : loginCtrl.getLoggedUser(sessionId);
     }
 
     private String getLoggedAccountId() {
@@ -770,7 +772,9 @@ public class BookingSessionGraphicControllerColored {
         return null;
     }
 
-    private boolean isLogged() { return getLoggedUser() != null; }
+    private boolean isLogged() {
+        return getLoggedUser() != null;
+    }
 
 
     @FXML
@@ -876,7 +880,7 @@ public class BookingSessionGraphicControllerColored {
         // Se l'utente ha premuto OK, effettuiamo il logout
         if (result.isPresent() && result.get() == ButtonType.OK) {
             // 1) Azzeri la sessione, se hai un SessionManager
-            if(sessionId != null) {
+            if (sessionId != null) {
                 loginCtrl.logout(sessionId);
             }
 

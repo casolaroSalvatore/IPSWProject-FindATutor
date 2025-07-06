@@ -21,13 +21,11 @@ import logic.bean.SharedReviewBean;
 import logic.bean.UserBean;
 import logic.control.logiccontrol.LeaveASharedReviewController;
 import logic.model.domain.ReviewStatus;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.logging.Logger;
 import java.util.stream.IntStream;
 
 public class LeaveASharedReviewGraphicControllerColored {

@@ -2,9 +2,7 @@ package logic.control.graphiccontrol.colored;
 
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
-import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
-import javafx.stage.Screen;
 import logic.bean.AccountBean;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -33,7 +31,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class ManageNoticeBoardGraphicControllerColored {
