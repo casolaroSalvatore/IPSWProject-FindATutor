@@ -32,7 +32,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
 
-public class HomeGraphicControllerColored extends Application {
+public class HomeGraphicControllerColored extends Application implements NavigableController {
 
     private static final String ROLE_STUDENT = "Student";
     private static final String ROLE_TUTOR = "Tutor";
@@ -82,6 +82,7 @@ public class HomeGraphicControllerColored extends Application {
     private UUID sessionId;
     private UserBean userBean;
 
+    @Override
     public void initData(UUID sessionId, UserBean userBean) {
         this.sessionId = sessionId;
         this.userBean  = userBean;

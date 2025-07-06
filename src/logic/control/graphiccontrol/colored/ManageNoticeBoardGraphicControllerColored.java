@@ -33,7 +33,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.logging.Logger;
 
-public class ManageNoticeBoardGraphicControllerColored {
+public class ManageNoticeBoardGraphicControllerColored implements NavigableController {
 
     private static final String ROLE_TUTOR   = "Tutor";
     private static final String ROLE_STUDENT = "Student";
@@ -115,6 +115,7 @@ public class ManageNoticeBoardGraphicControllerColored {
     private UUID sessionId;
     private UserBean userBean;
 
+    @Override
     /* Chiamare subito dopo il FXMLLoader in HomeGraphicControllerColored */
     public void initData(UUID sessionId, UserBean userBean) {
         this.sessionId = sessionId;

@@ -28,7 +28,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.IntStream;
 
-public class LeaveASharedReviewGraphicControllerColored {
+public class LeaveASharedReviewGraphicControllerColored implements NavigableController {
 
     // *** FXML comuni: logInButton, signUpButton, welcomeLabel, logOutButton
     @FXML
@@ -152,6 +152,7 @@ public class LeaveASharedReviewGraphicControllerColored {
     private UUID sessionId;
     private UserBean userBean;
 
+    @Override
     public void initData(UUID sid, UserBean user) {
 
         this.sessionId = sid;

@@ -25,12 +25,8 @@ public class SceneNavigator {
             Parent root = loader.load();
 
             Object controller = loader.getController();
-            if (controller instanceof HomeGraphicControllerColored homeCtrl) {
-                homeCtrl.initData(sessionId, userBean);
-            } else if (controller instanceof ManageNoticeBoardGraphicControllerColored noticeCtrl) {
-                noticeCtrl.initData(sessionId, userBean);
-            } else if (controller instanceof LeaveASharedReviewGraphicControllerColored reviewCtrl) {
-                reviewCtrl.initData(sessionId, userBean);
+            if (controller instanceof NavigableController navCtrl) {
+                navCtrl.initData(sessionId, userBean);
             }
 
             Stage stage = (Stage) sourceNode.getScene().getWindow();

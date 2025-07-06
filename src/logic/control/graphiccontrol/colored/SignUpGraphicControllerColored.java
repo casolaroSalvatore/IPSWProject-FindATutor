@@ -128,7 +128,6 @@ public class SignUpGraphicControllerColored {
 
     @FXML
     private Hyperlink backToLogin;
-
     @FXML
     public void initialize() {
         if (roleComboBox != null) {

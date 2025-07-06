@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public class BookingSessionGraphicControllerColored {
+public class BookingSessionGraphicControllerColored implements NavigableController {
 
     // Per evitare ripetizioni
     private static final String ROLE_TUTOR = "Tutor";
@@ -196,6 +196,7 @@ public class BookingSessionGraphicControllerColored {
     }
 
     // Chiamato dalla Home dopo il FXMLLoader
+    @Override
     public void initData(UUID sid, UserBean userBean) {
 
         this.sessionId = sid;
