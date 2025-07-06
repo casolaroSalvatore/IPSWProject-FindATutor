@@ -3,10 +3,9 @@ package test;
 import logic.model.domain.SessionManager;
 import logic.model.domain.User;
 import org.junit.jupiter.api.Test;
-
 import java.util.UUID;
-
-import static org.junit.Assert.*;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
 
 /* Verifica il ciclo di vita delle sessioni utente gestite da SessionManager */
 class SessionManagerTest {

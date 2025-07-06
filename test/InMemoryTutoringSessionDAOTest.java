@@ -3,11 +3,10 @@ package test;
 import logic.model.dao.inmemory.InMemoryTutoringSessionDAO;
 import logic.model.domain.state.TutoringSession;
 import org.junit.jupiter.api.Test;
-
 import java.time.LocalDate;
 import java.time.LocalTime;
-
-import static org.junit.Assert.*;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
 
 /* Controlla le operazioni fondamentali dell’InMemoryTutoringSessionDAO */
 class InMemoryTutoringSessionDAOTest {

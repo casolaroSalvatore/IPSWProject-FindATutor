@@ -1,12 +1,11 @@
 package test;
 
 import logic.model.dao.db.ConnectionFactory;
-import org.junit.jupiter.api.Test;
-
+import org.testng.annotations.Test;
 import java.sql.Connection;
 import java.sql.SQLException;
-
-import static org.junit.Assert.*;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
 
 /* Verifica rapida sull’integrità della connessione JDBC ottenuta da ConnectionFactory */
 class DBConnectionTest {

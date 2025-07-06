@@ -2,11 +2,9 @@ package test;
 
 import logic.bean.TutoringSessionBean;
 import org.junit.jupiter.api.Test;
-
 import java.time.LocalDate;
 import java.time.LocalTime;
-
-import static org.junit.Assert.*;
+import static org.testng.AssertJUnit.assertEquals;
 
 /* Valida il metodo checkSyntax() di TutoringSessionBean in due scenari opposti */
 class TutoringSessionBeanTest {
