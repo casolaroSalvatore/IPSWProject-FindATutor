@@ -16,7 +16,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Importante per Sonar
+          fetch-depth: 0
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -46,5 +46,5 @@ jobs:
             -Dsonar.projectKey=casolaroSalvatore_IPSWProject-FindATutor \
             -Dsonar.organization=casolarosalvatore \
             -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.sources=src/bean,src/control,src/exception,src/model,src/view \
-            -Dsonar.tests=src/test
+            -Dsonar.sources=bean,control,exception,model,view \
+            -Dsonar.tests=test
