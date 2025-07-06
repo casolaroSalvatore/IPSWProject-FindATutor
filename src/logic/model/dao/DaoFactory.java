@@ -20,7 +20,7 @@ public abstract class DaoFactory {
                 instance = persistenceProvider.getDaoFactoryclass().getConstructor().newInstance();
             } catch (InstantiationException | IllegalAccessException | IllegalArgumentException |
                      InvocationTargetException | NoSuchMethodException | SecurityException e) {
-                throw new NoImplementationForPersistenceProviderException(persistenceProvider, e);
+                throw new NoImplementationForPersistenceProviderException(persistenceProvider.getName(), e);
             }
         }
         return instance;
