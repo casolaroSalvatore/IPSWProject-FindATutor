@@ -24,6 +24,17 @@
                 </includes>
             </resource>
         </resources>
+        <plugins>
+            <!-- Plugin Surefire aggiornato per compatibilità JUnit 5 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.2.5</version>
+                <configuration>
+                    <useModulePath>false</useModulePath> <!-- Necessario a volte con JavaFX -->
+                </configuration>
+            </plugin>
+        </plugins>
     </build>
 
     <dependencies>
@@ -49,24 +60,12 @@
             <version>17.0.2</version>
         </dependency>
 
-        <!-- JUnit 5 -->
+        <!-- JUnit 5 (solo Jupiter, no TestNG, no misti) -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
-            <version>5.8.2</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.testng</groupId>
-            <artifactId>testng</artifactId>
-            <version>RELEASE</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-api</artifactId>
             <version>5.10.2</version>
-            <scope>compile</scope>
+            <scope>test</scope>
         </dependency>
 
     </dependencies>
