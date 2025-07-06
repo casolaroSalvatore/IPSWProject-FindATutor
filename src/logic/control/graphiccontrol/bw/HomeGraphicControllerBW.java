@@ -53,7 +53,8 @@ public class HomeGraphicControllerBW extends BaseCLIControllerBW {
             case 1 -> new LoginGraphicControllerBW().start();
             case 2 -> new SignUpGraphicControllerBW().start();
             case 0 -> {
-                return false;  // Indica che l'utente vuole uscire
+                LOGGER.info("Exiting application.");
+                return false;  // ferma il ciclo
             }
             default -> LOGGER.warning("Invalid choice. Please try again.");
         }
@@ -79,10 +80,10 @@ public class HomeGraphicControllerBW extends BaseCLIControllerBW {
             case 4 -> {
                 homeController.logout(sessionId);
                 LOGGER.info("Logged out successfully.");
-                return true;  // Torna al menu non loggato
             }
             case 0 -> {
-                return false;  // Indica che l'utente vuole uscire
+                LOGGER.info("Exiting application.");
+                return false;
             }
             default -> LOGGER.warning("Invalid choice. Please try again.");
         }

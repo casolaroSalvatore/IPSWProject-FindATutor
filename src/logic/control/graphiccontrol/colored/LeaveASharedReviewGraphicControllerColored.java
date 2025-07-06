@@ -528,47 +528,13 @@ public class LeaveASharedReviewGraphicControllerColored {
 
     @FXML
     public void goToHome(ActionEvent event) {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Home.fxml"));
-            Parent homeRoot = loader.load();
-
-            HomeGraphicControllerColored homeGraphicControllerColored = loader.getController();
-            homeGraphicControllerColored.initData(sessionId, userBean);
-
-            // Imposto la scena
-            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
-            Scene scene = new Scene(homeRoot, screenBounds.getWidth(), screenBounds.getHeight());
-            stage.setTitle("Home");
-            stage.setScene(scene);
-            stage.setMaximized(true);
-            stage.show();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            LOGGER.log(Level.SEVERE, "An error occurred while loading the Home screen.", e);
-        }
+        SceneNavigator.navigate("/fxml/Home.fxml", (Node) event.getSource(), sessionId, userBean, "Home");
     }
 
 
     @FXML
     private void goToManageNoticeBoard(ActionEvent event) {
-
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/ManageNoticeBoard.fxml"));
-            Parent root  = loader.load();
-            ManageNoticeBoardGraphicControllerColored manageNoticeBoardGraphicControllerColored = loader.getController();
-            manageNoticeBoardGraphicControllerColored.initData(sessionId, userBean);
-            Rectangle2D sb  = Screen.getPrimary().getVisualBounds();
-            Scene scene  = new Scene(root, sb.getWidth(), sb.getHeight());
-            Stage stage  = (Stage) manageNoticeBoardButton.getScene().getWindow();
-            stage.setScene(scene);
-            stage.setTitle("Manage Notice Board");
-            stage.setMaximized(true);
-            stage.show();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        SceneNavigator.navigate("/fxml/ManageNoticeBoard.fxml", (Node) event.getSource(), sessionId, userBean, "Manage Notice Board");
     }
 
     @FXML
