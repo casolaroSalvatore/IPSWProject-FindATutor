@@ -44,7 +44,7 @@ public class HomeGraphicControllerBW extends BaseCLIControllerBW {
         }
     }
 
-    private void showNotLoggedMenu() throws NoTutorFoundException {
+    private boolean showNotLoggedMenu() throws NoTutorFoundException {
         LOGGER.info("1) Log In");
         LOGGER.info("2) Sign Up");
         LOGGER.info("0) Exit");
@@ -52,12 +52,15 @@ public class HomeGraphicControllerBW extends BaseCLIControllerBW {
         switch (askInt("Choice:")) {
             case 1 -> new LoginGraphicControllerBW().start();
             case 2 -> new SignUpGraphicControllerBW().start();
-            case 0 -> System.exit(0);
+            case 0 -> {
+                return false;  // Indica che l'utente vuole uscire
+            }
             default -> LOGGER.warning("Invalid choice. Please try again.");
         }
+        return true;
     }
 
-    private void showLoggedMenu(UserBean user) throws NoTutorFoundException {
+    private boolean showLoggedMenu(UserBean user) throws NoTutorFoundException {
         String role = getLoggedRole(user);
 
         LOGGER.log(Level.INFO, "Logged in as: {0} ({1})",
@@ -76,11 +79,14 @@ public class HomeGraphicControllerBW extends BaseCLIControllerBW {
             case 4 -> {
                 homeController.logout(sessionId);
                 LOGGER.info("Logged out successfully.");
-                showNotLoggedMenu();
+                return true;  // Torna al menu non loggato
             }
-            case 0 -> System.exit(0);
+            case 0 -> {
+                return false;  // Indica che l'utente vuole uscire
+            }
             default -> LOGGER.warning("Invalid choice. Please try again.");
         }
+        return true;
     }
 
     private String getLoggedRole(UserBean user) {

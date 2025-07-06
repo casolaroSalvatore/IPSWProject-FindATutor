@@ -6,8 +6,6 @@ import logic.bean.UserBean;
 import logic.model.dao.*;
 import logic.model.domain.*;
 import logic.model.domain.state.TutoringSession;
-
-import java.time.LocalDate;
 import java.util.*;
 
 import static logic.model.domain.ReviewStatus.NOT_STARTED;

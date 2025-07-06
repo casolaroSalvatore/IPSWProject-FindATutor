@@ -91,11 +91,6 @@ public class LoginGraphicControllerColored {
                 return;
             }
 
-            if (userBean == null) {
-                showAlert(ERROR, "Login succeeded, but user data is missing.");
-                return;
-            }
-
             // Memorizzo sia sessionId sia UserBean completo
             sessionId = loggedProfile.getSessionId();
             userBean = loggedProfile.getUser();

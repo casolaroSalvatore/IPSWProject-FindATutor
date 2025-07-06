@@ -243,8 +243,7 @@ public class SignUpGraphicControllerColored {
         } else if (TUTOR.equalsIgnoreCase(role)) {
             userBean.addAccount(accountBean);
             // Salvo lo UserBean parziale
-            SignUpController signUpController = new SignUpController();
-            signUpController.cachePartialTutor(userBean);
+            SignUpController.cachePartialTutor(userBean);
             goToSignUpTutor(event);
         }
     }
@@ -321,7 +320,7 @@ public class SignUpGraphicControllerColored {
         AuthResultBean authResultBean = signUpController.registerUser(userBean);
         if (authResultBean != null) {
             showAlert("Sign-up completed","Registration completed successfully!\nYou can now log in to your account");
-            signUpController.clearPartialTutor();
+            SignUpController.clearPartialTutor();
             goToLogin1();
         } else {
             showAlert(ERROR,"Account already exists.");

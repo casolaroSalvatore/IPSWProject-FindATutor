@@ -1,11 +1,12 @@
 package logic.bean;
 
+import java.io.Serializable;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
-public class AvailabilityBean {
+public class AvailabilityBean implements Serializable {
 
     private LocalDate startDate;
     private LocalDate endDate;

@@ -155,7 +155,6 @@ public class HomeGraphicControllerColored extends Application {
         String accountId = null;
         String role = null;
 
-        System.out.println("DEBUG - In HomeGraphicController, account disponibili:");
         for (AccountBean ab : user.getAccounts()) {
             System.out.println(" - Role: " + ab.getRole());
         }
@@ -169,7 +168,7 @@ public class HomeGraphicControllerColored extends Application {
             }
         }
 
-        if (accountId == null || role == null) {
+        if (accountId == null) {
             throw new IllegalStateException("No valid account (Student or Tutor) found for logged user.");
         }
 
