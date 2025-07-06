@@ -1,8 +1,5 @@
 package logic.model.domain.state;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
-
 class ModRequestedState extends AbstractTutoringSessionState {
 
     public ModRequestedState() {}

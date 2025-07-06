@@ -51,12 +51,13 @@ public class TutoringSessionStateMachine implements TutoringSessionEvents {
 
     public void bootstrap(TutoringSessionStatus status) {
         switch (status) {
-            case DRAFT    -> current = new DraftState(this, tutoringSession);
-            case PENDING  -> current = new PendingState(this, tutoringSession);
+            case DRAFT -> current = new DraftState(this, tutoringSession);
+            case PENDING -> current = new PendingState(this, tutoringSession);
             case ACCEPTED -> current = new AcceptedState(this, tutoringSession);
-            case MOD_REQUESTED  -> current = new ModRequestedState(this, tutoringSession);
+            case MOD_REQUESTED -> current = new ModRequestedState(this, tutoringSession);
             case CANCEL_REQUESTED -> current = new CancelRequestedState(this, tutoringSession);
             case CANCELLED -> current = new CancelledState(this, tutoringSession);
+            default -> throw new IllegalArgumentException("Unsupported status: " + status);
         }
     }
 }

@@ -2,7 +2,6 @@ package logic.model.dao.db;
 
 import logic.model.dao.SharedReviewDAO;
 import logic.model.domain.*;
-import java.io.IOException;
 import java.sql.*;
 import java.util.*;
 

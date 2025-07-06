@@ -37,11 +37,6 @@ public class InMemorySharedReviewDAO extends InMemoryDAO<String, SharedReview> i
     }
 
     @Override
-    public SharedReview load(String reviewId) {
-        return super.load(reviewId);
-    }
-
-    @Override
     public List<SharedReview> loadAll() {
         return new ArrayList<>(allValues());
     }

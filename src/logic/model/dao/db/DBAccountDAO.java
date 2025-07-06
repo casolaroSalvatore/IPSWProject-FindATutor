@@ -2,7 +2,6 @@ package logic.model.dao.db;
 
 import logic.model.dao.AccountDAO;
 import logic.model.domain.*;
-import java.io.IOException;
 import java.sql.*;
 import java.sql.Date;
 import java.time.DayOfWeek;
