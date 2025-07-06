@@ -5,12 +5,13 @@ import java.util.logging.Logger;
 
 import logic.control.graphiccontrol.bw.HomeGraphicControllerBW;
 import logic.control.graphiccontrol.colored.HomeGraphicControllerColored;
+import logic.exception.NoTutorFoundException;
 import logic.model.domain.InterfaceProvider;
 import logic.view.ConfigurationBoundary;
 
 public class Main {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws NoTutorFoundException {
 
         // Step 0: Remove JavaFX warnings
         // (non posso uniformare le 2 versioni in quanto SonarQube Community Edition supporta
