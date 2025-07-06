@@ -45,4 +45,5 @@ jobs:
           mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
             -Dsonar.projectKey=casolaroSalvatore_IPSWProject-FindATutor \
             -Dsonar.organization=casolarosalvatore \
-            -Dsonar.host.url=https://sonarcloud.io
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.sources=src
