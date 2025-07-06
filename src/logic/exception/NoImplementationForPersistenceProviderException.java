@@ -1,10 +1,8 @@
 package logic.exception;
 
-import logic.model.domain.PersistenceProvider;
+public class NoImplementationForPersistenceProviderException extends RuntimeException {
 
-public class NoImplementationForPersistenceProviderException extends RuntimeException{
-
-    public NoImplementationForPersistenceProviderException(PersistenceProvider persistenceProvider, Exception e) {
-        super("Cannot istantiate Factory for provider "+ persistenceProvider.getName(), e);
+    public NoImplementationForPersistenceProviderException(String providerName, Exception e) {
+        super("Cannot instantiate Factory for provider " + providerName, e);
     }
 }
