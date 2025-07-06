@@ -13,6 +13,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.shape.Circle?>
 <?import javafx.scene.shape.Line?>
+<?import javafx.scene.shape.Rectangle?>
 <?import javafx.scene.text.Font?>
 
 <AnchorPane fx:id="root" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="logic.control.graphiccontrol.colored.HomeGraphicControllerColored">
@@ -79,7 +80,7 @@
       </HBox>
    </VBox>
 
-   <!-- 6) Barra di ricerca – max 1000 px ma centrata e fluida -->
+   <!-- 6) Barra di ricerca – max 1000 px ma centrata e fluida -->
    <HBox alignment="CENTER" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="210.0">
       <HBox alignment="CENTER_LEFT" maxWidth="1000" spacing="10" style="-fx-background-color:#f5f5f5; -fx-border-color:#0e3aa1; -fx-border-width:2; -fx-background-radius:8; -fx-border-radius:8; -fx-padding:6;">
          <!-- Where -->
@@ -111,7 +112,7 @@
       </HBox>
    </HBox>
 
-   <!-- 7) Frequenza e giorni – max 800 px centrato -->
+   <!-- 7) Frequenza e giorni – max 800 px centrato -->
    <HBox alignment="CENTER" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="282.0">
       <HBox alignment="CENTER_LEFT" maxWidth="900" spacing="10" style="-fx-background-color:#f5f5f5; -fx-border-color:#0e3aa1; -fx-border-width:2; -fx-background-radius:8; -fx-border-radius:8; -fx-padding:6;">
          <HBox alignment="CENTER_LEFT" spacing="5">
@@ -130,5 +131,84 @@
          </HBox>
       </HBox>
    </HBox>
+
+   <!-- ▸ Sezione promozionale  -->
+   <VBox fx:id="promoSection" alignment="TOP_CENTER" spacing="40"
+         AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="350.0">
+
+      <!-- Headline verde di invito -->
+      <VBox alignment="TOP_CENTER" spacing="10" maxWidth="1000">
+         <Label wrapText="true"
+                text="Are you looking for expert guidance in your academic journey? You've come to the right place!"
+                style="-fx-text-fill:#19c78f;
+                    -fx-font-size:17px;
+                    -fx-font-family:'Segoe UI','Helvetica Neue',sans-serif;
+                    -fx-font-weight:bold;
+                    -fx-text-alignment:center;"/>
+
+         <Label wrapText="true"
+                text="Our platform connects students with tutors specialized in a wide range of university and school subjects."
+                style="-fx-text-fill:#19c78f;
+                    -fx-font-size:17px;
+                    -fx-font-family:'Segoe UI','Helvetica Neue',sans-serif;
+                    -fx-font-weight:bold;
+                    -fx-text-alignment:center;"/>
+      </VBox>
+
+      <!-- Bullet list -->
+      <VBox alignment="TOP_LEFT" spacing="8" maxWidth="1000">
+         <Label text="• Browse our list of tutors;"
+                style="-fx-font-size:15px;
+                    -fx-font-family:'Segoe UI','Helvetica Neue',sans-serif;
+                    -fx-text-fill:#0e3aa1;
+                    -fx-font-weight:bold;"/>
+
+         <Label text="• Find the perfect match based on your subject and preferences;"
+                style="-fx-font-size:15px;
+                    -fx-font-family:'Segoe UI','Helvetica Neue',sans-serif;
+                    -fx-text-fill:#0e3aa1;
+                    -fx-font-weight:bold;"/>
+
+         <Label text="• Schedule sessions at your convenience."
+                style="-fx-font-size:15px;
+                    -fx-font-family:'Segoe UI','Helvetica Neue',sans-serif;
+                    -fx-text-fill:#0e3aa1;
+                    -fx-font-weight:bold;"/>
+      </VBox>
+
+      <!-- Due immagini affiancate con ombra e angoli arrotondati -->
+      <HBox alignment="CENTER" spacing="60" maxWidth="1000">
+         <!-- Immagine 1 -->
+         <ImageView fitHeight="250" fitWidth="350" preserveRatio="true"
+                    style="-fx-effect:dropshadow(gaussian, rgba(0,0,0,0.25), 10, 0.1, 0, 4);">
+            <image>
+               <Image url="@../images/tutor1.png"/>
+            </image>
+            <clip>
+               <Rectangle width="350" height="250" arcWidth="28" arcHeight="28"/>
+            </clip>
+         </ImageView>
+
+         <!-- Immagine 2 -->
+         <ImageView fitHeight="250" fitWidth="350" preserveRatio="true"
+                    style="-fx-effect:dropshadow(gaussian, rgba(0,0,0,0.25), 10, 0.1, 0, 4);">
+            <image>
+               <Image url="@../images/tutor2.png"/>
+            </image>
+            <clip>
+               <Rectangle width="350" height="250" arcWidth="28" arcHeight="28"/>
+            </clip>
+         </ImageView>
+      </HBox>
+
+      <!-- Slogan finale -->
+      <Label wrapText="true" maxWidth="1000"
+             text="Empower your learning with personalized support.\nSuccess starts here!"
+             style="-fx-text-fill:#0e3aa1;
+                 -fx-font-size:26px;
+                 -fx-font-family:'Segoe UI','Helvetica Neue',sans-serif;
+                 -fx-font-weight:bold;
+                 -fx-text-alignment:center;"/>
+   </VBox>
 
 </AnchorPane>
