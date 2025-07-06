@@ -47,5 +47,5 @@ jobs:
             -Dsonar.organization=casolarosalvatore \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.sources=src \
-            -Dsonar.tests=src/test
+            -Dsonar.tests=src/test \
             -Dsonar.test.exclusions=src/test/DBConnectionTest.java
