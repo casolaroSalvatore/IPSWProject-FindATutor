@@ -2,12 +2,25 @@ package logic.model.dao.db;
 
 import logic.model.dao.SharedReviewDAO;
 import logic.model.domain.*;
+import java.io.IOException;
 import java.sql.*;
 import java.util.*;
 
+@SuppressWarnings("java:S6548")
+// Singleton necessario per garantire un'unica istanza di DBSharedReviewDAO che centralizza
+// l'accesso alle recensioni condivise e assicura coerenza nelle operazioni sul database
 public class DBSharedReviewDAO extends DBDAO<String, SharedReview> implements SharedReviewDAO {
 
     private static final String REVIEW_ID = "review_id";
+
+    private static DBSharedReviewDAO instance;
+
+    public static synchronized DBSharedReviewDAO getInstance() {
+        if (instance == null) {
+            instance = new DBSharedReviewDAO();
+        }
+        return instance;
+    }
 
     @Override protected String getTableName() { return "shared_reviews"; }
     @Override protected String getPkColumn()  { return REVIEW_ID; }

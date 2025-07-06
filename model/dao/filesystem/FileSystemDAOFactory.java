@@ -1,8 +1,8 @@
 package logic.model.dao.filesystem;
 
-import logic.exception.filesystem.AccountDaoInitException;
-import logic.exception.filesystem.SharedReviewDaoInitException;
-import logic.exception.filesystem.TutoringSessionDaoInitException;
+import logic.exception.dao.AccountDAOInitException;
+import logic.exception.dao.SharedReviewDAOInitException;
+import logic.exception.dao.TutoringSessionDAOInitException;
 import logic.exception.filesystem.UserDaoInitException;
 import logic.model.dao.*;
 
@@ -33,7 +33,7 @@ public class FileSystemDAOFactory extends DaoFactory {
         try {
             return new FileSystemAccountDAO(base);
         } catch (IOException e) {
-            throw new AccountDaoInitException(base, e);
+            throw new AccountDAOInitException(base, e);
         }
     }
 
@@ -42,7 +42,7 @@ public class FileSystemDAOFactory extends DaoFactory {
         try {
             return new FileSystemTutoringSessionDAO(base);
         } catch (IOException e) {
-            throw new TutoringSessionDaoInitException(base, e);
+            throw new TutoringSessionDAOInitException(base, e);
         }
     }
 
@@ -51,7 +51,7 @@ public class FileSystemDAOFactory extends DaoFactory {
         try {
             return new FileSystemSharedReviewDAO(base);
         } catch (IOException e) {
-            throw new SharedReviewDaoInitException(base, e);
+            throw new SharedReviewDAOInitException(base, e);
         }
     }
 }

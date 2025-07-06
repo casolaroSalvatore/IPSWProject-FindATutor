@@ -2,7 +2,7 @@ package logic.model.dao.db;
 
 import logic.model.dao.AccountDAO;
 import logic.model.domain.*;
-
+import java.io.IOException;
 import java.sql.*;
 import java.sql.Date;
 import java.time.DayOfWeek;
@@ -11,11 +11,22 @@ import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("java:S6548")
+// Singleton necessario per garantire un'unica istanza di DBAccountDAO
+// che centralizza l'accesso al database e assicura coerenza nelle operazioni sugli account.
 public class DBAccountDAO extends DBDAO<String, Account> implements AccountDAO {
 
-    private static final String PROFILE_PIC     = "profile_picture_path";
-    private static final String PROFILE_COMMENT = "profile_comment";
+    private static DBAccountDAO instance;
 
+    public static synchronized DBAccountDAO getInstance() {
+        if (instance == null) {
+            instance = new DBAccountDAO();
+        }
+        return instance;
+    }
+
+    private static final String PROFILE_PIC  = "profile_picture_path";
+    private static final String PROFILE_COMMENT = "profile_comment";
 
     @Override protected String getTableName() { return "accounts"; }
     @Override protected String getPkColumn()  { return "account_id"; }
@@ -83,12 +94,19 @@ public class DBAccountDAO extends DBDAO<String, Account> implements AccountDAO {
         }
     }
 
-    private void fillInsertOrUpdate(PreparedStatement ps,
-                                    Account acc,
-                                    boolean update) throws SQLException {
-
+    private void fillInsertOrUpdate(PreparedStatement ps, Account acc, boolean update) throws SQLException {
         List<Object> params = new ArrayList<>();
 
+        addCommonParams(params, acc, update);
+        addTutorOrStudentParams(params, acc);
+        addProfileAndAvailabilityParams(params, acc);
+        if (update) {
+            params.add(acc.getAccountId());
+        }
+        bindParams(ps, params);
+    }
+
+    private void addCommonParams(List<Object> params, Account acc, boolean update) {
         if (update) {
             params.addAll(Arrays.asList(
                     acc.getEmail(), acc.getRole(), acc.getPassword(),
@@ -101,11 +119,11 @@ public class DBAccountDAO extends DBDAO<String, Account> implements AccountDAO {
                     acc.getName(), acc.getSurname(), acc.getBirthday()
             ));
         }
+    }
 
-        /* campo Institute (solo STUDENT) */
+    private void addTutorOrStudentParams(List<Object> params, Account acc) {
         params.add(acc instanceof Student s ? s.getInstitute() : null);
 
-        /* campi specifici del TUTOR (oppure placeholder per altri ruoli) */
         if (acc instanceof Tutor t) {
             params.addAll(Arrays.asList(
                     t.getLocation(), t.getEducationalTitle(), t.getSubject(),
@@ -117,13 +135,13 @@ public class DBAccountDAO extends DBDAO<String, Account> implements AccountDAO {
                     null, null, null, 0f, false, false, false, false
             ));
         }
+    }
 
-        /* campi comuni di profilo */
+    private void addProfileAndAvailabilityParams(List<Object> params, Account acc) {
         params.addAll(Arrays.asList(
                 acc.getProfilePicturePath(), acc.getProfileComment()
         ));
 
-        /* disponibilità + rating (solo Tutor con availability valorizzata) */
         if (acc instanceof Tutor t && t.getAvailability() != null) {
             Availability av = t.getAvailability();
             params.addAll(Arrays.asList(
@@ -136,17 +154,24 @@ public class DBAccountDAO extends DBDAO<String, Account> implements AccountDAO {
         } else {
             params.addAll(Arrays.asList(null, null, null, 0f));
         }
+    }
 
-        if (update) params.add(acc.getAccountId()); // ultimo param: WHERE
-
+    private void bindParams(PreparedStatement ps, List<Object> params) throws SQLException {
         for (int i = 0; i < params.size(); i++) {
             Object o = params.get(i);
             int idx = i + 1;
-            if      (o instanceof LocalDate d)  ps.setDate(idx, Date.valueOf(d));
-            else if (o instanceof LocalTime t)  ps.setTime(idx, Time.valueOf(t));
-            else if (o instanceof Float f)      ps.setFloat(idx, f);
-            else if (o instanceof Boolean b)    ps.setBoolean(idx, b);
-            else                                ps.setObject(idx, o);
+
+            if (o instanceof LocalDate d) {
+                ps.setDate(idx, Date.valueOf(d));
+            } else if (o instanceof LocalTime t) {
+                ps.setTime(idx, Time.valueOf(t));
+            } else if (o instanceof Float f) {
+                ps.setFloat(idx, f);
+            } else if (o instanceof Boolean b) {
+                ps.setBoolean(idx, b);
+            } else {
+                ps.setObject(idx, o);
+            }
         }
     }
 

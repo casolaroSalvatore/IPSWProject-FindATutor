@@ -7,15 +7,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+@SuppressWarnings("java:S6548")
+// Singleton usato intenzionalmente per InMemoryTutoringSessionDAO: garantisce un'unica
+// istanza che centralizza la gestione delle sessioni di tutoraggio in memoria,
+// assicurando coerenza dei dati e accesso unico tramite DaoFactory.
 public class InMemoryTutoringSessionDAO extends InMemoryDAO<String, TutoringSession> implements TutoringSessionDAO {
 
     private static InMemoryTutoringSessionDAO instance;
 
     // Contatore per generare ID univoci (es. "session1", "session2", ecc.)
     private static final AtomicInteger idGenerator = new AtomicInteger(1);
-
-    private InMemoryTutoringSessionDAO() {
-    }
 
     public static synchronized InMemoryTutoringSessionDAO getInstance() {
         if (instance == null) {

@@ -13,18 +13,14 @@ public class InMemoryUserDAO extends InMemoryDAO<String, User> implements UserDA
 
     private static InMemoryUserDAO instance;
 
-    private InMemoryUserDAO() {
-        // Private constructor in order to prevent instatiation
-    }
-
-    public static InMemoryUserDAO getInstance() {
+    public static synchronized InMemoryUserDAO getInstance() {
         if (instance == null) {
             instance = new InMemoryUserDAO();
         }
         return instance;
     }
 
-    // References to the right AccountDAO
+    // Riferimento all'accountDAO corretto
     private DAO<String, Account> accountDAO = DaoFactory.getInstance().getAccountDAO();
 
     @Override

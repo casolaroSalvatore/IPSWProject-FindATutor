@@ -8,11 +8,20 @@ import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.*;
 
-class FileSystemAccountDAO extends FileSystemDAO<String,Account> implements AccountDAO {
+public class FileSystemAccountDAO extends FileSystemDAO<String,Account> implements AccountDAO {
 
     private static final String FALSE = "false";
 
+    private static FileSystemAccountDAO instance;
+
     FileSystemAccountDAO(Path root) throws IOException { super(root,"accounts"); }
+
+    public static synchronized FileSystemAccountDAO getInstance(Path root) throws IOException {
+        if (instance == null) {
+            instance = new FileSystemAccountDAO(root);
+        }
+        return instance;
+    }
 
     @Override protected String getId(Account a) { return a.getAccountId(); }
 

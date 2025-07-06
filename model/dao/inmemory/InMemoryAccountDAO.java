@@ -10,9 +10,7 @@ public class InMemoryAccountDAO extends InMemoryDAO<String, Account> implements 
 
     private static InMemoryAccountDAO instance;
 
-    private InMemoryAccountDAO() { }
-
-    public static InMemoryAccountDAO getInstance() {
+    public static synchronized InMemoryAccountDAO getInstance() {
         if (instance == null) {
             instance = new InMemoryAccountDAO();
         }

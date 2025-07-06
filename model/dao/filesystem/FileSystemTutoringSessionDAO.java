@@ -13,9 +13,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-class FileSystemTutoringSessionDAO extends FileSystemDAO<String, TutoringSession> implements TutoringSessionDAO {
+public class FileSystemTutoringSessionDAO extends FileSystemDAO<String, TutoringSession> implements TutoringSessionDAO {
+
+    private static FileSystemTutoringSessionDAO instance;
 
     FileSystemTutoringSessionDAO(Path root) throws IOException { super(root,"sessions"); }
+
+    public static synchronized FileSystemTutoringSessionDAO getInstance(Path root) throws IOException {
+        if (instance == null) {
+            instance = new FileSystemTutoringSessionDAO(root);
+        }
+        return instance;
+    }
 
     @Override protected String getId(TutoringSession s) {
         if (s.getSessionId()==null || s.getSessionId().isBlank())

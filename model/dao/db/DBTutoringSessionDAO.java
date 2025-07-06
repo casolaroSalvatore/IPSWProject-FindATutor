@@ -3,7 +3,6 @@ package logic.model.dao.db;
 import logic.model.dao.TutoringSessionDAO;
 import logic.model.domain.state.TutoringSession;
 import logic.model.domain.state.TutoringSessionStatus;
-
 import java.sql.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -12,18 +11,31 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+@SuppressWarnings("java:S6548")
+// Singleton usato intenzionalmente per DBTutoringSessionDAO: garantisce un'unica
+// istanza che centralizza l'accesso alle sessioni di tutoraggio nel DB,
+// evitando duplicazioni e assicurando coerenza tramite DaoFactory e connessione condivisa.
 public class DBTutoringSessionDAO extends DBDAO<String, TutoringSession> implements TutoringSessionDAO {
 
+    private static final String SESSION_ID_COLUMN = "session_id";
+
+    private static DBTutoringSessionDAO instance;
+
+    public static synchronized DBTutoringSessionDAO getInstance() {
+        if (instance == null) {
+            instance = new DBTutoringSessionDAO();
+        }
+        return instance;
+    }
 
     @Override protected String getTableName() { return "tutoring_sessions"; }
-    @Override protected String getPkColumn()  { return "session_id"; }
+    @Override protected String getPkColumn()  {     return SESSION_ID_COLUMN; }
     @Override protected String getId(TutoringSession ts){ return ts.getSessionId(); }
-
 
     @Override
     protected TutoringSession map(ResultSet rs) throws SQLException {
         TutoringSession s = new TutoringSession();
-        s.setSessionId (rs.getString("session_id"));
+        s.setSessionId(rs.getString(SESSION_ID_COLUMN));
         s.setTutorId   (rs.getString("tutor_id"));
         s.setStudentId (rs.getString("student_id"));
         s.setLocation  (rs.getString("location"));
@@ -136,7 +148,9 @@ public class DBTutoringSessionDAO extends DBDAO<String, TutoringSession> impleme
                 "SELECT session_id FROM tutoring_sessions");
              ResultSet rs = ps.executeQuery()) {
 
-            while (rs.next()) list.add(load(rs.getString("session_id")));
+            while (rs.next()) {
+                list.add(load(rs.getString(SESSION_ID_COLUMN)));
+            }
         } catch (SQLException e) { e.printStackTrace(); }
         return list;
     }

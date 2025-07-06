@@ -4,15 +4,17 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-// Gestore centralizzato delle Session
+@SuppressWarnings("java:S6548")
+// Singleton usato intenzionalmente per SessionManager: garantisce un'unica istanza che centralizza
+// la gestione e la coerenza delle sessioni utente durante l'intero ciclo di vita dell'applicazione.
 public class SessionManager {
 
-    private static final SessionManager INSTANCE = new SessionManager();
+    private static final SessionManager instance = new SessionManager();
     private final Map<UUID, Session> sessions = new ConcurrentHashMap<>();
 
     private SessionManager() { }
 
-    public static SessionManager getInstance() { return INSTANCE; }
+    public static SessionManager getInstance() { return instance; }
 
     public UUID createSession(User u) {
         Session s = new Session(u);
@@ -24,10 +26,5 @@ public class SessionManager {
     public boolean isSessionActive(UUID id)   { return id!=null && sessions.containsKey(id); }
     public void    invalidateSession(UUID id) { if (id!=null) sessions.remove(id); }
 
-    Session findSessionByEmail(String email) {
-        return sessions.values().stream()
-                .filter(s -> s.getUser().getEmail().equalsIgnoreCase(email))
-                .findFirst().orElse(null);
-    }
 }
 

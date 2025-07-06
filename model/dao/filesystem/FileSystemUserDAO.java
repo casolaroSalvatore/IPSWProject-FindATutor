@@ -5,19 +5,29 @@ import logic.model.dao.DaoFactory;
 import logic.model.dao.UserDAO;
 import logic.model.domain.Account;
 import logic.model.domain.User;
-
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
 
-class FileSystemUserDAO extends FileSystemDAO<String,User> implements UserDAO {
+public class FileSystemUserDAO extends FileSystemDAO<String,User> implements UserDAO {
+
+    private static FileSystemUserDAO instance;
 
     FileSystemUserDAO(Path root) throws IOException { super(root,"users"); }
+
+    public static synchronized FileSystemUserDAO getInstance(Path root) throws IOException {
+        if (instance == null) {
+            instance = new FileSystemUserDAO(root);
+        }
+        return instance;
+    }
+
+    private final AccountDAO accountDAO = DaoFactory.getInstance().getAccountDAO();
 
     /* chiave = email */
     @Override protected String getId(User u) { return u.getEmail(); }
 
-    /* serializzazione */
+    // Serializzazione
     @Override protected List<String> encode(User u) {
         String accounts = String.join("|", u.getAccounts().stream().map(a->a.getAccountId()).toList());
         return List.of(
@@ -39,10 +49,9 @@ class FileSystemUserDAO extends FileSystemDAO<String,User> implements UserDAO {
         /* Carico  gli Account reali --- */
         String accLine = m.get("accounts");
         if (accLine != null && !accLine.isBlank()) {
-            AccountDAO accDao = DaoFactory.getInstance().getAccountDAO();
             List<Account> list = new ArrayList<>();
             for (String id : accLine.split("\\|")) {
-                Account acc = accDao.load(id);
+                Account acc = accountDAO.load(id);
                 if (acc != null) list.add(acc);
             }
             user.setAccounts(list);

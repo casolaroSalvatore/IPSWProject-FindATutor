@@ -6,13 +6,36 @@ import logic.model.domain.*;
 import java.sql.*;
 import java.util.List;
 
+@SuppressWarnings("java:S6548")
+// Singleton usato intenzionalmente per DBUserDAO: garantisce un'unica istanza che centralizza
+// l’accesso e la gestione dei dati utente nel database.
 public class DBUserDAO extends DBDAO<String, User> implements UserDAO {
+
+    private static DBUserDAO instance;
+
+    public static synchronized DBUserDAO getInstance() {
+        if (instance == null) {
+            instance = new DBUserDAO();
+        }
+        return instance;
+    }
 
     private final AccountDAO accountDAO = new DBAccountDAO();
 
-    @Override protected String getTableName()  { return "users"; }
-    @Override protected String getPkColumn()   { return "email"; }
-    @Override protected String getId(User u)   { return u.getEmail(); }
+    @Override
+    protected String getTableName() {
+        return "users";
+    }
+
+    @Override
+    protected String getPkColumn() {
+        return "email";
+    }
+
+    @Override
+    protected String getId(User u) {
+        return u.getEmail();
+    }
 
     @Override
     protected User map(ResultSet rs) throws SQLException {
@@ -44,5 +67,8 @@ public class DBUserDAO extends DBDAO<String, User> implements UserDAO {
         }
     }
 
-    @Override public User create(String key) { return new User(key); }
+    @Override
+    public User create(String key) {
+        return new User(key);
+    }
 }

@@ -10,7 +10,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
 
-abstract class FileSystemDAO<I,E> implements DAO<I,E> {
+public abstract class FileSystemDAO<I,E> implements DAO<I,E> {
 
     private final Path dir;
 

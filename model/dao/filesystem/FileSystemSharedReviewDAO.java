@@ -11,9 +11,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-class FileSystemSharedReviewDAO extends FileSystemDAO<String, SharedReview> implements SharedReviewDAO {
+public class FileSystemSharedReviewDAO extends FileSystemDAO<String, SharedReview> implements SharedReviewDAO {
+
+    private static FileSystemSharedReviewDAO instance;
 
     FileSystemSharedReviewDAO(Path root) throws IOException { super(root,"reviews"); }
+
+    public static synchronized FileSystemSharedReviewDAO getInstance(Path root) throws IOException {
+        if (instance == null) {
+            instance = new FileSystemSharedReviewDAO(root);
+        }
+        return instance;
+    }
 
     @Override protected String getId(SharedReview r) {
         if (r.getReviewId()==null || r.getReviewId().isBlank())

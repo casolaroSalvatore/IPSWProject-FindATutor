@@ -6,12 +6,13 @@ import logic.model.domain.SharedReview;
 import java.util.ArrayList;
 import java.util.List;
 
+@SuppressWarnings("java:S6548")
+// Singleton usato intenzionalmente per InMemorySharedReviewDAO: garantisce un'unica istanza per
+// centralizzare la gestione delle shared review in memoria, evitando duplicazioni e
+// assicurando coerenza tramite DaoFactory.
 public class InMemorySharedReviewDAO extends InMemoryDAO<String, SharedReview> implements SharedReviewDAO {
 
     private static InMemorySharedReviewDAO instance;
-
-    private InMemorySharedReviewDAO() {
-    }
 
     public static synchronized InMemorySharedReviewDAO getInstance() {
         if (instance == null) {
