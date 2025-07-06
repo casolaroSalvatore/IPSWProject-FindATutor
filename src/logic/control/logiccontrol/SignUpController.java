@@ -49,21 +49,20 @@ public class SignUpController {
 
                 // Creo un Tutor (passandogli, se vuoi, i campi base: email e role)
                 // Se hai altri campi, come subject, location, ecc., puoi aggiungerli ora
-                newAccount = new Tutor(
-                        userBean.getEmail(),
-                        accountBean.getName(),
-                        accountBean.getSurname(),
-                        accountBean.getBirthday(),
-                        accountBean.getEducationalTitle(),
-                        accountBean.getLocation(),
-                        availEntity,
-                        accountBean.getSubject(),
-                        accountBean.getHourlyRate(),
-                        accountBean.isOffersInPerson(),
-                        accountBean.isOffersOnline(),
-                        accountBean.isOffersGroup(),
-                        accountBean.isFirstLessonFree()
-                );
+                newAccount = new Tutor.Builder(userBean.getEmail())
+                        .name(accountBean.getName())
+                        .surname(accountBean.getSurname())
+                        .birthday(accountBean.getBirthday())
+                        .educationalTitle(accountBean.getEducationalTitle())
+                        .location(accountBean.getLocation())
+                        .availability(availEntity)
+                        .subject(accountBean.getSubject())
+                        .hourlyRate(accountBean.getHourlyRate())
+                        .offersInPerson(accountBean.isOffersInPerson())
+                        .offersOnline(accountBean.isOffersOnline())
+                        .offersGroup(accountBean.isOffersGroup())
+                        .firstLessonFree(accountBean.isFirstLessonFree())
+                        .build();
             } else {
                 // Altrimenti Student
                 newAccount = new Student(
