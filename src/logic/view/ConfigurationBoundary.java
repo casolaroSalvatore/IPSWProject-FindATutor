@@ -6,10 +6,12 @@ import logic.model.domain.PersistenceProvider;
 
 import java.util.Scanner;
 
+// Gestisce la configurazione iniziale: selezione della persistenza e del tipo di interfaccia tramite console.
 public class ConfigurationBoundary {
 
     private static InterfaceProvider interfaceProvider;
 
+    // Configura il tipo di persistenza scelto dall'utente.
     public static void configurePersistence() {
         Scanner scanner = new Scanner(System.in);
 
@@ -18,6 +20,12 @@ public class ConfigurationBoundary {
         System.out.println("2 - File System");
         System.out.println("3 - Database");
         System.out.print("Choice: ");
+
+        // NOTA: Questa parte viola il principio MVC/BCE perché la Boundary non dovrebbe
+        // comunicare direttamente con DaoFactory. Idealmente la logica di configurazione
+        // dovrebbe essere demandata a un ConfigurationController. Tuttavia, avendo
+        // mappato 1:1 Controller e Caso d'uso, si è scelto di mantenere questa struttura
+        // per semplicità e coerenza con il progetto attuale.
 
         int choice = scanner.nextInt();
         switch (choice) {
@@ -31,6 +39,7 @@ public class ConfigurationBoundary {
         }
     }
 
+    // Configura il tipo di interfaccia scelto dall'utente.
     public static void configureInterface() {
         Scanner scanner = new Scanner(System.in);
 

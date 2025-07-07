@@ -14,33 +14,35 @@ public class InMemorySharedReviewDAO extends InMemoryDAO<String, SharedReview> i
 
     private static InMemorySharedReviewDAO instance;
 
+    // Restituisce l'istanza singleton
     public static synchronized InMemorySharedReviewDAO getInstance() {
         if (instance == null) {
             instance = new InMemorySharedReviewDAO();
         }
         return instance;
     }
-
+    // Restituisce la chiave della review (ID)
     @Override
     protected String getKey(SharedReview review) {
         return review.getReviewId();
     }
 
+    // Salva la review, generando un ID se assente
     @Override
     public void store(SharedReview review) {
-        // Se sr.getReviewId() è null, genero un ID univoco
-        // es. "review" + contatore. Oppure lascio a carico del logic controller
         if (review.getReviewId() == null) {
-            review.setReviewId("review" + allValues().size() + 1);
+            review.setReviewId("review" + (allValues().size() + 1));
         }
-        super.store(review); // usa la store di InMemoryDAO
+        super.store(review);
     }
 
+    // Restituisce tutte le review
     @Override
     public List<SharedReview> loadAll() {
         return new ArrayList<>(allValues());
     }
 
+    // Restituisce le review per uno specifico studente
     @Override
     public List<SharedReview> loadForStudent(String studentId) {
         List<SharedReview> result = new ArrayList<>();
@@ -52,6 +54,7 @@ public class InMemorySharedReviewDAO extends InMemoryDAO<String, SharedReview> i
         return result;
     }
 
+    // Restituisce le review per uno specifico tutor
     @Override
     public List<SharedReview> loadForTutor(String tutorId) {
         List<SharedReview> result = new ArrayList<>();

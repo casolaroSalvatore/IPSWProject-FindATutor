@@ -11,6 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+// Factory che fornisce i DAO filesystem
 public class FileSystemDAOFactory extends DaoFactory {
 
     private final Path base = Paths.get(System.getProperty("user.home"), "Desktop", "myAppFS");
@@ -19,6 +20,7 @@ public class FileSystemDAOFactory extends DaoFactory {
         Files.createDirectories(base);
     }
 
+    // Restituisce il DAO per gli utenti
     @Override
     public UserDAO getUserDAO() {
         try {
@@ -28,6 +30,7 @@ public class FileSystemDAOFactory extends DaoFactory {
         }
     }
 
+    // Restituisce il DAO per gli account
     @Override
     public AccountDAO getAccountDAO() {
         try {
@@ -37,6 +40,7 @@ public class FileSystemDAOFactory extends DaoFactory {
         }
     }
 
+    // Restituisce il DAO per le sessioni di tutoraggio
     @Override
     public TutoringSessionDAO getTutoringSessionDAO() {
         try {
@@ -46,6 +50,7 @@ public class FileSystemDAOFactory extends DaoFactory {
         }
     }
 
+    // Restituisce il DAO per le recensioni condivise
     @Override
     public SharedReviewDAO getSharedReviewDAO() {
         try {

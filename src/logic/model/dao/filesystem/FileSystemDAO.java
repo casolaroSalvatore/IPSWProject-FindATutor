@@ -9,8 +9,10 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
+import java.util.function.Function;
 
-public abstract class FileSystemDAO<I,E> implements DAO<I,E> {
+// DAO astratto che gestisce la persistenza su filesystem
+public abstract class FileSystemDAO<I, E> implements DAO<I, E> {
 
     private final Path dir;
 
@@ -19,46 +21,72 @@ public abstract class FileSystemDAO<I,E> implements DAO<I,E> {
     }
 
     @Override
+    public boolean exists(I id) {
+        return Files.exists(path(id));
+    }
 
-    public boolean exists(I id) { return Files.exists(path(id)); }
+    // Elimina il file dell'entità (ignora errori di delete)
     @Override
-
     public void delete(I id) {
         try {
             Files.deleteIfExists(path(id));
         } catch (IOException ignored) {
-            // Ignored on purpose: it's okay if the file does not exist or deletion fails silently.
+            // Ignorato: accetto anche il fallimento della delete
         }
     }
 
-    @Override public void store(E entity) { writeFile(path(getId(entity)), encode(entity)); }
-    @Override public E load(I id) { return Files.exists(path(id)) ? decode(readFile(path(id))) : null; }
+    // Salva l'entità su file
+    @Override
+    public void store(E entity) {
+        writeFile(path(getId(entity)), encode(entity));
+    }
 
+    // Carica l'entità da file
+    @Override
+    public E load(I id) {
+        return Files.exists(path(id)) ? decode(readFile(path(id))) : null;
+    }
+
+    // Restituisce l'ID dell'entità
     protected abstract I getId(E entity);
-    protected abstract List<String> encode(E entity);     // righe da scrivere
-    protected abstract E decode(List<String> lines);      // parse righe lette
 
+    // Converte l'entità in righe di file
+    protected abstract List<String> encode(E entity);
+
+    // Converte righe di file in entità
+    protected abstract E decode(List<String> lines);
+
+    // Costruisce il path del file
     protected Path path(I id) {
         return dir.resolve(id.toString() + ".txt");
     }
 
+    // Legge il contenuto del file
     protected List<String> readFile(Path p) {
         try {
             return Files.readAllLines(p, StandardCharsets.UTF_8);
-        } catch (IOException e) { throw new FileReadException(p, e);}
-    }
-
-    protected void writeFile(Path p, List<String> l) {
-        try { Files.write(p, l, StandardCharsets.UTF_8);
         } catch (IOException e) {
-            throw new FileWriteException(p, e);}
+            throw new FileReadException(p, e);
+        }
     }
 
-    protected <T> List<T> scan(java.util.function.Function<E,T> mapFn) {
+    // Scrive il contenuto sul file
+    protected void writeFile(Path p, List<String> l) {
+        try {
+            Files.write(p, l, StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new FileWriteException(p, e);
+        }
+    }
+
+    // Scansiona i file della directory e applica mapFn
+    protected <T> List<T> scan(Function<E, T> mapFn) {
         try (DirectoryStream<Path> ds = Files.newDirectoryStream(dir, "*.txt")) {
             List<T> out = new ArrayList<>();
             for (Path p : ds) out.add(mapFn.apply(decode(readFile(p))));
             return out;
-        } catch (IOException e) { throw new DirectoryScanException(dir, e); }
+        } catch (IOException e) {
+            throw new DirectoryScanException(dir, e);
+        }
     }
 }

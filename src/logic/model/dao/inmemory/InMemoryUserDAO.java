@@ -9,6 +9,7 @@ import logic.model.domain.User;
 import java.util.ArrayList;
 import java.util.List;
 
+// DAO in-memory per la gestione degli User
 public class InMemoryUserDAO extends InMemoryDAO<String, User> implements UserDAO {
 
     private static InMemoryUserDAO instance;
@@ -23,11 +24,13 @@ public class InMemoryUserDAO extends InMemoryDAO<String, User> implements UserDA
     // Riferimento all'accountDAO corretto
     private DAO<String, Account> accountDAO = DaoFactory.getInstance().getAccountDAO();
 
+    // Restituisce la chiave primaria (email)
     @Override
     protected String getKey(User user) {
         return user.getEmail();
     }
 
+    // Carica uno user e aggiorna gli account caricandoli dall'accountDAO
     @Override
     public User load(String id) {
         List<Account> accounts = new ArrayList<>();
@@ -47,10 +50,10 @@ public class InMemoryUserDAO extends InMemoryDAO<String, User> implements UserDA
         return user;
     }
 
+    // Salva lo user e tutti i suoi account
     @Override
     public void store(User entity)  {
         for (Account account: entity.getAccounts()) {
-            System.out.println("Sto salvando l'account con chiave: " + account.getEmail() + "_" + account.getRole());
             accountDAO.store(account);
         }
         super.store(entity);
