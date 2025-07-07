@@ -418,7 +418,7 @@ public class LeaveASharedReviewGraphicControllerColored implements NavigableCont
             return;
         }
         try {
-            int stars = (int) selectedStars;
+            int stars = selectedStars;
             String title = studentReviewTitle.getText();
             String comment = studentReviewComment.getText();
 
