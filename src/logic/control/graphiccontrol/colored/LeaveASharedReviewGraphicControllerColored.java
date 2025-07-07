@@ -448,7 +448,7 @@ public class LeaveASharedReviewGraphicControllerColored implements NavigableCont
             iv.setPickOnBounds(true);
             final int index = i;
             iv.setOnMouseClicked(e -> {
-                selectedStars = index + 1;
+                selectedStars = (double) (index + 1);
                 updateStarDisplay();
             });
         }

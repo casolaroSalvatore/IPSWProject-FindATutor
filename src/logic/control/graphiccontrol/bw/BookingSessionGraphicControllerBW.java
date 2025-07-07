@@ -124,8 +124,6 @@ public class BookingSessionGraphicControllerBW extends BaseCLIControllerBW {
         // Costruisce il bean e invia la prenotazione
         try {
 
-            // logic.getStudentAccountId();
-
             TutoringSessionBean bean = logic.buildBookingBean(
                     selectedTutor,
                     sessionDate, startTime, endTime,

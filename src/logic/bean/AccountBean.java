@@ -217,12 +217,14 @@ public class AccountBean {
 
     // Controllo password e conferma
     public void checkPasswordSyntax() {
-        if (password != null && !password.isBlank()) {
-            // Regex: almeno 10 caratteri, maiusc, minusc, numero, simbolo, no spazi
-            if (!password.matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z\\d\\s]).{10,}$")) {
-                throw new IllegalArgumentException("Password ≥10 chars with upper, lower, digit & symbol – no spaces.");
-            }
+        // Controlla che la password rispetti la sintassi (almeno 10 caratteri, una maiuscola, una minuscola, un numero, un simbolo, niente spazi)
+        if (password != null && !password.isBlank() &&
+                !password.matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z\\d\\s]).{10,}$")) {
+
+            throw new IllegalArgumentException("Password ≥10 chars with upper, lower, digit & symbol – no spaces.");
         }
+
+        // Controlla che password e conferma coincidano
         if (confirmPassword != null && password != null && !password.equals(confirmPassword)) {
             throw new IllegalArgumentException("Password and confirmation do not match.");
         }
