@@ -37,11 +37,11 @@ jobs:
         key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
         restore-keys: ${{ runner.os }}-m2
 
-    - name: Build (skip *execution* of tests) and analyze on SonarCloud
+    - name: SonarCloud Scan
       env:
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}   # token creato nella nuova org
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}   # token creato ORA in questa org pubblica
       run: |
           mvn -B verify -DskipTests \
           org.sonarsource.scanner.maven:sonar-maven-plugin:5.1.0.4751:sonar \
-          -Dsonar.organization=findatutor-org \
-          -Dsonar.projectKey=findatutor-org_IPSWProject-FindATutor
+          -Dsonar.organization=casolaroSalvatore \
+          -Dsonar.projectKey=casolaroSalvatore_IPSWProject-FindATutor
