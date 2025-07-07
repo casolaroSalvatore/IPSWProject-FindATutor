@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+// Controller BW per la gestione della registrazione utente
 public class SignUpGraphicControllerBW extends BaseCLIControllerBW {
 
     private static final Logger LOGGER = Logger.getLogger(SignUpGraphicControllerBW.class.getName());
@@ -29,6 +30,7 @@ public class SignUpGraphicControllerBW extends BaseCLIControllerBW {
 
     private final SignUpController logic = new SignUpController();
 
+    // Avvia la registrazione utente
     public void start() throws NoTutorFoundException {
 
         LOGGER.info("\n=== SIGN UP ===");
@@ -74,8 +76,10 @@ public class SignUpGraphicControllerBW extends BaseCLIControllerBW {
             availabilityBean.setDays(days);
 
             try {
-                availabilityBean.checkSyntax(); }
-            catch (IllegalArgumentException ex) { return; }
+                availabilityBean.checkSyntax();
+            } catch (IllegalArgumentException ex) {
+                return;
+            }
 
             accountBean.setAvailabilityBean(availabilityBean);
         }
@@ -83,6 +87,7 @@ public class SignUpGraphicControllerBW extends BaseCLIControllerBW {
         accountBean.setPassword(password);
         accountBean.setConfirmPassword(password);
 
+        // Verifica sintassi dei dati inseriti
         try {
             userBean.checkEmailSyntax();
             userBean.checkUsernameSyntax();
@@ -101,9 +106,10 @@ public class SignUpGraphicControllerBW extends BaseCLIControllerBW {
         // Aggiungo l'account al UserBean
         userBean.addAccount(accountBean);
 
+        // Esegue la registrazione tramite il controller logico
         AuthResultBean authResultBean = logic.registerUser(userBean);
         if (authResultBean != null) {
-            LOGGER.info("Sign-Up completed! Logged-in as "+ authResultBean.getUser().getUsername());
+            LOGGER.info("Sign-Up completed! Logged-in as " + authResultBean.getUser().getUsername());
             new HomeGraphicControllerBW(authResultBean.getSessionId()).start();
         } else {
             LOGGER.warning("Account already exists.");

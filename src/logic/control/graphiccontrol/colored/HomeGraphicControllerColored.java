@@ -2,6 +2,7 @@ package logic.control.graphiccontrol.colored;
 
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.geometry.Rectangle2D;
@@ -24,6 +25,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
+
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -58,21 +60,36 @@ public class HomeGraphicControllerColored extends Application implements Navigab
     @FXML
     private Button leaveASharedReviewButton;
 
-    @FXML private TextField locationField;
-    @FXML private DatePicker startDatePicker;
-    @FXML private DatePicker endDatePicker;
-    @FXML private TextField subjectField;
-    @FXML private CheckBox mondayCheck;
-    @FXML private CheckBox tuesdayCheck;
-    @FXML private CheckBox wednesdayCheck;
-    @FXML private CheckBox thursdayCheck;
-    @FXML private CheckBox fridayCheck;
-    @FXML private CheckBox saturdayCheck;
-    @FXML private CheckBox sundayCheck;
-    @FXML private Circle redCircle1;
-    @FXML private Label redDotLabel1;
-    @FXML private Circle redCircle2;
-    @FXML private Label redDotLabel2;
+    @FXML
+    private TextField locationField;
+    @FXML
+    private DatePicker startDatePicker;
+    @FXML
+    private DatePicker endDatePicker;
+    @FXML
+    private TextField subjectField;
+    @FXML
+    private CheckBox mondayCheck;
+    @FXML
+    private CheckBox tuesdayCheck;
+    @FXML
+    private CheckBox wednesdayCheck;
+    @FXML
+    private CheckBox thursdayCheck;
+    @FXML
+    private CheckBox fridayCheck;
+    @FXML
+    private CheckBox saturdayCheck;
+    @FXML
+    private CheckBox sundayCheck;
+    @FXML
+    private Circle redCircle1;
+    @FXML
+    private Label redDotLabel1;
+    @FXML
+    private Circle redCircle2;
+    @FXML
+    private Label redDotLabel2;
 
     // Distanza tra lo spigolo del pulsante e il centro del cerchietto
     private static final double BADGE_SHIFT_X = 3;   // verso destra
@@ -82,13 +99,35 @@ public class HomeGraphicControllerColored extends Application implements Navigab
     private UUID sessionId;
     private UserBean userBean;
 
+    // Metodo statico per avviare JavaFX (richiamato dal Main)
+    public static void launchGUI() {
+        launch();
+    }
+
+    @Override
+    public void start(Stage primaryStage) {
+        try {
+            Parent startRoot = FXMLLoader.load(getClass().getResource("/fxml/Home.fxml"));
+            Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
+            Scene scene = new Scene(startRoot, screenBounds.getWidth(), screenBounds.getHeight());
+            primaryStage.setTitle("Schermata Home");
+            primaryStage.setScene(scene);
+            primaryStage.setMaximized(true);
+            primaryStage.show();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Inizializza i dati della sessione e mostra la UI utente loggato
     @Override
     public void initData(UUID sessionId, UserBean userBean) {
         this.sessionId = sessionId;
-        this.userBean  = userBean;
+        this.userBean = userBean;
         showLoggedInUI(userBean);
     }
 
+    // Inizializza la UI (es. pulsanti, badge) e posiziona dinamicamente i badge
     @FXML
     public void initialize() {
 
@@ -108,16 +147,20 @@ public class HomeGraphicControllerColored extends Application implements Navigab
     private void addRepositionListeners(Button source, Circle badge, Label text) {
         ChangeListener<Number> l = (obs, o, n) -> updateBadgePosition(source, badge, text);
 
-        Stream.of(source.layoutXProperty(), source.layoutYProperty(),
-                        source.widthProperty(),  source.heightProperty(),
-                        root.widthProperty(),    root.heightProperty())
-                .forEach(p -> p.addListener(l));
+        List<ObservableValue<? extends Number>> properties = List.of(
+                source.layoutXProperty(), source.layoutYProperty(),
+                source.widthProperty(), source.heightProperty(),
+                root.widthProperty(), root.heightProperty()
+        );
+        for (ObservableValue<? extends Number> p : properties) {
+            p.addListener(l);
+        }
     }
 
     // Calcola l’angolo in alto a destra del pulsante (in coordinate root) */
     private void updateBadgePosition(Button source, Circle badge, Label text) {
         Bounds btnScene = source.localToScene(source.getBoundsInLocal());
-        Point2D inRoot   = root.sceneToLocal(btnScene.getMaxX(), btnScene.getMinY());
+        Point2D inRoot = root.sceneToLocal(btnScene.getMaxX(), btnScene.getMinY());
 
         // Sposta il cerchio: appena fuori dallo spigolo alto‑destro
         double cx = inRoot.getX() + BADGE_SHIFT_X - badge.getRadius();
@@ -127,11 +170,11 @@ public class HomeGraphicControllerColored extends Application implements Navigab
         badge.setLayoutY(cy);
 
         // Centra il numero dentro il cerchio
-        text.setLayoutX(cx - text.getWidth()  / 2);
+        text.setLayoutX(cx - text.getWidth() / 2);
         text.setLayoutY(cy - text.getHeight() / 2);
     }
 
-    // Helper privati per una migliore fattorizzazione
+    // Mostra la UI per utente disconnesso
     private void showLoggedOutUI() {
         welcomeLabel.setVisible(false);
         logOutButton.setVisible(false);
@@ -143,6 +186,7 @@ public class HomeGraphicControllerColored extends Application implements Navigab
         redCircle2.setVisible(false);
     }
 
+    // Mostra la UI per utente loggato e configura badge (notice board, shared review)
     private void showLoggedInUI(UserBean user) {
         // Messaggio di benvenuto + pulsanti
         welcomeLabel.setText("Welcome, " + user.getUsername() + "!");
@@ -183,6 +227,7 @@ public class HomeGraphicControllerColored extends Application implements Navigab
         toggleRedDot(pending, redDotLabel2, redCircle2);
     }
 
+    // Mostra/nasconde un badge rosso con numero
     private void toggleRedDot(int count, Label dot, Circle circle) {
         boolean visible = count > 0;
         dot.setVisible(visible);
@@ -192,7 +237,7 @@ public class HomeGraphicControllerColored extends Application implements Navigab
         }
     }
 
-
+    // Gestisce il logout e resetta la UI
     @FXML
     public void handleLogOut(ActionEvent event) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
@@ -206,33 +251,14 @@ public class HomeGraphicControllerColored extends Application implements Navigab
             if (sessionId != null) {
                 homeController.logout(sessionId);
                 sessionId = null;
-                userBean  = null;
+                userBean = null;
             }
 
             showLoggedOutUI();
         }
     }
 
-    @Override
-    public void start(Stage primaryStage) {
-        try {
-            Parent startRoot = FXMLLoader.load(getClass().getResource("/fxml/Home.fxml"));
-            Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
-            Scene scene = new Scene(startRoot, screenBounds.getWidth(), screenBounds.getHeight());
-            primaryStage.setTitle("Schermata Home");
-            primaryStage.setScene(scene);
-            primaryStage.setMaximized(true);
-            primaryStage.show();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    // Metodo statico per avviare JavaFX (richiamato dal Main)
-    public static void launchGUI() {
-        launch();
-    }
-
+    // Gestisce la ricerca tutor e passa i parametri alla scena di booking
     @FXML
     private void handleSearch(ActionEvent event) {
 

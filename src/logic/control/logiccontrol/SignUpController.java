@@ -7,6 +7,8 @@ import logic.model.dao.DaoFactory;
 import logic.model.dao.UserDAO;
 import logic.model.domain.*;
 
+import java.time.LocalDate;
+import java.time.Period;
 import java.util.UUID;
 
 public class SignUpController {
@@ -15,6 +17,7 @@ public class SignUpController {
        E' static in quanto deve sopravvivere al cambio di scena */
     private static UserBean partialTutor;
 
+    // Registra un nuovo utente (o aggiunge un nuovo account a utente esistente) e crea la sessione
     public AuthResultBean registerUser(UserBean userBean) {
 
         if (userBean == null || userBean.getAccounts().isEmpty()) {
@@ -39,16 +42,79 @@ public class SignUpController {
                 throw new IllegalArgumentException("An account with this role already exists.");
             }
 
+            // Controlli sintattici offerti dal Bean
+            accountBean.checkBasicSyntax();
+            accountBean.checkPasswordSyntax();
+
+            // Controlli semantici
+            if (accountBean.getBirthday() == null ||
+                    accountBean.getBirthday().isAfter(java.time.LocalDate.now()) ||
+                    Period.between(accountBean.getBirthday(), LocalDate.now()).getYears() < 13) {
+                throw new IllegalArgumentException("User must be at least 13 years old.");
+            }
+
+            if (accountBean.getRole() == null || accountBean.getRole().isBlank()) {
+                throw new IllegalArgumentException("Role is required.");
+            }
+
+            if ("Tutor".equalsIgnoreCase(accountBean.getRole())) {
+
+                if (accountBean.getAvailabilityBean() == null) {
+                    throw new IllegalArgumentException("Availability is required for tutors.");
+                }
+                accountBean.getAvailabilityBean().checkSyntax();
+
+                if (accountBean.getSubject() == null || accountBean.getSubject().isBlank()) {
+                    throw new IllegalArgumentException("Subject is required for tutors.");
+                }
+
+                if (accountBean.getEducationalTitle() == null || accountBean.getEducationalTitle().isBlank()) {
+                    throw new IllegalArgumentException("Educational title is required for tutors.");
+                }
+
+                if (accountBean.getLocation() == null || accountBean.getLocation().isBlank()) {
+                    throw new IllegalArgumentException("Location is required for tutors.");
+                }
+
+                if (accountBean.getHourlyRate() < 5 || accountBean.getHourlyRate() > 200) {
+                    throw new IllegalArgumentException("Hourly rate must be between 5$ and 200$.");
+                }
+
+            } else if ("Student".equalsIgnoreCase(accountBean.getRole())) {
+
+                if (accountBean.getInstitute() == null || accountBean.getInstitute().isBlank()) {
+                    throw new IllegalArgumentException("Institute is required for students.");
+                }
+            }
+
+
             // Creiamo un nuovo account e lo associamo all'utente
             Account newAccount;
             if ("Tutor".equalsIgnoreCase(accountBean.getRole())) {
 
                 // Conversione AvailabilityBean -> Availability (solo per Tutor)
                 AvailabilityBean ab = accountBean.getAvailabilityBean();
+
+                // Controlli sintattici
+                ab.checkSyntax();
+
+                // Controlli semantici
+                if (ab.getStartDate() == null || ab.getEndDate() == null) {
+                    throw new IllegalArgumentException("Start and end date are required.");
+                }
+                if (ab.getStartDate().isBefore(LocalDate.now())) {
+                    throw new IllegalArgumentException("Start date cannot be in the past.");
+                }
+                if (!ab.getEndDate().isAfter(ab.getStartDate())) {
+                    throw new IllegalArgumentException("End date must be after start date.");
+                }
+                if (java.time.temporal.ChronoUnit.DAYS.between(ab.getStartDate(), ab.getEndDate()) > 365) {
+                    throw new IllegalArgumentException("Availability range max 1 year.");
+                }
+
                 Availability availEntity = new Availability(ab.getStartDate(), ab.getEndDate(), ab.getDays());
 
-                // Creo un Tutor (passandogli, se vuoi, i campi base: email e role)
-                // Se hai altri campi, come subject, location, ecc., puoi aggiungerli ora
+                // Creo un Tutor
                 newAccount = new Tutor.Builder(userBean.getEmail())
                         .name(accountBean.getName())
                         .surname(accountBean.getSurname())
@@ -94,17 +160,17 @@ public class SignUpController {
         return new AuthResultBean(sid, userBean);
     }
 
-    // Salva i dati preliminari (step 1)
+    // Salva temporaneamente un UserBean parziale per consentire il Sign-Up del tutor in più step
     public static void cachePartialTutor(logic.bean.UserBean ub) {
         partialTutor = ub;
     }
 
-    // Recupera la cache (step 2).
+    // Restituisce il UserBean parziale salvato per il Sign-Up multi-step del tutor
     public static UserBean getPartialTutor() {
         return partialTutor;
     }
 
-    // Svuota la cache dopo il completamento o l’annullamento
+    // Svuota la cache temporanea del Sign-Up del tutor
     public static void clearPartialTutor() {
         partialTutor = null;
     }

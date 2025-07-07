@@ -13,12 +13,14 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+// Classe di utilità per gestire la navigazione tra scene JavaFX
 public class SceneNavigator {
 
     private static final Logger LOGGER = Logger.getLogger(SceneNavigator.class.getName());
 
     private SceneNavigator() {}
 
+    // Cambia scena caricando il file FXML specificato e inizializza il controller NavigableController
     public static void navigate(String fxmlPath, Node sourceNode, UUID sessionId, UserBean userBean, String title) {
         try {
             FXMLLoader loader = new FXMLLoader(SceneNavigator.class.getResource(fxmlPath));

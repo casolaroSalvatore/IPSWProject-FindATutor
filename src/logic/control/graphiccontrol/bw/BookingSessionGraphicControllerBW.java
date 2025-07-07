@@ -15,6 +15,7 @@ import logic.bean.TutoringSessionBean;
 import logic.control.logiccontrol.BookingTutoringSessionController;
 import logic.exception.NoTutorFoundException;
 
+// Controller grafico per la versione CLI BW che gestisce la prenotazione di una sessione di tutoraggio.
 public class BookingSessionGraphicControllerBW extends BaseCLIControllerBW {
 
     private UUID sessionId;
@@ -37,6 +38,7 @@ public class BookingSessionGraphicControllerBW extends BaseCLIControllerBW {
 
     private final BookingTutoringSessionController logic = new BookingTutoringSessionController();
 
+    // Avvia il processo di prenotazione
     public void start() throws NoTutorFoundException {
         LOGGER.log(Level.INFO, "\n=== BOOK A TUTORING SESSION ===");
 
@@ -44,13 +46,12 @@ public class BookingSessionGraphicControllerBW extends BaseCLIControllerBW {
         String location = ask("Location (leave empty to search all):");
 
         LocalDate startDate = askDate("Start Date:");
-        LocalDate endDate   = askDate("End Date:");
+        LocalDate endDate = askDate("End Date:");
 
         AvailabilityBean av = new AvailabilityBean();
         av.setStartDate(startDate);
         av.setEndDate(endDate);
 
-        // Costruisco l'oggetto criteria necessario per la chiamata di searchTutor
         TutorSearchCriteriaBean criteria = new TutorSearchCriteriaBean.Builder()
                 .subject(subject)
                 .location(location)
@@ -63,6 +64,7 @@ public class BookingSessionGraphicControllerBW extends BaseCLIControllerBW {
                 .orderCriteria(null)
                 .build();
 
+        // Cerca tutor disponibili con i criteri forniti
         List<TutorBean> tutors = logic.searchTutors(criteria);
 
         if (tutors.isEmpty()) {
@@ -71,6 +73,7 @@ public class BookingSessionGraphicControllerBW extends BaseCLIControllerBW {
             return;
         }
 
+        // Mostra la lista dei tutor trovati
         LOGGER.info("\nAvailable Tutors:");
         IntStream.range(0, tutors.size()).forEach(i -> {
             TutorBean t = tutors.get(i);
@@ -80,6 +83,7 @@ public class BookingSessionGraphicControllerBW extends BaseCLIControllerBW {
             LOGGER.log(Level.INFO, tutorInfo);
         });
 
+        // Chiede all'utente quale tutor selezionare
         int choice = askInt("Select tutor number (0 to cancel):") - 1;
         if (choice < 0 || choice >= tutors.size()) {
             return;
@@ -117,9 +121,10 @@ public class BookingSessionGraphicControllerBW extends BaseCLIControllerBW {
         LocalTime endTime = askTime("Enter the end time:");
         String comment = ask("Comment (optional):");
 
+        // Costruisce il bean e invia la prenotazione
         try {
 
-            logic.getStudentAccountId();
+            // logic.getStudentAccountId();
 
             TutoringSessionBean bean = logic.buildBookingBean(
                     selectedTutor,

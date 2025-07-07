@@ -7,7 +7,9 @@ import logic.model.dao.DaoFactory;
 import logic.model.dao.TutoringSessionDAO;
 import logic.model.domain.*;
 import logic.model.domain.state.TutoringSession;
+
 import java.time.DayOfWeek;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -23,12 +25,14 @@ public class BookingTutoringSessionController {
 
     private UUID sessionId;
 
-    public BookingTutoringSessionController() {}
+    public BookingTutoringSessionController() {
+    }
 
     public BookingTutoringSessionController(UUID sessionId) {
         this.sessionId = sessionId;
     }
 
+    // Cerca i tutor in base ai criteri e restituisce una lista di TutorBean
     public List<TutorBean> searchTutors(TutorSearchCriteriaBean bean) throws NoTutorFoundException {
         TutorSearchCriteria crit = new TutorSearchCriteria(
                 bean.getSubject(),
@@ -62,10 +66,12 @@ public class BookingTutoringSessionController {
         return candidates;
     }
 
+    // Verifica se il tutor è l'utente loggato
     private boolean isSelf(String loggedTutorId, Tutor tutor) {
         return loggedTutorId != null && tutor.getAccountId().equals(loggedTutorId);
     }
 
+    // Verifica se un tutor soddisfa tutti i filtri
     private boolean matchesAllFilters(Tutor t, TutorSearchCriteria c) {
         return matchesBasicFilters(t, c.subject(), c.location(), c.userAvailability())
                 && (!c.inPerson() || t.offersInPerson())
@@ -75,6 +81,7 @@ public class BookingTutoringSessionController {
                 && (!c.firstLessonFree() || t.isFirstLessonFree());
     }
 
+    // Calcola i giorni prenotabili per un tutor in base alla disponibilità utente
     public List<DayBookingBean> computeDayBookingsForTutor(String tutorId,
                                                            AvailabilityBean userReq) {
 
@@ -89,28 +96,28 @@ public class BookingTutoringSessionController {
 
         LocalDate start = (userReq != null && userReq.getStartDate() != null)
                 ? userReq.getStartDate() : LocalDate.now();
-        LocalDate end   = (userReq != null && userReq.getEndDate() != null)
-                ? userReq.getEndDate()   : LocalDate.now();
+        LocalDate end = (userReq != null && userReq.getEndDate() != null)
+                ? userReq.getEndDate() : LocalDate.now();
         List<DayOfWeek> reqDays = (userReq != null) ? userReq.getDays() : List.of();
 
         List<DayBookingBean> out = new ArrayList<>();
         for (LocalDate d = start; !d.isAfter(end); d = d.plusDays(1)) {
             boolean okUser = reqDays.isEmpty() || reqDays.contains(d.getDayOfWeek());
-            boolean okTut  = tutorAvail.getDaysOfWeek().contains(d.getDayOfWeek());
+            boolean okTut = tutorAvail.getDaysOfWeek().contains(d.getDayOfWeek());
             if (okUser && okTut) out.add(new DayBookingBean(d));
         }
         return out;
     }
 
 
-    // Label “Nome Cognome (età)” per la controparte
+    // Genera etichetta Nome Cognome (età) per una controparte
     public String counterpartLabel(String accountId) {
         Account a = DaoFactory.getInstance().getAccountDAO().load(accountId);
         return (a == null) ? "" :
                 a.getName() + " " + a.getSurname() + " (" + a.getAge() + ")";
     }
 
-    // Costruzione del bean di prenotazione (usato dalla GUI)
+    // Costruisce un bean di prenotazione a partire da TutorBean e DayBookingBean
     public TutoringSessionBean buildBookingBean(TutorBean tutor, DayBookingBean row,
                                                 String studentId,
                                                 String location, String subject) {
@@ -127,6 +134,7 @@ public class BookingTutoringSessionController {
         return b;
     }
 
+    // Costruisce un bean di prenotazione con parametri diretti
     public TutoringSessionBean buildBookingBean(
             TutorBean tutor,
             LocalDate date, LocalTime start, LocalTime end,
@@ -134,6 +142,30 @@ public class BookingTutoringSessionController {
 
         // ri‑usa la logica esistente basata su DayBookingBean
         DayBookingBean row = new DayBookingBean(date);
+
+        // Controlli sintattici offerti dal DayBookingBean
+        row.checkSyntax();
+
+        // Controlli semantici tipici di un Controller
+        LocalTime s = row.getStartTimeParsed();
+        LocalTime e = row.getEndTimeParsed();
+
+        if (s == null || e == null) {
+            throw new IllegalArgumentException("Start/End time invalid.");
+        }
+
+        if (s.isBefore(LocalTime.of(7, 0)) || e.isAfter(LocalTime.of(22, 0))) {
+            throw new IllegalArgumentException("Time must be between 07:00 and 22:00.");
+        }
+
+        if (Duration.between(s, e).toMinutes() < 60) {
+            throw new IllegalArgumentException("Minimum slot is 1 hour.");
+        }
+
+        if (row.getDate() == null || row.getDate().isBefore(LocalDate.now())) {
+            throw new IllegalArgumentException("Date must be today or later.");
+        }
+
         row.setStartTime(start.toString());
         row.setEndTime(end.toString());
         row.setComment(comment);
@@ -142,7 +174,7 @@ public class BookingTutoringSessionController {
     }
 
 
-    // Mapping Tutor --> TutorBean
+    // Converte Tutor in TutorBean
     private TutorBean toTutorBean(Tutor t) {
         TutorBean b = new TutorBean();
         b.setAccountId(t.getAccountId());
@@ -161,6 +193,7 @@ public class BookingTutoringSessionController {
         return b;
     }
 
+    // Converte TutoringSession in TutoringSessionBean
     public TutoringSessionBean toTutoringSessionBean(TutoringSession s) {
         TutoringSessionBean b = new TutoringSessionBean();
         b.setSessionId(s.getSessionId());
@@ -179,8 +212,10 @@ public class BookingTutoringSessionController {
         return b;
     }
 
+    // Effettua la prenotazione: crea TutoringSession e la salva nel DAO
     public void bookSession(TutoringSessionBean bean) {
 
+        // Controlli sintattici offerti dal TutoringSessionBean
         bean.checkSyntax();
 
         TutoringSession tutoringSession = new TutoringSession();
@@ -214,7 +249,7 @@ public class BookingTutoringSessionController {
         dao.store(tutoringSession);
     }
 
-
+    // Carica tutte le sessioni di un tutor
     public List<TutoringSessionBean> loadAllSessionsForTutor(String tutorId) {
         TutoringSessionDAO dao = DaoFactory.getInstance().getTutoringSessionDAO();
         List<TutoringSession> allSessions = dao.loadAllTutoringSession();
@@ -229,6 +264,7 @@ public class BookingTutoringSessionController {
         return result;
     }
 
+    // Carica tutte le sessioni di uno studente
     public List<TutoringSessionBean> loadAllSessionsForStudent(String studentId) {
         TutoringSessionDAO dao = DaoFactory.getInstance().getTutoringSessionDAO();
         List<TutoringSession> allSessions = dao.loadAllTutoringSession();
@@ -243,25 +279,27 @@ public class BookingTutoringSessionController {
         return result;
     }
 
-
+    // Accetta una prenotazione come tutor
     public void acceptSession(String sessionId) {
         TutoringSessionDAO dao = DaoFactory.getInstance().getTutoringSessionDAO();
         TutoringSession tutoringSession = dao.load(sessionId);
         if (tutoringSession != null) {
             tutoringSession.tutorAccept();
-            dao.store(tutoringSession); // store per aggiornare
+            dao.store(tutoringSession);
         }
     }
 
+    // Rifiuta una prenotazione come tutor
     public void refuseSession(String sessionId) {
         TutoringSessionDAO dao = DaoFactory.getInstance().getTutoringSessionDAO();
         TutoringSession tutoringSession = dao.load(sessionId);
         if (tutoringSession != null) {
             tutoringSession.tutorRefuse();
-            dao.store(tutoringSession); // store per aggiornare
+            dao.store(tutoringSession);
         }
     }
 
+    // Verifica filtri base (location, materia, disponibilità)
     private boolean matchesBasicFilters(Tutor t, String subject,
                                         String location, AvailabilityBean reqAv) {
         boolean matchLoc = location == null || location.isBlank()
@@ -273,12 +311,13 @@ public class BookingTutoringSessionController {
         return matchLoc && matchSubj && checkTutorAvailability(t, reqAv);
     }
 
+    // Controlla disponibilità tutor rispetto a richiesta
     private boolean checkTutorAvailability(Tutor tutor, AvailabilityBean req) {
         if (tutor.getAvailability() == null || req == null) return true;
 
         Availability av = tutor.getAvailability();
 
-        /* range date */
+        /* Range di date */
         if (req.getStartDate() != null && av.getStartDate() != null &&
                 av.getStartDate().isAfter(req.getStartDate())) return false;
         if (req.getEndDate() != null && av.getEndDate() != null &&
@@ -286,10 +325,18 @@ public class BookingTutoringSessionController {
 
         /* Giorni — basta 1 giorno in comune se l’utente ne ha scelti */
         List<DayOfWeek> days = req.getDays();
-        return (days == null || days.isEmpty()) ||
-                days.stream().anyMatch(av.getDaysOfWeek()::contains);
+        if (days == null || days.isEmpty()) {
+            return true;
+        }
+        for (DayOfWeek d : days) {
+            if (av.getDaysOfWeek().contains(d)) {
+                return true;
+            }
+        }
+        return false;
     }
 
+    // Ordina la lista tutor in base alla chiave specificata
     private void sort(List<TutorBean> list, String key) {
         if (key == null) return;
         switch (key) {
@@ -305,7 +352,7 @@ public class BookingTutoringSessionController {
         return getLoggedUser(sessionId);
     }
 
-    // Helper utente loggato
+    // Restituisce UserBean utente loggato con sessionId specifico
     public UserBean getLoggedUser(UUID sid) {
         if (sid == null || !loginCtrl.isSessionActive(sid)) return null;
         User dom = loginCtrl.getUserFromSession(sid);
@@ -325,6 +372,7 @@ public class BookingTutoringSessionController {
         return ub;
     }
 
+    // Restituisce l'accountId del tutor loggato
     private String getLoggedTutorId() {
         UserBean me = getLoggedUser();
         if (me == null) return null;
@@ -336,6 +384,7 @@ public class BookingTutoringSessionController {
         return null;
     }
 
+    // Restituisce l'accountId dello studente loggato
     public String getStudentAccountId() {
         UserBean me = getLoggedUser();
         if (me == null) return null;

@@ -10,6 +10,7 @@ import logic.model.domain.Account;
 import logic.model.domain.User;
 import logic.model.domain.state.TutoringSession;
 import logic.model.domain.state.TutoringSessionStatus;
+
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -28,15 +29,15 @@ public class ManageNoticeBoardController {
 
     private UUID sessionId;
 
-    /* Conta quante sessioni "nuove" devono essere viste o approvate dall'utente specificato.
-       Esempio: sessioni con status PENDING, MOD_REQUESTED, CANCEL_REQUESTED
-       e quell'utente è la "controparte" nonSeen. */
-    public ManageNoticeBoardController() {}
+
+    public ManageNoticeBoardController() {
+    }
 
     public ManageNoticeBoardController(UUID sessionId) {
         this.sessionId = sessionId;
     }
 
+    // Conta le richieste nuove/non viste per l'utente specificato
     public int countNewRequests(String userId, String role) {
         boolean tutorRole = ROLE_TUTOR.equalsIgnoreCase(role);
         int count = 0;
@@ -52,11 +53,14 @@ public class ManageNoticeBoardController {
         return count;
     }
 
-    //  Helper privati – Ognuno con complessità minima
+    //  Helper privati – Ognuno con complessità minima (introdotti per eliminare gli issues su SonarQube)
+
+    // Verifica se una sessione appartiene all'utente in base al ruolo
     private boolean belongsToUser(TutoringSession s, String userId, boolean tutorRole) {
-        return tutorRole ? userId.equals(s.getTutorId()): userId.equals(s.getStudentId());
+        return tutorRole ? userId.equals(s.getTutorId()) : userId.equals(s.getStudentId());
     }
 
+    // Verifica se la sessione ha una richiesta pendente non ancora vista dall'utente
     private boolean hasPendingUnseenRequest(TutoringSession s, boolean tutorRole) {
         // Se è tutor guardo tutorSeen, altrimenti studentSeen
         if (tutorRole ? s.isTutorSeen() : s.isStudentSeen()) {
@@ -69,13 +73,15 @@ public class ManageNoticeBoardController {
                 || st == TutoringSessionStatus.CANCEL_REQUESTED;
     }
 
-    // Ritorna “Nome Cognome (età)” della controparte
+    // Restituisce etichetta "Nome Cognome (età)" per la controparte
     public String getCounterpartLabel(String accountId) {
         Account a = accountDAO.load(accountId);
         return (a == null) ? "" : a.getName() + " " + a.getSurname() + " (" + a.getAge() + ")";
     }
 
-    // Metodo per colorare o meno la cella del calendario a seconda della presenza o meno di una sessione accettata
+    // Verifica se ci sono sessioni accettate nel giorno specificato
+    // Metodo per colorare o meno la cella del calendario a seconda
+    // della presenza o meno di una sessione accettata
     public boolean hasAcceptedSessionsOn(LocalDate date) {
         // Carica TUTTE le sessioni per l'utente (Tutor o Studente)
         List<TutoringSessionBean> sessions = loadSessionsForLoggedUser();
@@ -88,6 +94,7 @@ public class ManageNoticeBoardController {
         return false;
     }
 
+    // Verifica se ci sono sessioni in attesa/modifica/cancellazione nel giorno specificato
     public boolean hasWaitingSessionsOn(LocalDate date) {
         // Carichiamo TUTTE le sessioni per l’utente loggato
         List<TutoringSessionBean> sessions = loadSessionsForLoggedUser();
@@ -104,7 +111,7 @@ public class ManageNoticeBoardController {
         return false;
     }
 
-    // Metodo per caricare le sessioni relative all’utente loggato
+    // Carica tutte le sessioni per l'utente loggato
     public List<TutoringSessionBean> loadSessionsForLoggedUser() {
 
         UserBean me = getLoggedUser();
@@ -115,7 +122,7 @@ public class ManageNoticeBoardController {
         String role = null;
         String userId = null;
 
-        for (AccountBean account: me.getAccounts()) {
+        for (AccountBean account : me.getAccounts()) {
             String r = account.getRole();
 
             if (ROLE_TUTOR.equalsIgnoreCase(r) || ROLE_STUDENT.equalsIgnoreCase(r)) {
@@ -137,7 +144,7 @@ public class ManageNoticeBoardController {
         }
     }
 
-    // Ritorna True se l’utente loggato è colui che deve rispondere.
+    // Verifica se l'utente loggato deve rispondere alla sessione
     public boolean canRespond(String sessionId) {
 
         UserBean me = getLoggedUser();
@@ -158,15 +165,15 @@ public class ManageNoticeBoardController {
         return myId.equals(s.getModifiedTo());
     }
 
-    // Richiesta di modifica della sessione di tutoraggio
+    // Richiede una modifica della sessione di tutoraggio
     public void requestModification(TutoringSessionBean b,
                                     LocalDate newDate,
                                     LocalTime newStart,
                                     LocalTime newEnd,
-                                    String reason){
+                                    String reason) {
 
         TutoringSession s = loadEntity(b);
-        if(s==null) return;
+        if (s == null) return;
 
         String me = getLoggedAccountId();
         s.askModification(newDate, newStart, newEnd, reason, me);
@@ -176,10 +183,10 @@ public class ManageNoticeBoardController {
     }
 
     // Accettazione della modifica della sessione di tutoraggio
-    public void acceptModification(TutoringSessionBean b){
+    public void acceptModification(TutoringSessionBean b) {
 
         TutoringSession s = loadEntity(b);
-        if(s == null) return;
+        if (s == null) return;
 
         s.respondModification(true);
         flagUnseen(s);
@@ -187,9 +194,9 @@ public class ManageNoticeBoardController {
     }
 
     // Rifiuto della modifica della sessione di tutoraggio
-    public void refuseModification(TutoringSessionBean b){
+    public void refuseModification(TutoringSessionBean b) {
         TutoringSession s = loadEntity(b);
-        if(s==null) return;
+        if (s == null) return;
 
         s.respondModification(false);  // ⇢ FSM
         flagUnseen(s);
@@ -198,10 +205,10 @@ public class ManageNoticeBoardController {
     }
 
     // Richiesta della cancellazione della sessione di tutoraggio
-    public void requestCancellation(TutoringSessionBean b, String reason){
+    public void requestCancellation(TutoringSessionBean b, String reason) {
 
         TutoringSession s = loadEntity(b);
-        if(s == null) return;
+        if (s == null) return;
 
         String me = getLoggedAccountId();
         s.askCancellation(reason, me);
@@ -210,9 +217,9 @@ public class ManageNoticeBoardController {
     }
 
     // Accettazione della cancellazione della sessione di tutoraggio
-    public void acceptCancellation(TutoringSessionBean b){
+    public void acceptCancellation(TutoringSessionBean b) {
         TutoringSession s = loadEntity(b);
-        if(s==null) return;
+        if (s == null) return;
 
         s.respondCancellation(true);
         flagUnseen(s);
@@ -220,23 +227,23 @@ public class ManageNoticeBoardController {
     }
 
     // Rifiuto della cancellazione della sessione di tutoraggio
-    public void refuseCancellation(TutoringSessionBean b){
+    public void refuseCancellation(TutoringSessionBean b) {
 
         TutoringSession s = loadEntity(b);
-        if(s==null) return;
+        if (s == null) return;
 
         s.respondCancellation(false);  // ⇢ FSM
         flagUnseen(s);
         tutoringSessionDAO.store(s);
     }
 
-
-    private TutoringSession loadEntity(TutoringSessionBean b){
-        return (b==null)? null : tutoringSessionDAO.load(b.getSessionId());
+    // Carica la TutoringSession dal DAO
+    private TutoringSession loadEntity(TutoringSessionBean b) {
+        return (b == null) ? null : tutoringSessionDAO.load(b.getSessionId());
     }
 
-    // Imposta modifiedBy / modifiedTo e resetta i flag seen. */
-    private void flagUnseenAndWho(TutoringSession s){
+    // Imposta modifiedBy/modifiedTo e resetta flag seen
+    private void flagUnseenAndWho(TutoringSession s) {
 
         UserBean me = getLoggedUser();
         String myId = null;
@@ -260,7 +267,8 @@ public class ManageNoticeBoardController {
         flagUnseen(s);
     }
 
-    private void flagUnseen(TutoringSession s){
+    // Imposta i flag seen in base a chi ha modificato
+    private void flagUnseen(TutoringSession s) {
 
         String me = getLoggedAccountId();
         if (me == null) {
@@ -273,6 +281,7 @@ public class ManageNoticeBoardController {
         s.setStudentSeen(!iAmTutor);
     }
 
+    // Restituisce ruolo utente loggato
     public String getLoggedRole() {
 
         UserBean me = getLoggedUser();
@@ -287,6 +296,7 @@ public class ManageNoticeBoardController {
         return null;
     }
 
+    // Restituisce accountId utente loggato
     public String getLoggedAccountId() {
 
         UserBean me = getLoggedUser();
@@ -301,19 +311,27 @@ public class ManageNoticeBoardController {
         return null;
     }
 
-    // Wrapper che delegano al BookingTutoringSessionController
-    public void acceptSession (String id){ bookingCtrl.acceptSession(id);   }
-    public void refuseSession (String id){ bookingCtrl.refuseSession(id);   }
+    // Wrapper: accetta la sessione delegando al booking controller
+    public void acceptSession(String id) {
+        bookingCtrl.acceptSession(id);
+    }
 
-    // Interazioni dirette con il SessionManager, in maniera tale che il controller grafico non lo conosca
+    // Wrapper: rifiuta la sessione delegando al booking controller
+    public void refuseSession(String id) {
+        bookingCtrl.refuseSession(id);
+    }
+
+    // Restituisce UserBean utente loggato
     public UserBean getLoggedUser() {
         return getLoggedUser(sessionId);
     }
 
+    // Effettua il logout della sessione
     public void logout() {
         logout(sessionId);
     }
 
+    // Restituisce UserBean utente loggato per sessionId
     public UserBean getLoggedUser(UUID sid) {
         if (sid == null || !loginCtrl.isSessionActive(sid)) return null;
 
@@ -334,6 +352,7 @@ public class ManageNoticeBoardController {
         return ub;
     }
 
+    // Effettua il logout per sessionId
     public void logout(UUID sid) {
         if (sid != null) {
             loginCtrl.logout(sid);

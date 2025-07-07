@@ -5,6 +5,8 @@ import logic.model.domain.state.TutoringSessionStatus;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
+// TutoringSessionBean è un Bean che trasporta i dati di una sessione di tutoraggio tra controller e view.
+// Include i dati della sessione, eventuali proposte di modifica/cancellazione e metodi di validazione sintattica.
 public class TutoringSessionBean {
 
     private String sessionId;

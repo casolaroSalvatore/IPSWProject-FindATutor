@@ -6,6 +6,7 @@ import logic.bean.UserBean;
 import logic.model.dao.*;
 import logic.model.domain.*;
 import logic.model.domain.state.TutoringSession;
+
 import java.util.*;
 
 import static logic.model.domain.ReviewStatus.NOT_STARTED;
@@ -22,7 +23,8 @@ public class LeaveASharedReviewController {
     private AccountDAO accountDAO = DaoFactory.getInstance().getAccountDAO();
     private final LoginController loginCtrl = new LoginController();
 
-    public LeaveASharedReviewController() {}
+    public LeaveASharedReviewController() {
+    }
 
     public LeaveASharedReviewController(UUID sessionId) {
         this.sessionId = sessionId;
@@ -30,39 +32,39 @@ public class LeaveASharedReviewController {
 
     private UUID sessionId;
 
-    // Carica i tutor con cui lo studente ha almeno una sessione
+    // Trova tutti i tutor con cui lo studente ha avuto almeno una sessione
     public List<String> findAllTutorsForStudent(String studentId) {
         List<TutoringSession> all = tutoringSessionDAO.loadAllTutoringSession();
         Set<String> tutorIds = new HashSet<>();
         for (TutoringSession ts : all) {
             if (studentId.equals(ts.getStudentId())
-                    /** && allSessionsFinished(studentId, ts.getTutorId())*/) {
+            /** && allSessionsFinished(studentId, ts.getTutorId())*/) {
                 tutorIds.add(ts.getTutorId());
             }
         }
         return new ArrayList<>(tutorIds);
     }
 
-    // Interrogo TutoringSessionDAO per trovare tutti gli student con cui il tutor ha effettuato dei tutoraggi
+    // Trova tutti gli studenti con cui il tutor ha avuto almeno una session
     public List<String> findAllStudentsForTutor(String tutorId) {
         List<TutoringSession> all = tutoringSessionDAO.loadAllTutoringSession();
         Set<String> studentIds = new HashSet<>();
         for (TutoringSession ts : all) {
             if (tutorId.equals(ts.getTutorId())
-                    /** && allSessionsFinished(ts.getStudentId(), tutorId)*/) {
+            /** && allSessionsFinished(ts.getStudentId(), tutorId)*/) {
                 studentIds.add(ts.getStudentId());
             }
         }
         return new ArrayList<>(studentIds);
     }
 
-    // Trova o crea la review corrispondente a (studentId, tutorId)
+    // Trova o crea una SharedReview per la coppia student-tutor
     public SharedReview findOrCreateSharedReview(String studentId, String tutorId) {
         // Cerco se esiste già
         List<SharedReview> studentReviews = sharedReviewDAO.loadForStudent(studentId);
         for (SharedReview sharedReview : studentReviews) {
             if (tutorId.equals(sharedReview.getTutorId())) {
-                return sharedReview; // trovata
+                return sharedReview;
             }
         }
         // Altrimenti la creo
@@ -72,8 +74,10 @@ public class LeaveASharedReviewController {
         return newSharedReview;
     }
 
+    // Gestisce l'invio della recensione e aggiorna lo stato
     public SharedReviewBean submitReview(SharedReviewBean bean) {
 
+        // Controlli sintattici offerti dal Bean
         bean.checkSyntax();
 
         SharedReview sr = sharedReviewDAO.load(bean.getReviewId());
@@ -87,7 +91,7 @@ public class LeaveASharedReviewController {
                             : bean.getStudentId());
         }
 
-        applyBeanToEntity(bean, sr);
+        beanToDomain(bean, sr);
 
         boolean completed = sr.isStudentSubmitted() && sr.isTutorSubmitted();
         sr.setStatus(completed ? COMPLETED : PENDING);
@@ -100,6 +104,7 @@ public class LeaveASharedReviewController {
         return toBean(sr);
     }
 
+    // Calcola la media delle valutazioni ricevute da un tutor
     private float computeAverageTutorRating(String tutorId) {
         int sum = 0;
         int count = 0;
@@ -113,6 +118,7 @@ public class LeaveASharedReviewController {
         return count == 0 ? 0f : (float) sum / count;
     }
 
+    // Aggiorna il rating del tutor nel DAO
     private void assignRatingToTutorAccount(String tutorKeyOrId, float newRating) {
 
         AccountDAO accountDAO1 = DaoFactory.getInstance().getAccountDAO();
@@ -137,12 +143,13 @@ public class LeaveASharedReviewController {
         }
     }
 
+    // Aggiorna il rating di un tutor dopo una nuova recensione
     private void updateTutorRating(SharedReview sr) {
         float avg = computeAverageTutorRating(sr.getTutorId());
         assignRatingToTutorAccount(sr.getTutorId(), avg);
     }
 
-    // Per la "notifica" (pallino rosso) per studente
+    // Conta le recensioni pendenti per lo studente (per notifica)
     public int countPendingForStudent(String studentId) {
         int n = 0;
         for (SharedReview sr : sharedReviewDAO.loadForStudent(studentId)) {
@@ -151,7 +158,7 @@ public class LeaveASharedReviewController {
         return n;
     }
 
-    // Per la "notifica" (pallino rosso) per il tutor
+    // Conta le recensioni pendenti per il tutor (per notifica)
     public int countPendingForTutor(String tutorId) {
         int n = 0;
         for (SharedReview sr : sharedReviewDAO.loadForTutor(tutorId)) {
@@ -160,7 +167,7 @@ public class LeaveASharedReviewController {
         return n;
     }
 
-    // Conversioni Bean <--> Entity
+    // Converte una SharedReview in SharedReviewBean
     private SharedReviewBean toBean(SharedReview sr) {
 
         AccountDAO accDao = DaoFactory.getInstance().getAccountDAO();
@@ -174,17 +181,15 @@ public class LeaveASharedReviewController {
 
         String info = buildNameAgeLabel(counterpartAcc);
 
-        return new SharedReviewBean(sr, info);
+        return domainToBean(sr, info);
     }
 
+    // Costruisce stringa "Nome Cognome (età)" per la controparte
     private String buildNameAgeLabel(Account acc) {
         return acc == null ? "" : acc.getName() + " " + acc.getSurname() + " (" + acc.getAge() + ")";
     }
 
-    private void applyBeanToEntity(SharedReviewBean b, SharedReview sr) {
-        b.copyToEntity(sr);
-    }
-
+    // Carica le SharedReviewBean per uno studente
     public List<SharedReviewBean> loadBeansForStudent(String studentId) {
         List<SharedReviewBean> out = new ArrayList<>();
         for (SharedReview sr : sharedReviewDAO.loadForStudent(studentId)) {
@@ -193,6 +198,7 @@ public class LeaveASharedReviewController {
         return out;
     }
 
+    // Carica le SharedReviewBean per un tutor
     public List<SharedReviewBean> loadBeansForTutor(String tutorId) {
         List<SharedReviewBean> out = new ArrayList<>();
         for (SharedReview sr : sharedReviewDAO.loadForTutor(tutorId)) {
@@ -201,30 +207,31 @@ public class LeaveASharedReviewController {
         return out;
     }
 
+    // Trova o crea SharedReviewBean per la coppia student-tutor
     public SharedReviewBean findOrCreateSharedReviewBean(String studentId, String tutorId) {
         SharedReview sr = findOrCreateSharedReview(studentId, tutorId);
-        boolean isStudent = isLoggedUserStudent();
 
-        String counterpartId = isStudent ? tutorId : studentId;
-        Account counterpartAccount = accountDAO.load(counterpartId);
-        SharedReviewBean bean = new SharedReviewBean(sr, buildNameAgeLabel(counterpartAccount));
+        boolean iAmStudent = isLoggedUserStudent();
+        String counterpartId = iAmStudent ? tutorId : studentId;
+        Account counterpartAcc = accountDAO.load(counterpartId);
+        String label = buildNameAgeLabel(counterpartAcc);
 
-        if (counterpartAccount != null) {
-            AccountBean counterpartBean = toAccountBean(counterpartAccount);
-            bean.setCounterpartAccount(counterpartBean);
+        SharedReviewBean bean = domainToBean(sr, label);
 
-            Account tutorAcc = accountDAO.load(sr.getTutorId());
-            if (tutorAcc != null) {
-                AccountBean tutorBean = toAccountBean(tutorAcc);
-                bean.setTutorAccount(tutorBean);
-            }
+        if (counterpartAcc != null) {
+            bean.setCounterpartAccount(toAccountBean(counterpartAcc));
+        }
+        Account tutorAcc = accountDAO.load(sr.getTutorId());
+        if (tutorAcc != null) {
+            bean.setTutorAccount(toAccountBean(tutorAcc));
         }
 
         return bean;
     }
 
+    // Verifica se l'utente loggato è uno studente
     private boolean isLoggedUserStudent() {
-        // >>> MOD: passiamo la sessione al metodo
+
         UserBean me = getLoggedUser(sessionId);
         if (me == null) {
             return false;
@@ -239,7 +246,40 @@ public class LeaveASharedReviewController {
         return false;
     }
 
+    // Converte SharedReview in SharedReviewBean
+    private SharedReviewBean domainToBean(SharedReview sr, String counterpartInfo) {
+        SharedReviewBean b = new SharedReviewBean();
+        b.setReviewId(sr.getReviewId());
+        b.setStudentId(sr.getStudentId());
+        b.setTutorId(sr.getTutorId());
+        b.setStudentStars(sr.getStudentStars());
+        b.setStudentTitle(sr.getStudentTitle());
+        b.setStudentComment(sr.getStudentComment());
+        b.setStudentSubmitted(sr.isStudentSubmitted());
+        b.setTutorTitle(sr.getTutorTitle());
+        b.setTutorComment(sr.getTutorComment());
+        b.setTutorSubmitted(sr.isTutorSubmitted());
+        b.setStatus(SharedReviewBean.ReviewStatus.valueOf(sr.getStatus().name()));
+        b.setCounterpartyInfo(counterpartInfo);
+        return b;
+    }
 
+    // Converte SharedReviewBean in SharedReview
+    private void beanToDomain(SharedReviewBean b, SharedReview sr) {
+        if (b.getSenderRole() == SharedReviewBean.SenderRole.STUDENT) {
+            sr.setStudentStars(b.getStudentStars());
+            sr.setStudentTitle(b.getStudentTitle());
+            sr.setStudentComment(b.getStudentComment());
+            sr.setStudentSubmitted(true);
+        } else {
+            sr.setTutorTitle(b.getTutorTitle());
+            sr.setTutorComment(b.getTutorComment());
+            sr.setTutorSubmitted(true);
+        }
+        sr.setStatus(ReviewStatus.valueOf(b.getStatus().name()));
+    }
+
+    // Converte Account in AccountBean
     private AccountBean toAccountBean(Account account) {
 
         AccountBean bean = new AccountBean();
@@ -264,22 +304,26 @@ public class LeaveASharedReviewController {
 
 
     // Controllo che tutte le sessioni di tutoraggio siano terminate prima di
-    // permettere di scrivere una recensione condivisa
+    // permettere di scrivere una recensione condivisa. In questo caso
+    // ho deciso di disattivarla per permettere un testing della funzionalità
+    // senza dover aspettare
+
     /** private boolean allSessionsFinished(String studentId, String tutorId) {
-        LocalDate today = LocalDate.now();
+     LocalDate today = LocalDate.now();
 
-        for (TutoringSession session : tutoringSessionDAO.loadAllTutoringSession()) {
-            boolean isBetweenSameUsers = studentId.equals(session.getStudentId())
-                    && tutorId.equals(session.getTutorId());
-            boolean isInFutureOrToday = !session.getDate().isBefore(today);
+     for (TutoringSession session : tutoringSessionDAO.loadAllTutoringSession()) {
+     boolean isBetweenSameUsers = studentId.equals(session.getStudentId())
+     && tutorId.equals(session.getTutorId());
+     boolean isInFutureOrToday = !session.getDate().isBefore(today);
 
-            if (isBetweenSameUsers && isInFutureOrToday) {
-                return false;
-            }
-        }
-        return true;
-    } */
+     if (isBetweenSameUsers && isInFutureOrToday) {
+     return false;
+     }
+     }
+     return true;
+     } */
 
+    // Restituisce il bean dell'utente loggato
     public UserBean getLoggedUser(UUID sessionId) {
         if (sessionId == null || !loginCtrl.isSessionActive(sessionId)) {
             return null;
@@ -306,7 +350,7 @@ public class LeaveASharedReviewController {
         return ub;
     }
 
-    // Restituisce il ruolo “Student” o “Tutor” per la sessione, oppure null
+    // Restituisce il ruolo dell'utente loggato
     public String getLoggedRole(UUID sessionId) {
         UserBean me = getLoggedUser(sessionId);
         if (me == null) {
@@ -321,7 +365,7 @@ public class LeaveASharedReviewController {
         return null;
     }
 
-    // Restituisce l’accountId corrispondente al ruolo “Student” o “Tutor”, oppure null
+    // Restituisce accountId dell'utente loggato
     public String getLoggedAccountId(UUID sessionId) {
         UserBean me = getLoggedUser(sessionId);
         if (me == null) {
@@ -336,7 +380,7 @@ public class LeaveASharedReviewController {
         return null;
     }
 
-    // Esegue il logout della sessione specificata
+    // Esegue il logout della sessione
     public void logout(UUID sessionId) {
         if (sessionId != null) {
             loginCtrl.logout(sessionId);

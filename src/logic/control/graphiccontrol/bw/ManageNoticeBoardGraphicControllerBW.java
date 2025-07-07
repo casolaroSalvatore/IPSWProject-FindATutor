@@ -1,5 +1,6 @@
 package logic.control.graphiccontrol.bw;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -11,6 +12,7 @@ import logic.bean.AccountBean;
 import logic.control.logiccontrol.ManageNoticeBoardController;
 import logic.model.domain.state.TutoringSessionStatus;
 
+// Controller BW per la gestione della bacheca delle prenotazioni e delle richieste associate.
 public class ManageNoticeBoardGraphicControllerBW extends BaseCLIControllerBW {
 
     private static final Logger LOGGER = Logger.getLogger(ManageNoticeBoardGraphicControllerBW.class.getName());
@@ -36,6 +38,7 @@ public class ManageNoticeBoardGraphicControllerBW extends BaseCLIControllerBW {
 
     private final ManageNoticeBoardController manageController = new ManageNoticeBoardController();
 
+    // Avvia il flusso principale della gestione bacheca
     public void start() {
         if (manageNoticeBoardController.getLoggedUser(sessionId) == null) {
             LOGGER.warning("Please log in first!");
@@ -54,6 +57,7 @@ public class ManageNoticeBoardGraphicControllerBW extends BaseCLIControllerBW {
         final String fixedRole = role;
 
         while (true) {
+            // Carica le sessioni e mostra la bacheca
             List<TutoringSessionBean> sessions = manageController.loadSessionsForLoggedUser();
             LOGGER.info("\n=== MANAGE NOTICE BOARD ===");
             if (sessions.isEmpty()) {
@@ -91,10 +95,15 @@ public class ManageNoticeBoardGraphicControllerBW extends BaseCLIControllerBW {
         }
     }
 
+    // Gestisce l'accettazione o rifiuto delle prenotazioni in attesa
     private void handlePendingBookings(List<TutoringSessionBean> sessions) {
-        List<TutoringSessionBean> pending = sessions.stream()
-                .filter(s -> s.getStatus() == TutoringSessionStatus.PENDING)
-                .toList();
+
+        List<TutoringSessionBean> pending = new ArrayList<>();
+        for (TutoringSessionBean s : sessions) {
+            if (s.getStatus() == TutoringSessionStatus.PENDING) {
+                pending.add(s);
+            }
+        }
 
         if (pending.isEmpty()) {
             LOGGER.info("\nNo pending bookings.");
@@ -124,6 +133,7 @@ public class ManageNoticeBoardGraphicControllerBW extends BaseCLIControllerBW {
         pressEnter();
     }
 
+    // Gestisce la richiesta di modifica o cancellazione da parte dell'utente
     private void handleModificationOrCancellation(List<TutoringSessionBean> sessions) {
         int idx = askInt("Select an ACCEPTED session:") - 1;
         if (idx < 0 || idx >= sessions.size()) return;
@@ -151,6 +161,7 @@ public class ManageNoticeBoardGraphicControllerBW extends BaseCLIControllerBW {
         pressEnter();
     }
 
+    // Gestisce le richieste in arrivo di modifica o cancellazione
     private void handleIncomingModOrCancRequests(List<TutoringSessionBean> sessions) {
 
         String myId = manageController.getLoggedAccountId();
@@ -197,24 +208,7 @@ public class ManageNoticeBoardGraphicControllerBW extends BaseCLIControllerBW {
         manageModOrCancDecision(incoming.get(idx));
     }
 
-    private void handleDirectRowSelection(List<TutoringSessionBean> all, String input) {
-        int idx;
-        try {
-            idx = Integer.parseInt(input) - 1;
-        } catch (Exception e) {
-            return;
-        }
-
-        if (idx < 0 || idx >= all.size()) {
-            return;
-        }
-
-        TutoringSessionBean sel = all.get(idx);
-        if (sel.getStatus() == TutoringSessionStatus.MOD_REQUESTED || sel.getStatus() == TutoringSessionStatus.CANCEL_REQUESTED) {
-            manageModOrCancDecision(sel);
-        }
-    }
-
+    // Gestisce la decisione su richiesta di modifica o cancellazione
     private void manageModOrCancDecision(TutoringSessionBean s) {
 
         if (s.getStatus() == TutoringSessionStatus.MOD_REQUESTED) {
@@ -241,6 +235,26 @@ public class ManageNoticeBoardGraphicControllerBW extends BaseCLIControllerBW {
         pressEnter();
     }
 
+    // Gestisce la selezione diretta di una riga
+    private void handleDirectRowSelection(List<TutoringSessionBean> all, String input) {
+        int idx;
+        try {
+            idx = Integer.parseInt(input) - 1;
+        } catch (Exception e) {
+            return;
+        }
+
+        if (idx < 0 || idx >= all.size()) {
+            return;
+        }
+
+        TutoringSessionBean sel = all.get(idx);
+        if (sel.getStatus() == TutoringSessionStatus.MOD_REQUESTED || sel.getStatus() == TutoringSessionStatus.CANCEL_REQUESTED) {
+            manageModOrCancDecision(sel);
+        }
+    }
+
+    // Stampa una lista di sessioni con info riguardanti l'utente controparte
     private void printRows(List<TutoringSessionBean> list) {
 
         String role = null;

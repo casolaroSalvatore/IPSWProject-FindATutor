@@ -60,6 +60,7 @@ public class LoginGraphicControllerColored {
         }
     }
 
+    // Gestisce il login: raccoglie dati, costruisce i bean, chiama il controller logico
     @FXML
     public void handleLogin(ActionEvent event) {
         String email = emailField.getText();

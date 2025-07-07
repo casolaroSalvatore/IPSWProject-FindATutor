@@ -40,6 +40,7 @@ public class TutorProfileGraphicControllerColored {
 
     private TutorProfileController logic = new TutorProfileController();
 
+    // Imposta i dati del tutor (anagrafici e recensioni) nei componenti della view
     public void setTutorData(String tutorAccountId) {
 
         /* 1. Bean con i dati anagrafici */

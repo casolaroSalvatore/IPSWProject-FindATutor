@@ -23,6 +23,7 @@ import logic.bean.UserBean;
 import logic.control.logiccontrol.LoginController;
 import logic.control.logiccontrol.ManageNoticeBoardController;
 import logic.model.domain.state.TutoringSessionStatus;
+
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -35,7 +36,7 @@ import java.util.logging.Logger;
 
 public class ManageNoticeBoardGraphicControllerColored implements NavigableController, BookingSessionParent {
 
-    private static final String ROLE_TUTOR   = "Tutor";
+    private static final String ROLE_TUTOR = "Tutor";
     private static final String ROLE_STUDENT = "Student";
     private static final String ERROR = "Error";
 
@@ -87,18 +88,23 @@ public class ManageNoticeBoardGraphicControllerColored implements NavigableContr
     private Button requestCancellationButton;
 
     // Campi FXML per il calendario custom
-    @FXML private HBox monthNavigationBar;
+    @FXML
+    private HBox monthNavigationBar;
 
-    @FXML private Button prevMonthButton;
+    @FXML
+    private Button prevMonthButton;
 
-    @FXML private Button nextMonthButton;
+    @FXML
+    private Button nextMonthButton;
 
     @FXML
     private Region spacer;
 
-    @FXML private Label monthLabel;
+    @FXML
+    private Label monthLabel;
 
-    @FXML private GridPane calendarGrid;
+    @FXML
+    private GridPane calendarGrid;
 
     // Gestione del mese corrente nel calendario
     private YearMonth currentYearMonth;
@@ -116,13 +122,14 @@ public class ManageNoticeBoardGraphicControllerColored implements NavigableContr
     private UserBean userBean;
 
     @Override
-    /* Chiamare subito dopo il FXMLLoader in HomeGraphicControllerColored */
+    // Inizializza la scena con dati utente e sessione, configura tabelle e calendario
+    // Viene chiamato subito subito dopo il FXMLLoader in HomeGraphicControllerColored */
     public void initData(UUID sessionId, UserBean userBean) {
         this.sessionId = sessionId;
-        this.userBean  = userBean;
+        this.userBean = userBean;
 
         this.manageController = new ManageNoticeBoardController(sessionId);
-        handleWelcomeArea(userBean); // può accedere ora a userBean
+        handleWelcomeArea(userBean);
 
         String role = null;
         for (AccountBean account : userBean.getAccounts()) {
@@ -147,7 +154,7 @@ public class ManageNoticeBoardGraphicControllerColored implements NavigableContr
         // Lasciato intenzionalmente vuoto, non abbiamo bisogno di inizializzazione per ManageNoticeBoard.fxml
     }
 
-    // Helper per la fattorizzazione
+    // Configura la sezione di benvenuto e pulsanti in base al login
     private void handleWelcomeArea(UserBean user) {
         boolean loggedIn = user != null;
         welcomeLabel.setVisible(loggedIn);
@@ -160,7 +167,7 @@ public class ManageNoticeBoardGraphicControllerColored implements NavigableContr
         }
     }
 
-    // Configurazione colonne + row‑factory del daySessionTable
+    // Configura colonne e comportamento del daySessionTable
     private void configureDayTable(String role) {
 
         boolean isTutor = ROLE_TUTOR.equalsIgnoreCase(role);
@@ -193,14 +200,20 @@ public class ManageNoticeBoardGraphicControllerColored implements NavigableContr
         });
     }
 
-    private boolean hasAcceptedSessionsOn(LocalDate d) { return manageController.hasAcceptedSessionsOn(d); }
+    private boolean hasAcceptedSessionsOn(LocalDate d) {
+        return manageController.hasAcceptedSessionsOn(d);
+    }
 
-    private boolean hasWaitingSessionsOn (LocalDate d) { return manageController.hasWaitingSessionsOn (d); }
+    private boolean hasWaitingSessionsOn(LocalDate d) {
+        return manageController.hasWaitingSessionsOn(d);
+    }
 
-    private List<TutoringSessionBean> loadSessionsForLoggedUser(){  // ★
+    // Carica tutte le sessioni per l'utente loggato
+    private List<TutoringSessionBean> loadSessionsForLoggedUser() {
         return manageController.loadSessionsForLoggedUser();
     }
 
+    // Gestisce doppio clic su riga del daySessionTable per aprire profilo
     // Helper estratto: riduce la complessità di configureDayTable
     private void onRowDoubleClick(MouseEvent ev,
                                   TableRow<TutoringSessionBean> row,
@@ -218,11 +231,11 @@ public class ManageNoticeBoardGraphicControllerColored implements NavigableContr
         }
     }
 
-    // Carica il child FXML e aggiunge la colonna Action
+    // Carica il BookingSessionPart.fxml e aggiunge colonna mod/cancel
     private void loadBookingSessionPart() {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/BookingSessionPart.fxml"));
-            Parent childRoot  = loader.load();
+            Parent childRoot = loader.load();
 
             bookingChildCtrl = loader.getController();
 
@@ -236,9 +249,9 @@ public class ManageNoticeBoardGraphicControllerColored implements NavigableContr
         }
     }
 
-    // Metodo per implementare la logica del calendario
+    // Genera il calendario per il mese specificato
     private void populateCalendar(YearMonth yearMonth) {
-        // Rimuoviamo i bottoni della vecchia generazione (tutte le row>0)
+        // Rimuovo i bottoni della vecchia generazione (tutte le row>0)
         calendarGrid.getChildren().removeIf(node -> {
             Integer rowIndex = GridPane.getRowIndex(node);
             return rowIndex != null && rowIndex > 0;
@@ -251,9 +264,8 @@ public class ManageNoticeBoardGraphicControllerColored implements NavigableContr
         LocalDate firstOfMonth = LocalDate.of(yearMonth.getYear(), yearMonth.getMonth(), 1);
         int daysInMonth = yearMonth.lengthOfMonth();
 
-        // dayOfWeek: Lunedì=1... Domenica=7
         int startDayOfWeek = firstOfMonth.getDayOfWeek().getValue();
-        // Se vogliamo Domenica=0, Lunedì=1, etc. => un piccolo adattamento, ad es.:
+        // Poichè voglio Domenica=0, Lunedì=1, etc. => un piccolo adattamento, ad es.:
         // Domenica => col=0, Lunedì => col=1, ...
         int col = (startDayOfWeek % 7);  // Domenica(7) => 0, Lunedì(1) => 1, etc.
 
@@ -268,25 +280,24 @@ public class ManageNoticeBoardGraphicControllerColored implements NavigableContr
             dayButton.setStyle("-fx-font-size: 12px;");
 
             if (hasWaitingSessionsOn(date)) {
-                // Giallo ocra (scegli un codice CSS a piacere)
+                // Giallo ocra
                 dayButton.setStyle("-fx-background-color: #FFD37F;");
             } else if (hasAcceptedSessionsOn(date)) {
-                // Verde, come già facevi
+                // Verde
                 dayButton.setStyle("-fx-background-color: #a5ffa5;");
             } else {
                 // Nessun sessione in attesa o accepted => colore di default
                 dayButton.setStyle("-fx-font-size: 12px;");
             }
 
-            // Al click, richiama handleDayClick(date)
+            // Al click, richiamo handleDayClick(date)
             dayButton.setOnAction(e -> handleDayClick(date));
 
-            // Aggiungiamo il bottone in col, row
+            // Aggiungo il bottone in col, row
             calendarGrid.add(dayButton, col, row);
 
-            // Avanziamo colonna
             col++;
-            // Se col > 6 => siamo oltre "Sat" => passiamo alla riga successiva
+            // Se col > 6 => siamo oltre "Sat" => passo alla riga successiva
             if (col > 6) {
                 col = 0;
                 row++;
@@ -294,13 +305,13 @@ public class ManageNoticeBoardGraphicControllerColored implements NavigableContr
         }
     }
 
-    // Metodo per vuoi filtrare e mostrare nella sessionTable le sole sessioni di quella data:
+    // Mostra nella tabella le sessioni accettate per la data cliccata
     private void handleDayClick(LocalDate date) {
 
         this.selectedDate = date;
 
         List<TutoringSessionBean> allSessions = loadSessionsForLoggedUser();
-        List<TutoringSessionBean> filtered  = new ArrayList<>();
+        List<TutoringSessionBean> filtered = new ArrayList<>();
 
         for (TutoringSessionBean s : allSessions) {
             if (s.getDate() != null
@@ -312,6 +323,7 @@ public class ManageNoticeBoardGraphicControllerColored implements NavigableContr
         daySessionTable.setItems(FXCollections.observableArrayList(filtered));
     }
 
+    // Aggiorna calendario e tabelle dopo modifiche
     public void refreshCalendarAndTable() {
 
         populateCalendar(currentYearMonth);
@@ -323,7 +335,7 @@ public class ManageNoticeBoardGraphicControllerColored implements NavigableContr
         }
     }
 
-    // Ricarica completamente la sessionTable dal DAO
+    // Aggiorna solo la sessionTable principale
     public void refreshSessionTable() {
 
         // 1) se la tabella non esiste ancora, esco
@@ -336,6 +348,7 @@ public class ManageNoticeBoardGraphicControllerColored implements NavigableContr
         bookingChildCtrl.getSessionTable().setItems(FXCollections.observableArrayList(list));
     }
 
+    // Gestisce richiesta di modifica da parte dell'utente
     @FXML
     private void handleRequestModification() {
         TutoringSessionBean s = daySessionTable.getSelectionModel().getSelectedItem();
@@ -368,6 +381,7 @@ public class ManageNoticeBoardGraphicControllerColored implements NavigableContr
         }
     }
 
+    // Gestisce richiesta di cancellazione da parte dell'utente
     @FXML
     private void handleRequestCancellation() {
         TutoringSessionBean selected = daySessionTable.getSelectionModel().getSelectedItem();
@@ -394,6 +408,7 @@ public class ManageNoticeBoardGraphicControllerColored implements NavigableContr
     vengono effettivamente usate per configurare i pulsanti e aggiungerli alla cella,
     ma SonarQube segnala erroneamente che le assegnazioni sono inutili. */
 
+    // Aggiunge la colonna di azione (accept/refuse) per mod/cancel
     private void addActionColumnForModCancel(TableColumn<TutoringSessionBean, Void> modCancelActionColumn) {
         modCancelActionColumn.setCellFactory(col -> new TableCell<>() {
             private final Button acceptBtn = createButton(true);
@@ -452,10 +467,9 @@ public class ManageNoticeBoardGraphicControllerColored implements NavigableContr
     }
 
     @SuppressWarnings("java:S1144")
-
     /* Sopprimo il falso positivo: il metodo 'handleSessionAction' è effettivamente
     usato all'interno della classe anonima per gestire l'azione sui pulsanti */
-
+    // Gestisce la logica quando si accetta o rifiuta una richiesta
     private void handleSessionAction(TutoringSessionBean session, boolean accepted) {
         if (session.getStatus() == TutoringSessionStatus.MOD_REQUESTED) {
             if (accepted) {
@@ -484,8 +498,8 @@ public class ManageNoticeBoardGraphicControllerColored implements NavigableContr
         if (result.isEmpty()) return null;
         try {
             return LocalDate.parse(result.get());
-        } catch(Exception e) {
-            showAlert(ERROR,"Invalid date format!");
+        } catch (Exception e) {
+            showAlert(ERROR, "Invalid date format!");
             return null;
         }
     }
@@ -500,8 +514,8 @@ public class ManageNoticeBoardGraphicControllerColored implements NavigableContr
         if (result.isEmpty()) return null;
         try {
             return LocalTime.parse(result.get());
-        } catch(Exception e) {
-            showAlert(ERROR,"Invalid time format!");
+        } catch (Exception e) {
+            showAlert(ERROR, "Invalid time format!");
             return null;
         }
     }
@@ -598,7 +612,7 @@ public class ManageNoticeBoardGraphicControllerColored implements NavigableContr
             if (sessionId != null) {
                 loginController.logout(sessionId);
                 sessionId = null;
-                userBean  = null;
+                userBean = null;
             }
 
             welcomeLabel.setVisible(false);

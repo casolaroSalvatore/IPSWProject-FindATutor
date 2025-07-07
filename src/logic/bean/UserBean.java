@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
+// UserBean è un DTO che trasporta i dati utente (email, username, account) tra View e Controller.
+// Include metodi per la validazione sintattica di email e username.
 public class UserBean {
 
     private String email;
@@ -55,6 +57,7 @@ public class UserBean {
         accounts.add(accountBean);
     }
 
+    // Controlli sintattici sui parametri di input
     public void checkEmailSyntax() {
         if (email == null || !EMAIL_PATTERN.matcher(email).matches())
             throw new IllegalArgumentException("Invalid e‑mail format.");

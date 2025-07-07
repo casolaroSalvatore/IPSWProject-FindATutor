@@ -3,8 +3,8 @@ package logic.bean;
 import logic.model.domain.Account;
 
 import java.time.LocalDate;
-import java.time.Period;
 
+// AccountBean è un Bean che trasporta i dati di un Account tra i Controller e View
 public class AccountBean {
 
     private String accountId;
@@ -31,7 +31,8 @@ public class AccountBean {
     private boolean offersGroup;
     private boolean firstLessonFree;
 
-    public AccountBean() {}
+    public AccountBean() {
+    }
 
     public AccountBean(Account account) {
         this.accountId = account.getAccountId();
@@ -196,70 +197,54 @@ public class AccountBean {
         this.firstLessonFree = firstLessonFree;
     }
 
-    // Validazione sintattica e semantica incapsulata
+    // Controllo solo sintattico su nome, cognome, commento e immagine
     public void checkBasicSyntax() {
-        if (name == null || !name.matches("[A-Za-z\\u00C0-\\u00D6\\u00D8-\\u00F6\\u00F8-\\u00FF' \\-]{2,30}")) {
+        if (name != null && !name.matches("[A-Za-z\\u00C0-\\u00D6\\u00D8-\\u00F6\\u00F8-\\u00FF' \\-]{2,30}")) {
             throw new IllegalArgumentException("Name must be alphabetic (2–30 chars).");
         }
-        if (surname == null || !surname.matches("[A-Za-z\\u00C0-\\u00D6\\u00D8-\\u00F6\\u00F8-\\u00FF' \\-]{2,30}")) {
+        if (surname != null && !surname.matches("[A-Za-z\\u00C0-\\u00D6\\u00D8-\\u00F6\\u00F8-\\u00FF' \\-]{2,30}")) {
             throw new IllegalArgumentException("Surname must be alphabetic (2–30 chars).");
         }
-        if (birthday == null || birthday.isAfter(LocalDate.now()) ||
-                Period.between(birthday, LocalDate.now()).getYears() < 13)
-            throw new IllegalArgumentException("Invalid birth date (min 13 years).");
-        if (role == null || role.isBlank())
-            throw new IllegalArgumentException("Role required.");
-        if (profileComment.length() > 250){
+        if (profileComment != null && profileComment.length() > 250) {
             throw new IllegalArgumentException("Comment max 250 characters.");
         }
         if (profilePicturePath != null
                 && !profilePicturePath.isEmpty()
                 && !profilePicturePath.matches(".*\\.(png|jpg|jpeg)$")) {
-
             throw new IllegalArgumentException("Profile picture must be PNG/JPG.");
         }
     }
 
+    // Controllo password e conferma
     public void checkPasswordSyntax() {
-        if (password == null || password.isBlank())
-            throw new IllegalArgumentException("Password is required.");
-        // ≥10 caratteri con almeno 1 maiuscola, 1 minuscola, 1 cifra, 1 simbolo; no spazi
-        if (!password.matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z\\d\\s]).{10,}$"))
-            throw new IllegalArgumentException(
-                    "Password ≥10 chars with upper, lower, digit & symbol – no spaces.");
-        if (password.contains(" "))
-            throw new IllegalArgumentException("Password cannot contain spaces.");
-        if (confirmPassword != null && !password.equals(confirmPassword))
+        if (password != null && !password.isBlank()) {
+            // Regex: almeno 10 caratteri, maiusc, minusc, numero, simbolo, no spazi
+            if (!password.matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z\\d\\s]).{10,}$")) {
+                throw new IllegalArgumentException("Password ≥10 chars with upper, lower, digit & symbol – no spaces.");
+            }
+        }
+        if (confirmPassword != null && password != null && !password.equals(confirmPassword)) {
             throw new IllegalArgumentException("Password and confirmation do not match.");
+        }
     }
 
-    // STUDENT-specific checks
+
+    // Controllo specifico studenti
     public void checkStudentSyntax() {
         checkBasicSyntax();
         checkPasswordSyntax();
-        if (institute == null || institute.isBlank())
-            throw new IllegalArgumentException("Institute is required for students.");
-        if (!institute.matches("[A-Za-z0-9' .-]{2,50}"))
+        if (institute != null && !institute.matches("[A-Za-z0-9' .-]{2,50}")) {
             throw new IllegalArgumentException("Institute name is invalid.");
+        }
     }
 
-    // TUTOR-specific checks
+    // Controllo specifico tutor
     public void checkTutorSyntax() {
         checkBasicSyntax();
         checkPasswordSyntax();
-        if (availabilityBean == null)
-            throw new IllegalArgumentException("Availability must be specified.");
-        availabilityBean.checkSyntax();  // reuses existing checks
-        if (subject == null || subject.isBlank())
-            throw new IllegalArgumentException("Subject is required for tutors.");
-        if (educationalTitle == null || educationalTitle.isBlank())
-            throw new IllegalArgumentException("Educational title is required.");
-        if (hourlyRate <= 0)
-            throw new IllegalArgumentException("Hourly rate must be positive.");
-        if (location == null || location.isBlank())
-            throw new IllegalArgumentException("Location is required for tutors.");
-        if (hourlyRate < 5 || hourlyRate > 200)
-            throw new IllegalArgumentException("Hourly rate must be between 5$ and 200$.");
+        if (availabilityBean != null) {
+            availabilityBean.checkSyntax();  // Se presente, verifica formato disponibilità
+        }
     }
 }
 

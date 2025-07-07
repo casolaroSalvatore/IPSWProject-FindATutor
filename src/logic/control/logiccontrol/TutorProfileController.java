@@ -4,6 +4,8 @@ import logic.bean.TutorBean;
 import logic.bean.SharedReviewBean;
 import logic.model.dao.*;
 import logic.model.domain.*;
+
+import java.util.ArrayList;
 import java.util.List;
 
 public class TutorProfileController {
@@ -11,7 +13,7 @@ public class TutorProfileController {
     private final AccountDAO accDao = DaoFactory.getInstance().getAccountDAO();
     private final SharedReviewDAO reviewDao = DaoFactory.getInstance().getSharedReviewDAO();
 
-    // Info anagrafiche + rating */
+    // Carica un Tutor dal DAO e lo converte in TutorBean per la view
     public TutorBean loadTutorBean(String accountId){
 
         Account acc = accDao.load(accountId);
@@ -32,17 +34,34 @@ public class TutorProfileController {
         return b;
     }
 
-    // Solo recensioni COMPLETED vengono convertite in Bean
-    public List<SharedReviewBean> loadCompletedReviews(String tutorId){
-        return reviewDao.loadForTutor(tutorId).stream()
-                .filter(r -> r.getStatus()==ReviewStatus.COMPLETE)
-                .map(r -> {
-                    SharedReviewBean b = new SharedReviewBean(r);
-                    Account s = accDao.load(r.getStudentId());
-                    if(s!=null) b.setCounterpartyInfo(s.getName()+" "+s.getSurname());
-                    return b;
-                })
-                .toList();
+    // Carica le recensioni completate per un tutor e le converte in SharedReviewBean
+    public List<SharedReviewBean> loadCompletedReviews(String tutorId) {
+
+        List<SharedReviewBean> out = new ArrayList<>();
+        for (SharedReview r : reviewDao.loadForTutor(tutorId)) {
+
+            if (r.getStatus() != ReviewStatus.COMPLETE) continue;
+
+            SharedReviewBean b = new SharedReviewBean();
+            b.setReviewId(r.getReviewId());
+            b.setStudentId(r.getStudentId());
+            b.setTutorId(r.getTutorId());
+            b.setStudentStars(r.getStudentStars());
+            b.setStudentTitle(r.getStudentTitle());
+            b.setStudentComment(r.getStudentComment());
+            b.setStudentSubmitted(r.isStudentSubmitted());
+            b.setTutorTitle(r.getTutorTitle());
+            b.setTutorComment(r.getTutorComment());
+            b.setTutorSubmitted(r.isTutorSubmitted());
+            b.setStatus(SharedReviewBean.ReviewStatus.valueOf(r.getStatus().name()));
+
+            Account studAcc = accDao.load(r.getStudentId());
+            if (studAcc != null) {
+                b.setCounterpartyInfo(studAcc.getName() + " " + studAcc.getSurname());
+            }
+            out.add(b);
+        }
+        return out;
     }
 }
 

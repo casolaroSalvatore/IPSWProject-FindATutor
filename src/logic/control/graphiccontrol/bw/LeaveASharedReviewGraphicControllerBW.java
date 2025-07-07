@@ -5,10 +5,12 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
+
 import logic.bean.AccountBean;
 import logic.bean.SharedReviewBean;
 import logic.control.logiccontrol.LeaveASharedReviewController;
 
+// Controller BW per la gestione e l'invio delle shared reviews (recensioni condivise).
 public class LeaveASharedReviewGraphicControllerBW extends BaseCLIControllerBW {
 
     private UUID sessionId;
@@ -31,6 +33,7 @@ public class LeaveASharedReviewGraphicControllerBW extends BaseCLIControllerBW {
 
     private final LeaveASharedReviewController logic = new LeaveASharedReviewController();
 
+    // Avvia il flusso principale della gestione delle recensioni condivise
     public void start() {
 
         if (logic.getLoggedUser(sessionId) == null) {
@@ -56,7 +59,7 @@ public class LeaveASharedReviewGraphicControllerBW extends BaseCLIControllerBW {
             throw new IllegalStateException("No valid account (Student or Tutor) found for logged user.");
         }
 
-
+        // Carica le recensioni in base al ruolo dell'utente
         final boolean isStudent = ROLE_STUDENT.equalsIgnoreCase(role);
         final String finalUserId = userId;
 
@@ -69,7 +72,7 @@ public class LeaveASharedReviewGraphicControllerBW extends BaseCLIControllerBW {
             IntStream.range(0, reviews.size()).forEach(i -> {
                 SharedReviewBean sr = reviews.get(i);
                 String info = String.format("%2d) With %s [%s]",
-                        i+1, sr.getCounterpartyInfo(), sr.getStatus());
+                        i + 1, sr.getCounterpartyInfo(), sr.getStatus());
                 LOGGER.info(info);
             });
 
@@ -88,6 +91,7 @@ public class LeaveASharedReviewGraphicControllerBW extends BaseCLIControllerBW {
         }
     }
 
+    // Gestisce l'invio della recensione lato studente
     private void handleStudentSide(SharedReviewBean sr) {
         if (sr.isStudentSubmitted()) {
             LOGGER.log(Level.INFO, "You already submitted your part. Status: {0}", sr.getStatus());
@@ -95,18 +99,28 @@ public class LeaveASharedReviewGraphicControllerBW extends BaseCLIControllerBW {
             return;
         }
 
+        // Raccoglie i dati della recensione
         int stars = askInt("Stars (1-5):");
         String title = ask("Title:");
         String comment = ask("Comment:");
 
-        // Creo il nuovo bean
+        // Creo il nuovo bean da inviare
         SharedReviewBean bean = new SharedReviewBean();
-        bean.setReviewId(bean.getReviewId());
-        String studentId = logic.getLoggedUser(sessionId).getAccounts().stream()
-                .filter(a -> ROLE_STUDENT.equalsIgnoreCase(a.getRole()))
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("Student account not found"))
-                .getAccountId();
+        bean.setReviewId(sr.getReviewId());
+
+        String studentId = null;
+        for (AccountBean account : logic.getLoggedUser(sessionId).getAccounts()) {
+            if (ROLE_STUDENT.equalsIgnoreCase(account.getRole())) {
+                studentId = account.getAccountId();
+                break;
+            }
+        }
+
+
+        if (studentId == null) {
+            throw new IllegalStateException("Student account not found");
+        }
+
         bean.setStudentId(studentId);
         bean.setStudentStars(stars);
         bean.setStudentTitle(title);
@@ -120,6 +134,7 @@ public class LeaveASharedReviewGraphicControllerBW extends BaseCLIControllerBW {
     }
 
 
+    // Gestisce l'invio della recensione lato tutor
     private void handleTutorSide(SharedReviewBean sr) {
 
         if (sr.isTutorSubmitted()) {
@@ -131,8 +146,9 @@ public class LeaveASharedReviewGraphicControllerBW extends BaseCLIControllerBW {
         String title = ask("Title:");
         String comment = ask("Comment:");
 
+        // Creo il bean da inviare
         SharedReviewBean bean = new SharedReviewBean();
-        bean.setReviewId(bean.getReviewId());
+        bean.setReviewId(sr.getReviewId());
         bean.setSenderRole(SharedReviewBean.SenderRole.TUTOR);
         bean.setTutorTitle(title);
         bean.setTutorComment(comment);

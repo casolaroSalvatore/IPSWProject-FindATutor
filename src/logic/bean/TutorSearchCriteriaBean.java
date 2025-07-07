@@ -2,6 +2,8 @@ package logic.bean;
 
 import java.io.Serializable;
 
+// TutorSearchCriteriaBean è un Bean che trasporta i criteri di ricerca dei tutor
+// tra View e Controller. Include filtri come materia, località, disponibilità e opzioni.
 public class TutorSearchCriteriaBean implements Serializable {
     private String subject;
     private String location;
@@ -96,5 +98,6 @@ public class TutorSearchCriteriaBean implements Serializable {
 
     public String getOrderCriteria() { return orderCriteria; }
     public void setOrderCriteria(String orderCriteria) { this.orderCriteria = orderCriteria; }
+
 }
 

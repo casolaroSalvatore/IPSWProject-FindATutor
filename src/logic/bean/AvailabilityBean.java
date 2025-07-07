@@ -3,9 +3,10 @@ package logic.bean;
 import java.io.Serializable;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 
+// AvailabilityBean è un Bean che trasporta disponibilità tutor
+// (startDate, endDate, days) con controlli di forma.
 public class AvailabilityBean implements Serializable {
 
     private LocalDate startDate;
@@ -36,15 +37,8 @@ public class AvailabilityBean implements Serializable {
         this.days = ds;
     }
 
-    // Controllo di forma: range coerente + almeno un giorno selezionato
+    // Controllo solo sintattico: verifica presenza e duplicati nei giorni
     public void checkSyntax() {
-        if (startDate == null || endDate == null ||
-                startDate.isBefore(LocalDate.now()))
-            throw new IllegalArgumentException("Start‑date cannot be in the past.");
-        if (!endDate.isAfter(startDate))
-            throw new IllegalArgumentException("End‑date must be after start‑date.");
-        if (ChronoUnit.DAYS.between(startDate, endDate) > 365)
-            throw new IllegalArgumentException("Availability range max 1 year.");
         if (days == null || days.isEmpty())
             throw new IllegalArgumentException("Select at least one week‑day.");
         if (days.stream().distinct().count() != days.size())

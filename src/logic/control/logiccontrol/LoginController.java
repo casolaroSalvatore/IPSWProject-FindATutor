@@ -12,6 +12,7 @@ import java.util.UUID;
 
 public class LoginController {
 
+    // Esegue il login: verifica credenziali e ruolo, crea sessione, restituisce AuthResultBean
     public AuthResultBean login(UserBean loginBean) {
 
         UserDAO userDAO = DaoFactory.getInstance().getUserDAO();
@@ -56,6 +57,7 @@ public class LoginController {
         return new AuthResultBean(sid, userBean);
     }
 
+    // Restituisce UserBean per l'utente loggato associato alla sessione
     public UserBean getLoggedUser(UUID sid) {
         Session session = SessionManager.getInstance().getSession(sid);
         if (session == null || session.getUser() == null) {
@@ -64,42 +66,21 @@ public class LoginController {
         return new UserBean(session.getUser());  // CORRETTO: conversione Domain -> Bean
     }
 
+    // Effettua il logout, invalidando la sessione nel SessionManager
     public void logout(UUID sessionId) {
-        // Invalida la sessione nel SessionManager
         SessionManager.getInstance().invalidateSession(sessionId);
     }
 
-    /* Controlla se la sessione con quell'UUID è ancora attiva. */
+    // Verifica se una sessione è ancora attiva
     public boolean isSessionActive(UUID sessionId) {
         return SessionManager.getInstance().isSessionActive(sessionId);
     }
 
-    /* Restituisce il dominio User associato alla sessione, oppure null se non valido.
-     * Utile a HomeController o alle View per recuperare UserBean da dominio. */
+    // Restituisce il dominio User associato alla sessione, oppure null se non valido.
+    // Utile a HomeController o alle View per recuperare UserBean da dominio.
     public User getUserFromSession(UUID sessionId) {
         Session s = SessionManager.getInstance().getSession(sessionId);
         return (s != null) ? s.getUser() : null;
-    }
-
-    public UserBean getUserBeanFromSession(UUID sessionId) {
-        if (!isSessionActive(sessionId)) return null;
-
-        User dom = getUserFromSession(sessionId);
-        if (dom == null) return null;
-
-        UserBean ub = new UserBean();
-        ub.setEmail(dom.getEmail());
-        ub.setUsername(dom.getUsername());
-
-        for (Account acc : dom.getAccounts()) {
-            AccountBean ab = new AccountBean();
-            ab.setAccountId(acc.getAccountId());
-            ab.setRole(acc.getRole());
-            ab.setName(acc.getName());
-            ab.setSurname(acc.getSurname());
-            ub.addAccount(ab);
-        }
-        return ub;
     }
 }
 

@@ -181,7 +181,7 @@ public class BookingSessionGraphicControllerColored implements NavigableControll
     // del calendario al seguito di una prenotazione
     private BookingSessionParent parentController;
 
-    // Variabili statiche per i parametri di ricerca (Booking scene)
+    // Variabili statiche per i parametri di ricerca
     private static String chosenLocation;
     private static String chosenSubject;
     private static AvailabilityBean chosenAvailability;
@@ -196,6 +196,7 @@ public class BookingSessionGraphicControllerColored implements NavigableControll
     }
 
     // Chiamato dalla Home dopo il FXMLLoader
+    // Inizializza i dati della sessione e prepara la scena a seconda della tabella presente
     @Override
     public void initData(UUID sid, UserBean userBean) {
 
@@ -228,7 +229,8 @@ public class BookingSessionGraphicControllerColored implements NavigableControll
         chosenAvailability = availability;
     }
 
-    // Logica per la scena BookingTutoringSession.fxml
+    // Inizializza la scena per la prenotazione: configura label, check, tabella tutor
+    // Ho effettuato un refactoring per ridurre la complessità, come chiesto da SonarQube
     private void initBookingScene(Image fullStarImage, Image emptyStarImage) {
         setupWelcomeLabel();
         setupFilterLabels();
@@ -290,6 +292,8 @@ public class BookingSessionGraphicControllerColored implements NavigableControll
         firstLessonFreeCheck.selectedProperty().addListener((obs, oldVal, newVal) -> updateTutorTable());
     }
 
+    // Configura la tabella tutor: colonne, rating a stelle, eventi
+    // Anche qui ho effettuato un refactoring per ridurre la complessità, come chiesto da SonarQube
     private void setupTutorTable(Image fullStarImage, Image emptyStarImage) {
         setupCellValueFactories();
         setupRatingColumnWithStars(fullStarImage, emptyStarImage);
@@ -351,7 +355,7 @@ public class BookingSessionGraphicControllerColored implements NavigableControll
     }
 
 
-    /* updateTutorTable completamente delegato al controller applicativo */
+    // Aggiorna la tabella dei tutor in base ai filtri selezionati
     private void updateTutorTable() {
 
         // Costruisco l'oggetto criteria necessario per la chiamata di searchTutor
@@ -376,6 +380,7 @@ public class BookingSessionGraphicControllerColored implements NavigableControll
         }
     }
 
+    // Configura doppio clic su riga tutor per mostrarne il profilo
     private void setupRowDoubleClick() {
         tutorTable.setRowFactory(tv -> {
             TableRow<TutorBean> row = new TableRow<>();
@@ -391,6 +396,7 @@ public class BookingSessionGraphicControllerColored implements NavigableControll
         });
     }
 
+    // Configura la tabella dei giorni "prenotabili" (modificabile dall'utente)
     private void setupDayBookingTable() {
         dayTable.setEditable(true);
         ObservableList<String> timeSlots = generateTimeSlots();
@@ -433,6 +439,7 @@ public class BookingSessionGraphicControllerColored implements NavigableControll
         return timeSlots;
     }
 
+    // Ordina la tabella tutor in base alla selezione dell'utente (es. per prezzo, rating)
     @FXML
     private void orderTutorTable() {
         // Recupero la lista dei tutor attualmente mostrati
@@ -464,13 +471,15 @@ public class BookingSessionGraphicControllerColored implements NavigableControll
         tutorTable.refresh();
     }
 
+    // Popola la tabella dei giorni "prenotabili" per un tutor selezionato
     private void populateDayBookingsForTutor(TutorBean tutor) {
 
         dayBookings.setAll(bookingCtrl.computeDayBookingsForTutor(tutor.getAccountId(), chosenAvailability));
         dayTable.setItems(dayBookings);
     }
 
-    // Logica per la scena ManageNoticeBoard.fxml
+    // Inizializza la scena della bacheca: colonne, righe, carica sessioni
+    // Ho effettuato un refactoring per ridurre la complessità, come chiesto da SonarQube
     private void initManageNoticeBoardScene() {
         setupSessionRowFactory();
         setupSessionColumns();
@@ -510,6 +519,7 @@ public class BookingSessionGraphicControllerColored implements NavigableControll
                 && event.getClickCount() == 2;
     }
 
+    // Restituisce il ruolo dell'utente loggato (Student o Tutor)
     private String getLoggedUserRole() {
         UserBean me = getLoggedUser();
         if (me == null) return null;
@@ -521,6 +531,7 @@ public class BookingSessionGraphicControllerColored implements NavigableControll
         return null;
     }
 
+    // Configura le colonne della tabella sessione
     private void setupSessionColumns() {
 
         studentColumn.setCellValueFactory(cd ->
@@ -561,6 +572,7 @@ public class BookingSessionGraphicControllerColored implements NavigableControll
         statusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
     }
 
+    // Carica e mostra le sessioni dell'utente loggato
     private void loadUserSessions() {
         UserBean me = getLoggedUser();
         if (me == null) return;
@@ -589,7 +601,7 @@ public class BookingSessionGraphicControllerColored implements NavigableControll
         sessionTable.setItems(FXCollections.observableArrayList(list));
     }
 
-    // Aggiunge i pulsanti Accept/Refuse se l'utente è un Tutor
+    // Aggiunge la colonna azione booking (accept/refuse) se utente tutor
     private void addBookingActionColumn() {
 
         if (!isLogged()) {
@@ -626,6 +638,7 @@ public class BookingSessionGraphicControllerColored implements NavigableControll
     viene configurata e restituita, l'assegnazione è necessaria e la
     variabile 'btn' viene configurata e restituita, l'assegnazione è necessaria */
 
+    // Configura i bottoni accept/refuse per la colonna azione booking
     private void setupBookingActionButtons() {
         bookingActionColumn.setCellFactory(col -> new TableCell<>() {
             private final Button acceptBtn = createAcceptButton();
@@ -662,6 +675,7 @@ public class BookingSessionGraphicControllerColored implements NavigableControll
     }
 
     @SuppressWarnings("java:S1144") // Il metodo è usato in setupBookingActionButtons
+    // Gestisce l'accettazione della sessione selezionata
     private void handleAccept(int index) {
         if (userConfirmed(
                 "Confirm Booking's approval",
@@ -679,6 +693,7 @@ public class BookingSessionGraphicControllerColored implements NavigableControll
     }
 
     @SuppressWarnings("java:S1144") // Il metodo è usato in setupBookingActionButtons
+    // Gestisce il rifiuto della sessione selezionata
     private void handleRefuse(int index) {
         if (userConfirmed(
                 "Confirm Booking's refusal",
@@ -693,6 +708,7 @@ public class BookingSessionGraphicControllerColored implements NavigableControll
         }
     }
 
+    // Mostra una finestra di conferma per un'azione (accept/refuse)
     private boolean userConfirmed(String title, String header, String content) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle(title);
@@ -708,10 +724,12 @@ public class BookingSessionGraphicControllerColored implements NavigableControll
         return modCancelActionColumn;
     }
 
+    // Restituisce la tabella sessione per essere configurata esternamente
     public TableView<TutoringSessionBean> getSessionTable() {
         return sessionTable;
     }
 
+    // Gestisce la prenotazione delle sessioni selezionate
     @FXML
     private void handleBookSession(ActionEvent event) {
 
@@ -720,7 +738,7 @@ public class BookingSessionGraphicControllerColored implements NavigableControll
             return;
         }
 
-        if (!ensureUserLoggedIn(event)) {           // esce se non loggato
+        if (!ensureUserLoggedIn(event)) {
             return;
         }
 
@@ -734,6 +752,7 @@ public class BookingSessionGraphicControllerColored implements NavigableControll
         }
     }
 
+    // Esegue la prenotazione delle righe selezionate
     private int bookSelectedRows(TutorBean tutor) {
         int count = 0;
         String studentId = getLoggedAccountId();
@@ -777,7 +796,7 @@ public class BookingSessionGraphicControllerColored implements NavigableControll
         return getLoggedUser() != null;
     }
 
-
+    // Mostra il profilo del tutor selezionato
     @FXML
     private void showTutorProfile(String tutorAccountId) {
         try {
@@ -814,6 +833,7 @@ public class BookingSessionGraphicControllerColored implements NavigableControll
         return false;
     }
 
+    // Mostra il profilo dello studente selezionato
     @FXML
     private void showStudentProfile(String studentAccountId) {
         try {

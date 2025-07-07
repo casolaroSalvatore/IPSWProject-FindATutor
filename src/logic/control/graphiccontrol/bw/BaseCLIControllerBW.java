@@ -8,16 +8,15 @@ import java.time.LocalTime;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/* Classe all'interno della quale definiamo le operazioni necessarie per supportare la versione CLI */
+// Classe base per i controller CLI (versione BW), fornisce metodi di supporto per input utente e logging.
 public abstract class BaseCLIControllerBW {
 
     private static final Logger LOGGER = Logger.getLogger(BaseCLIControllerBW.class.getName());
 
-    /* Lettore basato su java.io */
-    private static final BufferedReader IN =
-            new BufferedReader(new InputStreamReader(System.in));
+    // Lettore per l'input da console.
+    private static final BufferedReader IN = new BufferedReader(new InputStreamReader(System.in));
 
-    /* Configurazione del logger */
+    // Configurazione del Logger
     static {
         SystemOutConsoleHandler handler = new SystemOutConsoleHandler();
         handler.setLevel(Level.INFO);
@@ -27,7 +26,6 @@ public abstract class BaseCLIControllerBW {
         LOGGER.setLevel(Level.INFO);
     }
 
-    /* Chiede una stringa all’utente e la restituisce ripulita */
     protected String ask(String prompt) {
         LOGGER.info(prompt);
         try {

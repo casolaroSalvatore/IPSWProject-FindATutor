@@ -5,9 +5,11 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
+
+// DayBookingBean è un Bean che trasporta i dati di una
+// prenotazione per un giorno (data, orari, commento, selezione).
 
 public class DayBookingBean {
 
@@ -70,12 +72,12 @@ public class DayBookingBean {
     }
 
     public LocalTime getStartTimeParsed() {
-        String v = startTime.get();          // <-- legge la stringa
+        String v = startTime.get();
         return (v == null || v.isBlank()) ? null : LocalTime.parse(v);
     }
 
     public LocalTime getEndTimeParsed() {
-        String v = endTime.get();            // <-- legge la stringa
+        String v = endTime.get();
         return (v == null || v.isBlank()) ? null : LocalTime.parse(v);
     }
 
@@ -83,19 +85,16 @@ public class DayBookingBean {
         return getStartTime() == null || getEndTime() == null || getStartTime().isBlank() || getEndTime().isBlank();
     }
 
+    // Verifica sintattica: presenza orari, corretto ordine start < end, formato valido.
     public void checkSyntax() {
-        if (date.get() == null || date.get().isBefore(LocalDate.now()))
-            throw new IllegalArgumentException("Date must be today or later.");
         if (missingTimes())
             throw new IllegalArgumentException("Start/End time required.");
         LocalTime s = getStartTimeParsed();
         LocalTime e = getEndTimeParsed();
-        if (s == null || e == null || !s.isBefore(e))
+        if (s == null || e == null)
+            throw new IllegalArgumentException("Invalid time format.");
+        if (!s.isBefore(e))
             throw new IllegalArgumentException("Start must be before End.");
-        if (Duration.between(s, e).toMinutes() < 60)
-            throw new IllegalArgumentException("Minimum slot 1 hour.");
-        if (s.isBefore(LocalTime.of(7, 0)) || e.isAfter(LocalTime.of(22, 0)))
-            throw new IllegalArgumentException("Time must be between 07:00 and 22:00.");
     }
 }
 

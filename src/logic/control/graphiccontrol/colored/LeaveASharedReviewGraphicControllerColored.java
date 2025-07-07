@@ -21,6 +21,7 @@ import logic.bean.SharedReviewBean;
 import logic.bean.UserBean;
 import logic.control.logiccontrol.LeaveASharedReviewController;
 import logic.model.domain.ReviewStatus;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -152,6 +153,14 @@ public class LeaveASharedReviewGraphicControllerColored implements NavigableCont
     private UUID sessionId;
     private UserBean userBean;
 
+    @FXML
+    public void initialize() {
+        // Solo caricamento delle immagini o risorse neutre
+        emptyStar = new Image(getClass().getResourceAsStream("/images/empty_star.png"));
+        fullStar = new Image(getClass().getResourceAsStream("/images/full_star.png"));
+    }
+
+    // Inizializza la sessione e la UI in base al ruolo utente, configura le tabelle e i badge
     @Override
     public void initData(UUID sid, UserBean user) {
 
@@ -176,15 +185,7 @@ public class LeaveASharedReviewGraphicControllerColored implements NavigableCont
         initializeStarRating();
     }
 
-    @FXML
-    public void initialize() {
-        // Solo caricamento delle immagini o risorse neutre
-        emptyStar = new Image(getClass().getResourceAsStream("/images/empty_star.png"));
-        fullStar = new Image(getClass().getResourceAsStream("/images/full_star.png"));
-    }
-
-    // Helper per la fattorizzazione
-
+    // Mostra la UI per utente disconnesso
     private void showLoggedOutUI() {
         welcomeLabel.setVisible(false);
         logInButton.setVisible(true);
@@ -194,6 +195,7 @@ public class LeaveASharedReviewGraphicControllerColored implements NavigableCont
         tutorPane.setVisible(false);
     }
 
+    // Mostra la UI per utente loggato e configura pulsanti
     private void showLoggedInUI(UserBean user) {
         welcomeLabel.setText("Welcome, " + user.getUsername() + "!");
         welcomeLabel.setVisible(true);
@@ -202,7 +204,7 @@ public class LeaveASharedReviewGraphicControllerColored implements NavigableCont
         signUpButton.setVisible(false);
     }
 
-    // Colonne della studentTable
+    // Configura le colonne della tabella dello studente
     private void configureStudentTableColumns() {
 
         tutorInfoColumnStudent.setCellValueFactory(cd ->               /// info già calcolata nel bean
@@ -218,7 +220,7 @@ public class LeaveASharedReviewGraphicControllerColored implements NavigableCont
                 new SimpleStringProperty(cd.getValue().getStatus().name()));
     }
 
-    // Colonne della tutorTable
+    // Configura le colonne della tabella del tutor
     private void configureTutorTableColumns() {
 
         studentInfoColumnTutor.setCellValueFactory(cd ->
@@ -234,6 +236,7 @@ public class LeaveASharedReviewGraphicControllerColored implements NavigableCont
                 new SimpleStringProperty(cd.getValue().getStatus().name()));
     }
 
+    // Configura il doppio clic sulle righe della tabella studente per mostrare profilo tutor
     private void configureStudentRowFactory() {
         studentTable.setRowFactory(tv -> {
             TableRow<SharedReviewBean> row = new TableRow<>();
@@ -251,6 +254,7 @@ public class LeaveASharedReviewGraphicControllerColored implements NavigableCont
         });
     }
 
+    // Configura il doppio clic sulle righe della tabella tutor per mostrare profilo studente
     private void configureTutorRowFactory() {
         tutorTable.setRowFactory(tv -> {
             TableRow<SharedReviewBean> row = new TableRow<>();
@@ -268,6 +272,7 @@ public class LeaveASharedReviewGraphicControllerColored implements NavigableCont
         });
     }
 
+    // Mostra il pannello corretto in base al ruolo e carica i dati
     private void showPaneByRoleAndLoadData() {
 
         String role = leaveASharedReviewController.getLoggedRole(sessionId);
@@ -292,7 +297,7 @@ public class LeaveASharedReviewGraphicControllerColored implements NavigableCont
         }
     }
 
-    // Esempio: "Studente" => carico i tutor con findAllTutorsForStudent, trovo/creo le review
+    // Carica i tutor per uno studente e costruisce le review
     private void loadTutorListAndBuildReviews(String studentId) {
         var tutorIds = leaveASharedReviewController.findAllTutorsForStudent(studentId);
         List<SharedReviewBean> rows = new ArrayList<>();
@@ -303,7 +308,7 @@ public class LeaveASharedReviewGraphicControllerColored implements NavigableCont
         studentTable.setItems(FXCollections.observableArrayList(rows));
     }
 
-    // "Tutor" => carico gli studenti con findAllStudentsForTutor, trovo/creo le review
+    // Carica gli studenti per un tutor e costruisce le review
     private void loadStudentListAndBuildReviews(String tutorId) {
         var studentIds = leaveASharedReviewController.findAllStudentsForTutor(tutorId);
         List<SharedReviewBean> rows = new ArrayList<>();
@@ -314,7 +319,7 @@ public class LeaveASharedReviewGraphicControllerColored implements NavigableCont
         tutorTable.setItems(FXCollections.observableArrayList(rows));
     }
 
-    // Quando lo studente clicca una riga
+    // Gestisce il clic su una riga della tabella studente e aggiorna il form
     @FXML
     public void handleStudentTableClick(MouseEvent event) {
         SharedReviewBean sr = studentTable.getSelectionModel().getSelectedItem();
@@ -361,7 +366,7 @@ public class LeaveASharedReviewGraphicControllerColored implements NavigableCont
         }
     }
 
-    // Quando il tutor clicca una riga
+    // Gestisce il clic su una riga della tabella tutor e aggiorna il form
     @FXML
     public void handleTutorTableClick(MouseEvent event) {
         SharedReviewBean sr = tutorTable.getSelectionModel().getSelectedItem();
@@ -405,7 +410,7 @@ public class LeaveASharedReviewGraphicControllerColored implements NavigableCont
     }
 
 
-    // Quando lo studente invia la recensione
+    // Gestisce l'invio della recensione lato studente
     @FXML
     public void handleStudentSubmit(ActionEvent event) {
         if (selectedStudentReview == null) {
@@ -433,17 +438,20 @@ public class LeaveASharedReviewGraphicControllerColored implements NavigableCont
         }
     }
 
+    // Inizializza le stelle cliccabili per lo studente
     private void initializeStarRating() {
         List<ImageView> stars = List.of(star1, star2, star3, star4, star5);
-        IntStream.range(0, 5).forEach(i -> {
+
+        for (int i = 0; i < 5; i++) {
             ImageView iv = stars.get(i);
             iv.setImage(emptyStar);
             iv.setPickOnBounds(true);
+            final int index = i;
             iv.setOnMouseClicked(e -> {
-                selectedStars = i + 1;    // se clicco 0-based i, accendo (i+1) stelle
+                selectedStars = index + 1;
                 updateStarDisplay();
             });
-        });
+        }
     }
 
     private void updateStarDisplay() {
@@ -463,7 +471,7 @@ public class LeaveASharedReviewGraphicControllerColored implements NavigableCont
         }
     }
 
-    // Quando il tutor invia la recensione
+    // Gestisce l'invio della recensione lato tutor
     @FXML
     public void handleTutorSubmit(ActionEvent event) {
         if (selectedTutorReview == null) {
@@ -486,7 +494,7 @@ public class LeaveASharedReviewGraphicControllerColored implements NavigableCont
         showAlert("Review sent", "Tutor-side review has been submitted!");
     }
 
-
+    // Mostra il profilo del tutor selezionato
     @FXML
     private void showTutorProfile(String tutorAccountId) {
         try {
@@ -505,6 +513,7 @@ public class LeaveASharedReviewGraphicControllerColored implements NavigableCont
         }
     }
 
+    // Mostra il profilo dello studente selezionato
     private void showStudentProfile(String studentAccountId) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/StudentProfile.fxml"));

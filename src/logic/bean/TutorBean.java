@@ -1,5 +1,6 @@
 package logic.bean;
 
+// TutorBean è un Bean che estende AccountBean e trasporta i dati aggiuntivi specifici di un tutor (es. materia, tariffa oraria, rating, offerte).
 public class TutorBean extends AccountBean {
 
     private String subject;

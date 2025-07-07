@@ -1,6 +1,6 @@
 package logic.exception;
 
-/* La ricerca da parte dello Student non produce risultati */
+// Eccezione lanciata quando la ricerca dello studente non trova tutor
 public class NoTutorFoundException extends Exception {
   public NoTutorFoundException(String details) { super(details); }
 }

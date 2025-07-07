@@ -18,6 +18,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
+
 import java.io.File;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -128,6 +129,8 @@ public class SignUpGraphicControllerColored {
 
     @FXML
     private Hyperlink backToLogin;
+
+    // Inizializza i listener della comboBox ruolo per mostrare/nascondere i campi dinamici
     @FXML
     public void initialize() {
         if (roleComboBox != null) {
@@ -165,8 +168,7 @@ public class SignUpGraphicControllerColored {
         }
     }
 
-
-
+    // Gestisce la registrazione della prima parte (student o tutor step 1)
     @FXML
     public void handleRegister(ActionEvent event) {
 
@@ -218,7 +220,10 @@ public class SignUpGraphicControllerColored {
 
             try {
                 accountBean.checkStudentSyntax();
-            } catch (IllegalArgumentException ex) { showAlert(ERROR, ex.getMessage()); return; }
+            } catch (IllegalArgumentException ex) {
+                showAlert(ERROR, ex.getMessage());
+                return;
+            }
 
             userBean.addAccount(accountBean);
 
@@ -233,10 +238,10 @@ public class SignUpGraphicControllerColored {
             SignUpController signUpController = new SignUpController();
             AuthResultBean authResultBean = signUpController.registerUser(userBean);
             if (authResultBean != null) {
-                showAlert("Sign-up completed","Registration completed successfully!\nYou can now log in to your account");
+                showAlert("Sign-up completed", "Registration completed successfully!\nYou can now log in to your account");
                 goToLogin();
             } else {
-                showAlert(ERROR,"Account already exists.");
+                showAlert(ERROR, "Account already exists.");
             }
 
         } else if (TUTOR.equalsIgnoreCase(role)) {
@@ -247,6 +252,7 @@ public class SignUpGraphicControllerColored {
         }
     }
 
+    // Gestisce la registrazione della seconda parte (tutor step 2)
     @FXML
     public void handleTutorData(ActionEvent event) {
 
@@ -311,21 +317,22 @@ public class SignUpGraphicControllerColored {
             accountBean.checkPasswordSyntax();
             accountBean.checkTutorSyntax();
         } catch (IllegalArgumentException ex) {
-          showAlert(ERROR, ex.getMessage());
-          return;
+            showAlert(ERROR, ex.getMessage());
+            return;
         }
 
         SignUpController signUpController = new SignUpController();
         AuthResultBean authResultBean = signUpController.registerUser(userBean);
         if (authResultBean != null) {
-            showAlert("Sign-up completed","Registration completed successfully!\nYou can now log in to your account");
+            showAlert("Sign-up completed", "Registration completed successfully!\nYou can now log in to your account");
             SignUpController.clearPartialTutor();
             goToLogin1();
         } else {
-            showAlert(ERROR,"Account already exists.");
+            showAlert(ERROR, "Account already exists.");
         }
     }
 
+    // Mostra un file chooser per selezionare un'immagine del profilo
     @FXML
     private void handleBrowseImage(ActionEvent event) {
         FileChooser fileChooser = new FileChooser();
