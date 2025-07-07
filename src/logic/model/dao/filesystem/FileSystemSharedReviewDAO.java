@@ -7,7 +7,6 @@ import logic.model.domain.SharedReview;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.function.Predicate;
 
 // DAO filesystem per la gestione delle SharedReview
 public class FileSystemSharedReviewDAO extends FileSystemDAO<String, SharedReview> implements SharedReviewDAO {

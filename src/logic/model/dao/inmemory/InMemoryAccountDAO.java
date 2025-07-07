@@ -26,12 +26,6 @@ public class InMemoryAccountDAO extends InMemoryDAO<String, Account> implements 
         return account.getEmail() + "_" + account.getRole();
     }
 
-    // Salva l'account e stampa un messaggio
-    @Override
-    public void store(Account account) {
-        super.store(account);
-    }
-
     // Restituisce tutti gli account con il ruolo specificato
     @Override
     public List<Account> loadAllAccountsOfType(String role) {
