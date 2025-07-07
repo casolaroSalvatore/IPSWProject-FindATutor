@@ -144,7 +144,7 @@ public class LeaveASharedReviewGraphicControllerColored implements NavigableCont
     private SharedReviewBean selectedTutorReview;
 
     // Variabile per memorizzare stelle scelte
-    private double selectedStars = 0;
+    private int selectedStars = 0;
     // Immagini delle stelle
     private Image emptyStar;
     private Image fullStar;
@@ -448,7 +448,7 @@ public class LeaveASharedReviewGraphicControllerColored implements NavigableCont
             iv.setPickOnBounds(true);
             final int index = i;
             iv.setOnMouseClicked(e -> {
-                selectedStars = (double) (index + 1);
+                selectedStars = (index + 1);
                 updateStarDisplay();
             });
         }

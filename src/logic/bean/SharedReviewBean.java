@@ -25,7 +25,6 @@ public class SharedReviewBean {
     private static final int COMMENT_MAX = 300;
     private static final String CHARS = "chars.";
 
-    // Enum locale, in maniera da non accedere a ReviewStatus;
     private ReviewStatus status;
 
     // Enum indicante il ruolo del sender della recensione
