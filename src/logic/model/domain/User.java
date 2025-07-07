@@ -3,6 +3,8 @@ package logic.model.domain;
 import java.util.ArrayList;
 import java.util.List;
 
+// Rappresenta un utente registrato nel sistema, identificato dalla propria email.
+// Ogni utente può avere più account associati, ciascuno con un ruolo specifico (es. "Student", "Tutor").
 public class User {
 
     public String email;
@@ -22,23 +24,26 @@ public class User {
         return email;
     }
 
-    public String getUsername() { return username; }
+    public String getUsername() {
+        return username;
+    }
 
     public Account getAccount(String accountId) {
-        for (Account account: accounts) {
-            if(account.getAccountId().equals(accountId)) {
+        for (Account account : accounts) {
+            if (account.getAccountId().equals(accountId)) {
                 return account;
             }
-        } return null;
+        }
+        return null;
     }
 
     public boolean hasAccount(String role) {
         for (Account acc : accounts) {
             if (acc.getRole().equals(role)) {
-                return true; // Se troviamo un account con il ruolo cercato, restituiamo true
+                return true;
             }
         }
-        return false; // Nessun account con il ruolo trovato
+        return false;
     }
 
     public void addAccount(Account account) {

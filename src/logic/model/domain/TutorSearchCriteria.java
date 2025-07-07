@@ -2,7 +2,10 @@ package logic.model.domain;
 
 import logic.bean.AvailabilityBean;
 
-// Classe ausiliaria creata unicamente per silenziare l'errore su SonarQube
+// Rappresenta i criteri di ricerca che uno studente può utilizzare per filtrare i tutor disponibili.
+// Viene utilizzata nel flusso di ricerca lato Controller logico per trovare tutor corrispondenti
+// ai criteri specificati. La sua introduzione ha lo scopo, tra l’altro, di risolvere un problema
+// di SonarQube su codice duplicato o parametri multipli.
 public record TutorSearchCriteria(
         String subject,
         String location,

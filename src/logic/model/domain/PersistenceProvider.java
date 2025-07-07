@@ -5,6 +5,7 @@ import logic.model.dao.db.DBDaoFactory;
 import logic.model.dao.filesystem.FileSystemDAOFactory;
 import logic.model.dao.inmemory.InMemoryDAOFactory;
 
+// Enum che rappresenta i provider di persistenza disponibili nell'applicazione: InMemory, FileSystem e DB
 public enum PersistenceProvider {
 
     IN_MEMORY("InMemory", InMemoryDAOFactory.class),
@@ -23,6 +24,7 @@ public enum PersistenceProvider {
         return this.name;
     }
 
+    // Restituisce la classe della DaoFactory associata al provider
     public Class<? extends DaoFactory> getDaoFactoryclass() {
         return daoFactoryclass;
     }

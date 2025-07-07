@@ -2,6 +2,8 @@ package logic.model.domain;
 
 import java.time.LocalDate;
 
+// Rappresenta un account con ruolo di Tutor, estendendo la classe Account.
+// Contiene attributi specifici relativi all'offerta didattica.
 public class Tutor extends Account {
 
     private String educationalTitle;
@@ -15,7 +17,7 @@ public class Tutor extends Account {
     private boolean offersGroup;
     private boolean firstLessonFree;
 
-    public Tutor (String email) {
+    public Tutor(String email) {
         super(email, "Tutor");
         this.subject = null;
         this.location = null;
@@ -55,26 +57,78 @@ public class Tutor extends Account {
             this.email = email;
         }
 
-        public Builder name(String name) { this.name = name; return this; }
-        public Builder surname(String surname) { this.surname = surname; return this; }
-        public Builder birthday(LocalDate birthday) { this.birthday = birthday; return this; }
-        public Builder educationalTitle(String educationalTitle) { this.educationalTitle = educationalTitle; return this; }
-        public Builder location(String location) { this.location = location; return this; }
-        public Builder availability(Availability availability) { this.availability = availability; return this; }
-        public Builder subject(String subject) { this.subject = subject; return this; }
-        public Builder hourlyRate(float hourlyRate) { this.hourlyRate = hourlyRate; return this; }
-        public Builder offersInPerson(boolean offersInPerson) { this.offersInPerson = offersInPerson; return this; }
-        public Builder offersOnline(boolean offersOnline) { this.offersOnline = offersOnline; return this; }
-        public Builder offersGroup(boolean offersGroup) { this.offersGroup = offersGroup; return this; }
-        public Builder firstLessonFree(boolean firstLessonFree) { this.firstLessonFree = firstLessonFree; return this; }
+        public Builder name(String name) {
+            this.name = name;
+            return this;
+        }
+
+        public Builder surname(String surname) {
+            this.surname = surname;
+            return this;
+        }
+
+        public Builder birthday(LocalDate birthday) {
+            this.birthday = birthday;
+            return this;
+        }
+
+        public Builder educationalTitle(String educationalTitle) {
+            this.educationalTitle = educationalTitle;
+            return this;
+        }
+
+        public Builder location(String location) {
+            this.location = location;
+            return this;
+        }
+
+        public Builder availability(Availability availability) {
+            this.availability = availability;
+            return this;
+        }
+
+        public Builder subject(String subject) {
+            this.subject = subject;
+            return this;
+        }
+
+        public Builder hourlyRate(float hourlyRate) {
+            this.hourlyRate = hourlyRate;
+            return this;
+        }
+
+        public Builder offersInPerson(boolean offersInPerson) {
+            this.offersInPerson = offersInPerson;
+            return this;
+        }
+
+        public Builder offersOnline(boolean offersOnline) {
+            this.offersOnline = offersOnline;
+            return this;
+        }
+
+        public Builder offersGroup(boolean offersGroup) {
+            this.offersGroup = offersGroup;
+            return this;
+        }
+
+        public Builder firstLessonFree(boolean firstLessonFree) {
+            this.firstLessonFree = firstLessonFree;
+            return this;
+        }
 
         public Tutor build() {
             return new Tutor(this);
         }
     }
 
-    public String getEducationalTitle() { return educationalTitle; }
-    public void setEducationalTitle(String educationalTitle) { this.educationalTitle = educationalTitle; }
+    public String getEducationalTitle() {
+        return educationalTitle;
+    }
+
+    public void setEducationalTitle(String educationalTitle) {
+        this.educationalTitle = educationalTitle;
+    }
 
     public String getLocation() {
         return location;
@@ -92,18 +146,32 @@ public class Tutor extends Account {
         return subject;
     }
 
-    public float getHourlyRate() { return this.hourlyRate; }
+    public float getHourlyRate() {
+        return this.hourlyRate;
+    }
 
-    public float getRating() { return this.rating; }
+    public float getRating() {
+        return this.rating;
+    }
 
-    public void setRating(float rating) { this.rating = rating; }
+    public void setRating(float rating) {
+        this.rating = rating;
+    }
 
-    public boolean offersInPerson() { return offersInPerson; }
+    public boolean offersInPerson() {
+        return offersInPerson;
+    }
 
-    public boolean offersOnline() { return offersOnline; }
+    public boolean offersOnline() {
+        return offersOnline;
+    }
 
-    public boolean offersGroup() { return offersGroup; }
+    public boolean offersGroup() {
+        return offersGroup;
+    }
 
-    public boolean isFirstLessonFree() { return firstLessonFree; }
+    public boolean isFirstLessonFree() {
+        return firstLessonFree;
+    }
 
 }

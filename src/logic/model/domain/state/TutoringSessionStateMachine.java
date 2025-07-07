@@ -3,52 +3,86 @@ package logic.model.domain.state;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
+// Implementa la TutoringSessionEvents e funge da state machine (Context) per una TutoringSession.
+// Incapsula lo stato corrente (current) e delega tutti gli eventi all’oggetto stato attivo (ConcreteState).
+// È responsabile della transizione tra stati e della sincronizzazione con l’entità domain.
+
 public class TutoringSessionStateMachine implements TutoringSessionEvents {
 
+    // Stato corrente della sessione (ConcreteState attivo)
     private AbstractTutoringSessionState current;
+
+    // Riferimento al contesto Client (la sessione) su cui gli stati lavorano.
     private final TutoringSession tutoringSession;
 
-    public TutoringSessionStateMachine(TutoringSession tutoringSession){
+    public TutoringSessionStateMachine(TutoringSession tutoringSession) {
         this.tutoringSession = tutoringSession;
-        this.current = new DraftState();   // Stato di partenza
+        this.current = new DraftState();
         current.onEntry(tutoringSession);
     }
 
-    // Eventi delegati allo stato corrente
-    @Override public void book() { current.book(this, tutoringSession); }
-    @Override public void tutorAccept() { current.tutorAccept(this, tutoringSession); }
-    @Override public void tutorRefuse() { current.tutorRefuse(this, tutoringSession); }
-
+    // Evento: lo studente invia la richiesta di prenotazione.
     @Override
-    public void requestModification(LocalDate d, LocalTime s, LocalTime e,
-                                    String reason, String who){
-        current.requestModification(this, tutoringSession, d,s,e,reason,who);
+    public void book() {
+        current.book(this, tutoringSession);
+    }
+
+    // Eventi: il tutor accetta o rifiuta la richiesta.
+    @Override
+    public void tutorAccept() {
+        current.tutorAccept(this, tutoringSession);
     }
 
     @Override
-    public void acceptModification (){ current.acceptModification (this,tutoringSession); }
+    public void tutorRefuse() {
+        current.tutorRefuse(this, tutoringSession);
+    }
+
+    // Evento: uno degli utenti propone una modifica alla sessione.
+    @Override
+    public void requestModification(LocalDate d, LocalTime s, LocalTime e,
+                                    String reason, String who) {
+        current.requestModification(this, tutoringSession, d, s, e, reason, who);
+    }
+
+    // Evento: la controparte accetta o rifiuta la modifica.
+    @Override
+    public void acceptModification() {
+        current.acceptModification(this, tutoringSession);
+    }
+
+    // Evento: uno degli utenti richiede la cancellazione della sessione.
+    @Override
+    public void refuseModification() {
+        current.refuseModification(this, tutoringSession);
+    }
 
     @Override
-    public void refuseModification (){ current.refuseModification (this,tutoringSession); }
-
-    @Override
-    public void requestCancellation(String reason, String who){
+    public void requestCancellation(String reason, String who) {
         current.requestCancellation(this, tutoringSession, reason, who);
     }
 
+    // Evento: la controparte accetta o rifiuta la cancellazione.
     @Override
-    public void acceptCancellation (){ current.acceptCancellation (this,tutoringSession); }
+    public void acceptCancellation() {
+        current.acceptCancellation(this, tutoringSession);
+    }
 
     @Override
-    public void refuseCancellation (){ current.refuseCancellation (this,tutoringSession); }
+    public void refuseCancellation() {
+        current.refuseCancellation(this, tutoringSession);
+    }
 
-    // Servizio interno di modifica dello stato, NON esposto al Client
-    void setState(AbstractTutoringSessionState next){
+    // Metodo interno alla FSM (non accessibile al client) che esegue una transizione di stato.
+    // Invoca il metodo onExit() dello stato attuale e onEntry() del nuovo stato.
+    void setState(AbstractTutoringSessionState next) {
         current.onExit(tutoringSession);
         current = next;
         current.onEntry(tutoringSession);
     }
 
+    // Metodo chiamato per inizializzare la FSM partendo da uno stato salvato (ad esempio letto da DB).
+    // Ricostruisce lo stato corretto in base all’enum status e lo collega al contesto.
     public void bootstrap(TutoringSessionStatus status) {
         switch (status) {
             case DRAFT -> current = new DraftState(this, tutoringSession);

@@ -3,6 +3,7 @@ package logic.model.dao.db;
 import logic.model.dao.UserDAO;
 import logic.model.dao.AccountDAO;
 import logic.model.domain.*;
+
 import java.sql.*;
 import java.util.List;
 
@@ -13,6 +14,7 @@ public class DBUserDAO extends DBDAO<String, User> implements UserDAO {
 
     private static DBUserDAO instance;
 
+    // Singleton necessario per avere una sola istanza del DAO
     public static synchronized DBUserDAO getInstance() {
         if (instance == null) {
             instance = new DBUserDAO();
@@ -37,6 +39,7 @@ public class DBUserDAO extends DBDAO<String, User> implements UserDAO {
         return u.getEmail();
     }
 
+    // Mappa una riga del ResultSet in un oggetto User
     @Override
     protected User map(ResultSet rs) throws SQLException {
         String email = rs.getString("email");
@@ -47,6 +50,7 @@ public class DBUserDAO extends DBDAO<String, User> implements UserDAO {
         return u;
     }
 
+    // Inserisce un nuovo utente nel DB
     @Override
     protected void insert(User u) throws SQLException {
         String sql = "INSERT INTO users(email, username) VALUES (?,?)";
@@ -57,6 +61,7 @@ public class DBUserDAO extends DBDAO<String, User> implements UserDAO {
         }
     }
 
+    // Aggiorna lo username dell’utente esistente
     @Override
     protected void update(User u) throws SQLException {
         String sql = "UPDATE users SET username = ? WHERE email = ?";
@@ -67,6 +72,7 @@ public class DBUserDAO extends DBDAO<String, User> implements UserDAO {
         }
     }
 
+    // Factory method per creare un nuovo User dato un'email
     @Override
     public User create(String key) {
         return new User(key);

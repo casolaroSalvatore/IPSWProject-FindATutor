@@ -5,9 +5,15 @@ import java.time.Period;
 
 public class Account {
 
-    private String accountId; // Identificatore univoco: email + ruolo
-    private String email;     // Collegamento all'utente
-    private String role;      // Es. "Student" o "Tutor"
+    // Identificatore univoco dell'account: formato come "email_ruolo"
+    private String accountId;
+
+    // Email dell’utente a cui è associato l’account
+    private String email;
+
+    // Ruolo dell'account: ad esempio "Student" o "Tutor"
+    private String role;
+
     private String password;
     private String name;
     private String surname;
@@ -36,9 +42,17 @@ public class Account {
         this.profileComment = profileComment;
     }
 
-    public String getAccountId() { return this.accountId; }
-    public String getEmail() { return this.email; }
-    public String getRole() { return this.role; }
+    public String getAccountId() {
+        return this.accountId;
+    }
+
+    public String getEmail() {
+        return this.email;
+    }
+
+    public String getRole() {
+        return this.role;
+    }
 
     public String getPassword() {
         return password;
@@ -48,14 +62,29 @@ public class Account {
         this.password = password;
     }
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public String getName() {
+        return name;
+    }
 
-    public String getSurname() { return surname; }
-    public void setSurname(String surname) { this.surname = surname; }
+    public void setName(String name) {
+        this.name = name;
+    }
 
-    public LocalDate getBirthday() { return birthday; }
-    public void setBirthday(LocalDate birthday) { this.birthday = birthday; }
+    public String getSurname() {
+        return surname;
+    }
+
+    public void setSurname(String surname) {
+        this.surname = surname;
+    }
+
+    public LocalDate getBirthday() {
+        return birthday;
+    }
+
+    public void setBirthday(LocalDate birthday) {
+        this.birthday = birthday;
+    }
 
     public int getAge() {
         if (birthday == null) return -1;
@@ -65,12 +94,15 @@ public class Account {
     public String getProfilePicturePath() {
         return profilePicturePath;
     }
+
     public void setProfilePicturePath(String path) {
         this.profilePicturePath = path;
     }
+
     public String getProfileComment() {
         return profileComment;
     }
+
     public void setProfileComment(String comment) {
         this.profileComment = comment;
     }

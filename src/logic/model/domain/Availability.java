@@ -9,21 +9,35 @@ public class Availability {
     private LocalDate endDate;
     private List<DayOfWeek> daysOfWeek;
 
-    // Costruttore
     public Availability(LocalDate start, LocalDate end, List<DayOfWeek> days) {
         this.startDate = start;
         this.endDate = end;
         this.daysOfWeek = days;
     }
 
-    public LocalDate getStartDate() { return startDate; }
-    public void setStartDate(LocalDate startDate) { this.startDate = startDate; }
+    public LocalDate getStartDate() {
+        return startDate;
+    }
 
-    public LocalDate getEndDate() { return endDate; }
-    public void setEndDate(LocalDate endDate) { this.endDate = endDate; }
+    public void setStartDate(LocalDate startDate) {
+        this.startDate = startDate;
+    }
 
-    public List<DayOfWeek> getDaysOfWeek() { return daysOfWeek; }
-    public void setDaysOfWeek(List<DayOfWeek> daysOfWeek) { this.daysOfWeek = daysOfWeek; }
+    public LocalDate getEndDate() {
+        return endDate;
+    }
+
+    public void setEndDate(LocalDate endDate) {
+        this.endDate = endDate;
+    }
+
+    public List<DayOfWeek> getDaysOfWeek() {
+        return daysOfWeek;
+    }
+
+    public void setDaysOfWeek(List<DayOfWeek> daysOfWeek) {
+        this.daysOfWeek = daysOfWeek;
+    }
 
 }
 

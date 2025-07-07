@@ -2,6 +2,7 @@ package logic.model.dao.db;
 
 import logic.model.dao.*;
 
+// Factory concreta per la modalità Database (DB): fornisce DAO che accedono al database tramite JDBC
 public class DBDaoFactory extends DaoFactory {
 
     private DBUserDAO dbUserDAO;
@@ -9,6 +10,7 @@ public class DBDaoFactory extends DaoFactory {
     private DBTutoringSessionDAO dbTutoringSessionDAO;
     private DBSharedReviewDAO dbSharedReviewDAO;
 
+    // Restituisce un singleton per il DAO degli utenti
     @Override
     public UserDAO getUserDAO() {
         if (dbUserDAO == null) {
@@ -17,6 +19,7 @@ public class DBDaoFactory extends DaoFactory {
         return dbUserDAO;
     }
 
+    // Restituisce un singleton per il DAO degli account
     @Override
     public AccountDAO getAccountDAO() {
         if (dbAccountDAO == null) {
@@ -25,6 +28,7 @@ public class DBDaoFactory extends DaoFactory {
         return dbAccountDAO;
     }
 
+    // Restituisce un singleton per il DAO delle sessioni di tutoraggio
     @Override
     public TutoringSessionDAO getTutoringSessionDAO() {
         if (dbTutoringSessionDAO == null) {
@@ -33,6 +37,7 @@ public class DBDaoFactory extends DaoFactory {
         return dbTutoringSessionDAO;
     }
 
+    // Restituisce un singleton per il DAO delle recensioni condivise
     @Override
     public SharedReviewDAO getSharedReviewDAO() {
         if (dbSharedReviewDAO == null) {
