@@ -2,8 +2,7 @@ name: SonarQube
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
   pull_request:
     types: [opened, synchronize, reopened]
 
@@ -13,38 +12,38 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0   # permette a Sonar di vedere tutta la history
-          
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          java-version: 17
-          distribution: 'zulu'
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0              # SonarCloud vede tutta la history
 
-      - name: Cache SonarQube packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar
-          restore-keys: ${{ runner.os }}-sonar
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: 17
+        distribution: 'zulu'
 
-      - name: Cache Maven packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
+    - name: Cache SonarCloud packages
+      uses: actions/cache@v4
+      with:
+        path: ~/.sonar/cache
+        key: ${{ runner.os }}-sonar
+        restore-keys: ${{ runner.os }}-sonar
 
-      - name: Build (skip tests) and analyze on SonarCloud
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-            mvn -B -Dmaven.test.skip=true verify \
-            org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
-            -Dsonar.projectKey=casolaroSalvatore_IPSWProject-FindATutor \
-            -Dsonar.organization=casolarosalvatore \
-            -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.sources=src
+    - name: Cache Maven packages
+      uses: actions/cache@v4
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-m2
+
+    - name: Build (skip *execution* of tests) and analyze on SonarCloud
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}   # token creato nella nuova org
+      run: |
+        mvn -B verify \
+          -DskipTests \                       # compila i test ma non li esegue
+          org.sonarsource.scanner.maven:sonar-maven-plugin:5.1.0.4751:sonar \
+          -Dsonar.host.url=https://sonarcloud.io \
+          -Dsonar.organization=findatutor-org \
+          -Dsonar.projectKey=findatutor-org_IPSWProject-FindATutor
