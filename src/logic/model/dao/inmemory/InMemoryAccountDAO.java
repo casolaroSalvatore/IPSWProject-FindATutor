@@ -6,7 +6,10 @@ import logic.model.domain.Account;
 import java.util.ArrayList;
 import java.util.List;
 
-// DAO in-memory per la gestione degli Account
+@SuppressWarnings("java:S6548")
+// Singleton usato intenzionalmente per InMemoryAccountDAO: garantisce un'unica istanza per
+// centralizzare la gestione degli account in memoria, evitando duplicazioni e
+// assicurando coerenza tramite DaoFactory.
 public class InMemoryAccountDAO extends InMemoryDAO<String, Account> implements AccountDAO {
 
     private static InMemoryAccountDAO instance;

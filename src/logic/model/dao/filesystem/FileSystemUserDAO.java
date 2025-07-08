@@ -1,7 +1,7 @@
 package logic.model.dao.filesystem;
 
 import logic.model.dao.AccountDAO;
-import logic.model.dao.DaoFactory;
+import logic.infrastructure.DaoFactory;
 import logic.model.dao.UserDAO;
 import logic.model.domain.Account;
 import logic.model.domain.User;

@@ -4,6 +4,7 @@ import logic.exception.dao.AccountDAOInitException;
 import logic.exception.dao.SharedReviewDAOInitException;
 import logic.exception.dao.TutoringSessionDAOInitException;
 import logic.exception.filesystem.UserDaoInitException;
+import logic.infrastructure.DaoFactory;
 import logic.model.dao.*;
 
 import java.io.IOException;

@@ -1,7 +1,7 @@
 package logic.model.dao.inmemory;
 
 import logic.model.dao.DAO;
-import logic.model.dao.DaoFactory;
+import logic.infrastructure.DaoFactory;
 import logic.model.dao.UserDAO;
 import logic.model.domain.Account;
 import logic.model.domain.User;
@@ -9,7 +9,11 @@ import logic.model.domain.User;
 import java.util.ArrayList;
 import java.util.List;
 
-// DAO in-memory per la gestione degli User
+
+@SuppressWarnings("java:S6548")
+// Singleton usato intenzionalmente per InMemoryUserDAO: garantisce un'unica istanza per
+// centralizzare la gestione degli user in memoria, evitando duplicazioni e
+// assicurando coerenza tramite DaoFactory.
 public class InMemoryUserDAO extends InMemoryDAO<String, User> implements UserDAO {
 
     private static InMemoryUserDAO instance;

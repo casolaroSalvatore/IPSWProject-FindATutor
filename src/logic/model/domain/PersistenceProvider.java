@@ -1,6 +1,6 @@
 package logic.model.domain;
 
-import logic.model.dao.DaoFactory;
+import logic.infrastructure.DaoFactory;
 import logic.model.dao.db.DBDaoFactory;
 import logic.model.dao.filesystem.FileSystemDAOFactory;
 import logic.model.dao.inmemory.InMemoryDAOFactory;

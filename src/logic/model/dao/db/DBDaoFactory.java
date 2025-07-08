@@ -1,5 +1,6 @@
 package logic.model.dao.db;
 
+import logic.infrastructure.DaoFactory;
 import logic.model.dao.*;
 
 // Factory concreta per la modalità Database (DB): fornisce DAO che accedono al database tramite JDBC
