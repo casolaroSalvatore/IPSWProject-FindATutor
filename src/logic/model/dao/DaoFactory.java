@@ -4,8 +4,10 @@ import logic.exception.NoImplementationForPersistenceProviderException;
 import logic.model.domain.PersistenceProvider;
 
 import java.lang.reflect.InvocationTargetException;
-// Factory astratta per fornire le DAO in base al PersistenceProvider scelto
 
+// Factory astratta per fornire le DAO in base al PersistenceProvider scelto
+// Viene inserire in un pacchetto neutrale per risolvere il problema del ciclo di dipendenza architetturale
+// segnalato da SonarQube
 public abstract class DaoFactory {
 
     private static DaoFactory instance = null;

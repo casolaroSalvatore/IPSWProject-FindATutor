@@ -1,6 +1,6 @@
 package logic.model.dao.inmemory;
 
-import logic.infrastructure.DaoFactory;
+import logic.model.dao.DaoFactory;
 import logic.model.dao.*;
 
 // Factory che restituisce i DAO in-memory (singleton)
