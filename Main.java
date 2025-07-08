@@ -13,16 +13,16 @@ public class Main {
 
     public static void main(String[] args) throws NoTutorFoundException {
 
-        // Step 0: Remove JavaFX warnings
-        // (non posso uniformare le 2 versioni in quanto SonarQube Community Edition supporta
-        // fino a Java 17
+        // Step 0: Rimuove i warning legati a JavaFX nel logger,
+        // limitando i log di JavaFX ai soli messaggi SEVERE (nasconde info e warning)
         Logger.getLogger("javafx").setLevel(Level.SEVERE);
         Logger.getLogger("javafx.fxml").setLevel(Level.SEVERE);
 
-        // Step 1: Configure persistence and interface
+        // Step 1: Configura persistenza e interfaccia
+        // Questo metodo dovrebbe inizializzare DaoFactory, scegliere tipo interfaccia, ecc.
         ConfigurationBoundary.configureAll();
 
-        // Step 2: Launch the selected interface
+        // Step 2: Lancia l'interfaccia grafica selezionata in fase di configurazione
         if (ConfigurationBoundary.getInterfaceProvider() == InterfaceProvider.COLORED) {
             HomeGraphicControllerColored.launchGUI();
         } else {
