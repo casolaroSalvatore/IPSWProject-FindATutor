@@ -1,0 +1,105 @@
+SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
+SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
+SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='TRADITIONAL,ALLOW_INVALID_DATES';
+
+-- -----------------------------------------------------
+-- Schema findatutordb
+-- -----------------------------------------------------
+DROP SCHEMA IF EXISTS `findatutordb` ;
+
+CREATE SCHEMA IF NOT EXISTS `findatutordb`;
+USE `findatutordb` ;
+
+-- -----------------------------------------------------
+-- Table `FindATutorDB`.`users`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `findatutordb`.`users` ;
+
+CREATE TABLE IF NOT EXISTS `findatutordb`.`users` (
+  email VARCHAR(255) PRIMARY KEY,
+  username VARCHAR(255)
+);
+
+-- -----------------------------------------------------
+-- Table `FindATutorDB`.`account`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `findatutordb`.`accounts` ;
+
+CREATE TABLE IF NOT EXISTS `findatutordb`.`accounts` (
+  account_id VARCHAR(255) PRIMARY KEY,   -- email + "_" + role
+  email VARCHAR(255) NOT NULL,           -- link to 'users'
+  role VARCHAR(50),
+  password VARCHAR(255) NOT NULL,
+  name VARCHAR(255),
+  surname VARCHAR(255),
+  birthday DATE,
+  profile_picture_path VARCHAR(255),
+  profile_comment VARCHAR(255),
+  
+    -- Student fields
+  institute VARCHAR(255),
+  
+  -- Tutor fields
+  location VARCHAR(255),
+  educational_title VARCHAR(255),
+  subject VARCHAR(255),
+  hourly_rate FLOAT,
+  offers_in_person BOOLEAN,
+  offers_online BOOLEAN,
+  offers_group BOOLEAN,
+  first_lesson_free BOOLEAN,
+  availability_start_date DATE, 
+  availability_end_date DATE,  
+  availability_days_of_week VARCHAR(255),
+  rating FLOAT,
+  
+  CONSTRAINT fk_accounts_users
+    FOREIGN KEY (email)
+    REFERENCES users(email)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+);
+
+-- -----------------------------------------------------
+-- Table tutoring_sessions
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `findatutordb`.`tutoring_sessions`;
+
+CREATE TABLE IF NOT EXISTS `findatutordb`.`tutoring_sessions` (
+  session_id           VARCHAR(255) PRIMARY KEY,
+  tutor_id             VARCHAR(255) NOT NULL,
+  student_id           VARCHAR(255) NOT NULL,
+  location             VARCHAR(255),
+  subject              VARCHAR(255),
+  date                 DATE,
+  start_time           TIME,
+  end_time             TIME,
+  comment              TEXT,
+  status               VARCHAR(50),
+  modified_by          VARCHAR(255),
+  modified_to          VARCHAR(255),
+  proposed_date        DATE,
+  proposed_start_time  TIME,
+  proposed_end_time    TIME,
+  tutor_seen           BOOLEAN,
+  student_seen         BOOLEAN
+);
+
+-- -----------------------------------------------------
+-- Table shared_reviews
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `findatutordb`.`shared_reviews`;
+
+CREATE TABLE IF NOT EXISTS `findatutordb`.`shared_reviews`(
+  review_id         VARCHAR(255) PRIMARY KEY,
+  student_id        VARCHAR(255) NOT NULL,
+  tutor_id          VARCHAR(255) NOT NULL,
+  student_stars     INT,
+  student_title     VARCHAR(255),
+  student_comment   TEXT,
+  student_submitted BOOLEAN,
+  tutor_title       VARCHAR(255),
+  tutor_comment     TEXT,
+  tutor_submitted   BOOLEAN,
+  status            VARCHAR(50)
+);
