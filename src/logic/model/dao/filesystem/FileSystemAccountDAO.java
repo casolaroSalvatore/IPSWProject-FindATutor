@@ -140,39 +140,48 @@ public class FileSystemAccountDAO extends FileSystemDAO<String,Account> implemen
     }
 
     // Parsifica stringa in Availability
-    private Availability parseAvailability(String s){
-        if (s==null||s.isBlank()||!s.contains(";")) return null;
-        String[] arr=s.split(";",3);
-        LocalDate start=arr[0].isBlank()?null:LocalDate.parse(arr[0]);
-        LocalDate end  =arr[1].isBlank()?null:LocalDate.parse(arr[1]);
-        List<DayOfWeek> days=new ArrayList<>();
-        if (arr.length == 3 && !arr[2].isBlank()) {
-            Map<String, DayOfWeek> aliases = Map.ofEntries(
-                    Map.entry("MON", DayOfWeek.MONDAY),
-                    Map.entry("TUE", DayOfWeek.TUESDAY),
-                    Map.entry("WED", DayOfWeek.WEDNESDAY),
-                    Map.entry("THU", DayOfWeek.THURSDAY),
-                    Map.entry("FRI", DayOfWeek.FRIDAY),
-                    Map.entry("SAT", DayOfWeek.SATURDAY),
-                    Map.entry("SUN", DayOfWeek.SUNDAY)
-            );
+    private Availability parseAvailability(String s) {
+        if (s == null || s.isBlank() || !s.contains(";")) return null;
 
-            for (String d : arr[2].split("\\|")) {
-                String norm = d.trim().toUpperCase();
-                if (norm.isBlank()) continue;
+        String[] arr = s.split(";", 3);
+        LocalDate start = arr[0].isBlank() ? null : LocalDate.parse(arr[0]);
+        LocalDate end   = arr[1].isBlank() ? null : LocalDate.parse(arr[1]);
 
-                if (aliases.containsKey(norm)) {
-                    days.add(aliases.get(norm));
-                } else {
-                    try {
-                        days.add(DayOfWeek.valueOf(norm));
-                    } catch (IllegalArgumentException e) {
-                        System.err.println("Invalid day in FileSystem data: " + norm);
-                    }
+        List<DayOfWeek> days = parseDaysFromString(arr);
+
+        Availability a = new Availability();
+        a.setStartDate(start);
+        a.setEndDate(end);
+        a.setDaysOfWeek(days);
+        return a;
+    }
+
+    private List<DayOfWeek> parseDaysFromString(String[] arr) {
+        List<DayOfWeek> days = new ArrayList<>();
+        if (arr.length < 3 || arr[2].isBlank()) return days;
+
+        Map<String, DayOfWeek> aliases = Map.of(
+                "MON", DayOfWeek.MONDAY, "TUE", DayOfWeek.TUESDAY,
+                "WED", DayOfWeek.WEDNESDAY, "THU", DayOfWeek.THURSDAY,
+                "FRI", DayOfWeek.FRIDAY, "SAT", DayOfWeek.SATURDAY,
+                "SUN", DayOfWeek.SUNDAY
+        );
+
+        for (String d : arr[2].split("\\|")) {
+            String norm = d.trim().toUpperCase();
+            if (norm.isEmpty()) continue;
+
+            if (aliases.containsKey(norm)) {
+                days.add(aliases.get(norm));
+            } else {
+                try {
+                    days.add(DayOfWeek.valueOf(norm));
+                } catch (IllegalArgumentException e) {
+                    System.err.println("Invalid day in FileSystem data: " + norm);
                 }
             }
         }
-        return new Availability(start,end,days);
+        return days;
     }
 
     // Restituisce valore di default se vuoto
