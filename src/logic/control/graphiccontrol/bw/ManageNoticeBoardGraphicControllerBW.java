@@ -36,7 +36,6 @@ public class ManageNoticeBoardGraphicControllerBW extends BaseCLIControllerBW {
         LOGGER.setLevel(Level.INFO);
     }
 
-    /* ---------- MAIN LOOP ---------- */
     public void start() {
 
         if (manageNoticeBoardController.getLoggedUser(sessionId) == null) {
@@ -45,63 +44,75 @@ public class ManageNoticeBoardGraphicControllerBW extends BaseCLIControllerBW {
             return;
         }
 
-        String role   = manageNoticeBoardController.getLoggedRole();
+        String role = manageNoticeBoardController.getLoggedRole();
         String userId = manageNoticeBoardController.getLoggedAccountId();
         if (role == null || userId == null) {
             throw new IllegalStateException("No valid account (Student or Tutor) found for logged user.");
         }
-        final String fixedRole = role;   // per uso in lambda
+
+        final String fixedRole = role;
 
         while (true) {
-
             List<TutoringSessionBean> sessions = manageNoticeBoardController.loadSessionsForLoggedUser();
 
-            LOGGER.info("\n=== MANAGE NOTICE BOARD ===");
-            if (sessions.isEmpty()) {
-                LOGGER.info("No tutoring sessions found.");
-                pressEnter();
-                return;
-            }
+            if (!displaySessionList(sessions, fixedRole)) return;
 
-            IntStream.range(0, sessions.size()).forEach(i -> {
-                TutoringSessionBean s = sessions.get(i);
-                String otherId = ROLE_TUTOR.equalsIgnoreCase(fixedRole) ? s.getStudentId() : s.getTutorId();
-                String other   = manageNoticeBoardController.counterpartLabel(otherId);
-
-                String start = (s.getStartTime() != null) ? s.getStartTime().toString() : "??";
-                String end   = (s.getEndTime() != null)   ? s.getEndTime().toString()   : "??";
-                String timeInfo = start + "–" + end;
-
-                String info = String.format("%2d) %s %s with %s [%s]",
-                        i + 1,
-                        s.getDate(),
-                        timeInfo,
-                        other,
-                        s.getStatus());
-                LOGGER.info(info);
-            });
-
-            LOGGER.info("\nA) Accept / refuse **new** bookings");
-            LOGGER.info("B) Request a modification or cancellation");
-            LOGGER.info("C) Accept / refuse modification-or-cancellation requests");
-            LOGGER.info("0) Back to Home");
-
+            printMainMenu();
             String input = ask("Choose an option:");
-            if ("0".equals(input)) return;
 
-            switch (input.toUpperCase()) {
-                case "A" -> {
-                    if (ROLE_TUTOR.equalsIgnoreCase(fixedRole)) {
-                        handlePendingBookings(sessions);
-                    } else {
-                        LOGGER.warning("Only tutors can accept or refuse new bookings.");
-                        pressEnter();
-                    }
+            if ("0".equals(input)) return;
+            handleUserChoice(input.toUpperCase(), sessions, fixedRole);
+        }
+    }
+
+    private boolean displaySessionList(List<TutoringSessionBean> sessions, String fixedRole) {
+        LOGGER.info("\n=== MANAGE NOTICE BOARD ===");
+        if (sessions.isEmpty()) {
+            LOGGER.info("No tutoring sessions found.");
+            pressEnter();
+            return false;
+        }
+
+        for (int i = 0; i < sessions.size(); i++) {
+            TutoringSessionBean s = sessions.get(i);
+            String otherId = ROLE_TUTOR.equalsIgnoreCase(fixedRole) ? s.getStudentId() : s.getTutorId();
+            String other = manageNoticeBoardController.counterpartLabel(otherId);
+            String start = (s.getStartTime() != null) ? s.getStartTime().toString() : "??";
+            String end = (s.getEndTime() != null) ? s.getEndTime().toString() : "??";
+            String timeInfo = start + "–" + end;
+
+            String info = String.format("%2d) %s %s with %s [%s]",
+                    i + 1,
+                    s.getDate(),
+                    timeInfo,
+                    other,
+                    s.getStatus());
+            LOGGER.info(info);
+        }
+
+        return true;
+    }
+
+    private void printMainMenu() {
+        LOGGER.info("\nA) Accept / refuse **new** bookings");
+        LOGGER.info("B) Request a modification or cancellation");
+        LOGGER.info("C) Accept / refuse modification-or-cancellation requests");
+        LOGGER.info("0) Back to Home");
+    }
+
+    private void handleUserChoice(String input, List<TutoringSessionBean> sessions, String fixedRole) {
+        switch (input) {
+            case "A" -> {
+                if (ROLE_TUTOR.equalsIgnoreCase(fixedRole)) {
+                    handlePendingBookings(sessions);
+                } else {
+                    LOGGER.warning("Only tutors can accept or refuse new bookings.");
+                    pressEnter();
                 }
-                case "B" -> handleModificationOrCancellation(sessions);
-                case "C" -> handleIncomingModOrCancRequests(sessions);
-                default  -> handleDirectRowSelection(sessions, input);
             }
+            case "B" -> handleModificationOrCancellation(sessions);
+            case "C" -> handleIncomingModOrCancRequests(sessions);
+            default -> handleDirectRowSelection(sessions, input);
         }
     }
 

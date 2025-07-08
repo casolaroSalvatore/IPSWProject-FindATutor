@@ -38,125 +38,106 @@ public class BookingSessionGraphicControllerBW extends BaseCLIControllerBW {
 
     // Avvia il processo di prenotazione
     public void start() throws NoTutorFoundException {
-        LOGGER.log(Level.INFO, "\n=== BOOK A TUTORING SESSION ===");
 
-        String subject = ask("Subject (leave empty to search all):");
+        LOGGER.info("\n=== BOOK A TUTORING SESSION ===");
+
+        /* ---- ① input di ricerca ------------------------------------- */
+        String subject  = ask("Subject (leave empty to search all):");
         String location = ask("Location (leave empty to search all):");
+        LocalDate start = askDate("Start Date:");
+        LocalDate end   = askDate("End Date:");
+        List<DayOfWeek> days = parseDays(
+                ask("Days of week (ex: MON,TUE – empty = all):"));
 
-        LocalDate startDate = askDate("Start Date:");
-        LocalDate endDate = askDate("End Date:");
+        TutorSearchCriteriaBean criteria = buildCriteria(
+                subject, location, start, end, days);
 
-        String daysInput = ask("Days of week (ex: MON,TUE – empty = all):");
-        List<DayOfWeek> days = parseDays(daysInput);
+        List<TutorBean> tutors = logic.searchTutors(criteria);
+        if (tutors.isEmpty()) { LOGGER.info("No tutors found."); pressEnter(); return; }
+
+        showTutors(tutors, criteria);
+
+        TutorBean chosen = chooseTutor(tutors);
+        if (chosen == null) return;
+        if (logic.getLoggedUser(sessionId) == null) {
+            LOGGER.info("Please log in first!");
+            pressEnter(); return;
+        }
+
+        doBooking(chosen, location, subject);
+        pressEnter();
+    }
+
+    // Helper per diminuire la complessità (richiesto da SonarQube
+
+    // Costruisce i criteri di ricerca a partire dai dati inseriti */
+    private TutorSearchCriteriaBean buildCriteria(String subject, String location,
+                                                  LocalDate start, LocalDate end,
+                                                  List<DayOfWeek> days) {
 
         AvailabilityBean av = new AvailabilityBean();
-        av.setStartDate(startDate);
-        av.setEndDate(endDate);
+        av.setStartDate(start);
+        av.setEndDate(end);
         av.setDays(days);
 
-        TutorSearchCriteriaBean criteria = new TutorSearchCriteriaBean.Builder()
+        return new TutorSearchCriteriaBean.Builder()
                 .subject(subject)
                 .location(location)
                 .availability(av)
-                .inPerson(false)
-                .online(false)
-                .group(false)
-                .rating4Plus(false)
-                .firstLessonFree(false)
+                .inPerson(false).online(false).group(false)
+                .rating4Plus(false).firstLessonFree(false)
                 .orderCriteria(null)
                 .build();
+    }
 
-        // Cerca tutor disponibili con i criteri forniti
-        List<TutorBean> tutors = logic.searchTutors(criteria);
+    // Stampa la lista dei tutor con i giorni prenotabili
+    private void showTutors(List<TutorBean> list, TutorSearchCriteriaBean crit) {
 
-        if (tutors.isEmpty()) {
-            LOGGER.info("No tutors found.");
-            pressEnter();
-            return;
-        }
-
-        // Mostra la lista dei tutor trovati
         LOGGER.info("\nAvailable Tutors:");
-        IntStream.range(0, tutors.size()).forEach(i -> {
-            TutorBean t = tutors.get(i);
+        for (int i = 0; i < list.size(); i++) {
+            TutorBean t = list.get(i);
 
-            // Calcola i giorni prenotabili tra quelli richiesti e quelli del tutor
-            List<DayBookingBean> availableDays = logic.computeDayBookingsForTutor(
-                    t.getAccountId(), criteria.getAvailability());
+            List<DayBookingBean> days =
+                    logic.computeDayBookingsForTutor(t.getAccountId(), crit.getAvailability());
 
-            // Crea stringa dei giorni (es: MON, TUE)
-            String daysStr = "N/A";
-            if (!availableDays.isEmpty()) {
-                StringBuilder sb = new StringBuilder();
-                for (DayBookingBean d : availableDays) {
-                    if (!sb.isEmpty()) sb.append(",");
-                    sb.append(d.getDate());
-                }
-                daysStr = sb.toString();
+            StringBuilder sb = new StringBuilder();
+            for (DayBookingBean d : days) {
+                if (sb.length() > 0) sb.append(",");
+                sb.append(d.getDate());                  // es. 2025-07-09
             }
+            String daysStr = sb.isEmpty() ? "N/A" : sb.toString();
 
-            String tutorInfo = String.format(
-                    "%2d) %s %s – Subject: %s – Hourly Rate: €%.2f – Rating: %.1f – Available Days: %s",
-                    i + 1, t.getName(), t.getSurname(),
-                    Optional.ofNullable(t.getSubject()).orElse("N/A"),
-                    t.getHourlyRate(), t.getRating(), daysStr
-            );
-            LOGGER.log(Level.INFO, tutorInfo);
-        });
-
-        // Chiede all'utente quale tutor selezionare
-        int choice = askInt("Select tutor number (0 to cancel):") - 1;
-        if (choice < 0 || choice >= tutors.size()) {
-            return;
+            LOGGER.log(Level.INFO,
+                    String.format("%2d) %s %s – Subject: %s – €%.2f/h – ★%.1f – Days: %s",
+                            i + 1, t.getName(), t.getSurname(),
+                            Optional.ofNullable(t.getSubject()).orElse("N/A"),
+                            t.getHourlyRate(), t.getRating(), daysStr));
         }
-        TutorBean selectedTutor = tutors.get(choice);
+    }
 
-        if (logic.getLoggedUser(sessionId) == null) {
-            LOGGER.info("Please log in first!");
-            pressEnter();
-            return;
-        }
+    // Chiede all’utente quale tutor vuole selezionare (o 0 per annullare)
+    private TutorBean chooseTutor(List<TutorBean> tutors) {
+        int idx = askInt("Select tutor number (0 to cancel):") - 1;
+        return (idx < 0 || idx >= tutors.size()) ? null : tutors.get(idx);
+    }
 
-        boolean keepAsking = true;
-        while (keepAsking) {
-            LOGGER.info("\n[V] View tutor profile   [C] Continue to booking   [0] Cancel");
-            String in = ask("Choose:").trim().toUpperCase();
+    // Raccoglie i dati della sessione e invia la prenotazione
+    private void doBooking(TutorBean tutor, String location, String subject) {
 
-            switch (in) {
-                case "0":
-                    return;
-                case "V":
-                    new TutorProfileGraphicControllerBW().show(selectedTutor.getAccountId());
-                    break;
-                case "C":
-                    keepAsking = false; // esci dal ciclo e procedi
-                    break;
-                default:
-                    LOGGER.info("Invalid input. Please choose one of the available options.");
-                    break;
-            }
-        }
+        LocalDate date   = askDate("Enter the date for the session:");
+        LocalTime start  = askTime("Enter the start time:");
+        LocalTime end    = askTime("Enter the end time:");
+        String comment   = ask("Comment (optional):");
 
-        LocalDate sessionDate = askDate("Enter the date for the session:");
-        LocalTime startTime = askTime("Enter the start time:");
-        LocalTime endTime = askTime("Enter the end time:");
-        String comment = ask("Comment (optional):");
-
-        // Costruisce il bean e invia la prenotazione
         try {
-
             TutoringSessionBean bean = logic.buildBookingBean(
-                    selectedTutor,
-                    sessionDate, startTime, endTime,
-                    location, subject, comment);
+                    tutor, date, start, end, location, subject, comment);
 
             logic.bookSession(bean);
             LOGGER.info("Booking sent successfully! Please wait for the tutor's confirmation.");
         } catch (IllegalArgumentException ex) {
             LOGGER.warning("Booking error: " + ex.getMessage());
         }
-
-        pressEnter();
     }
 
     // Supporta sia abbreviazioni (MON, TUE) che nomi completi (MONDAY, TUESDAY)
