@@ -16,7 +16,9 @@ public class UserBean {
     private static final Pattern EMAIL_PATTERN = Pattern.compile("^[\\w.-]+@[\\w.-]+\\.[A-Za-z]{2,}$");
     private static final Pattern USERNAME_PATTERN = Pattern.compile("^[A-Za-z\\d_]{3,}$");
 
-    public UserBean() {}
+    public UserBean() {
+        // Costruttore di default di AccountBean
+    }
 
     public String getEmail() {
         return email;

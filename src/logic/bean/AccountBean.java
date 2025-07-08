@@ -30,6 +30,7 @@ public class AccountBean {
     private boolean firstLessonFree;
 
     public AccountBean() {
+        // Costruttore di default di AccountBean
     }
 
     public String getAccountId() {
