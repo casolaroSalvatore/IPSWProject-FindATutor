@@ -7,7 +7,7 @@ import java.util.List;
 // Ogni utente può avere più account associati, ciascuno con un ruolo specifico (es. "Student", "Tutor").
 public class User {
 
-    public String email;
+    private final String email;
     private String username;
     List<Account> accounts = new ArrayList<>();
 

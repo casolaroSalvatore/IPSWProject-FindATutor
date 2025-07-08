@@ -27,23 +27,19 @@ public class InMemoryTutoringSessionDAO extends InMemoryDAO<String, TutoringSess
 
     @Override
     protected String getKey(TutoringSession session) {
-        // Ritorniamo la stringa sessionId dell’oggetto
+        // Ritorno la stringa sessionId dell’oggetto
         return session.getSessionId();
     }
 
     @Override
     public void store(TutoringSession session) {
-        // Se la sessionId è ancora null, generiamo un ID
+        // Se la sessionId è ancora null, genero un ID
         if (session.getSessionId() == null) {
             session.setSessionId("session" + idGenerator.getAndIncrement());
         }
         super.store(session);
     }
 
-    @Override
-    public void delete(String sessionId) {
-        super.delete(sessionId);
-    }
 
     @Override
     public List<TutoringSession> loadAllTutoringSession() {

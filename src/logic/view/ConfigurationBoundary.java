@@ -9,6 +9,10 @@ import java.util.Scanner;
 // Gestisce la configurazione iniziale: selezione della persistenza e del tipo di interfaccia tramite console.
 public class ConfigurationBoundary {
 
+    private ConfigurationBoundary() {
+        // Costruttore privato (richiesto da SonarQube)
+    }
+
     private static InterfaceProvider interfaceProvider;
 
     // Configura il tipo di persistenza scelto dall'utente.
