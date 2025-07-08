@@ -91,6 +91,7 @@ public class TutoringSessionStateMachine implements TutoringSessionEvents {
             case MOD_REQUESTED -> current = new ModRequestedState(this, tutoringSession);
             case CANCEL_REQUESTED -> current = new CancelRequestedState(this, tutoringSession);
             case CANCELLED -> current = new CancelledState(this, tutoringSession);
+            case REFUSED -> current = new RefusedState(this, tutoringSession);
             default -> throw new IllegalArgumentException("Unsupported status: " + status);
         }
     }
