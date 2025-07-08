@@ -3,7 +3,7 @@ package logic.control.logiccontrol;
 import logic.bean.*;
 import logic.model.domain.SessionManager;
 import logic.model.dao.AccountDAO;
-import logic.infrastructure.DaoFactory;
+import logic.model.dao.DaoFactory;
 import logic.model.dao.UserDAO;
 import logic.model.domain.*;
 

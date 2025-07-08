@@ -3,7 +3,7 @@ package logic.control.logiccontrol;
 import logic.bean.AccountBean;
 import logic.bean.SharedReviewBean;
 import logic.bean.UserBean;
-import logic.infrastructure.DaoFactory;
+import logic.model.dao.DaoFactory;
 import logic.model.dao.*;
 import logic.model.domain.*;
 import logic.model.domain.state.TutoringSession;

@@ -2,7 +2,7 @@ package logic.control.logiccontrol;
 
 import logic.bean.TutorBean;
 import logic.bean.SharedReviewBean;
-import logic.infrastructure.DaoFactory;
+import logic.model.dao.DaoFactory;
 import logic.model.dao.*;
 import logic.model.domain.*;
 
