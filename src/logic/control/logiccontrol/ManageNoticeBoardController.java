@@ -351,6 +351,11 @@ public class ManageNoticeBoardController {
         return ub;
     }
 
+    public String counterpartLabel(String accountId) {
+        Account a = DaoFactory.getInstance().getAccountDAO().load(accountId);
+        return (a == null) ? accountId : a.getName() + " " + a.getSurname() + " (" + a.getAge() + ")";
+    }
+
     // Effettua il logout per sessionId
     public void logout(UUID sid) {
         if (sid != null) {

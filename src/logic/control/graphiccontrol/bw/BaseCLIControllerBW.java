@@ -32,7 +32,7 @@ public abstract class BaseCLIControllerBW {
             String line = IN.readLine();
             return line == null ? "" : line.trim();
         } catch (IOException e) {
-            LOGGER.warning("Errore di I/O durante la lettura dell’input: " + e.getMessage());
+            LOGGER.warning("I/0 error while reading input: " + e.getMessage());
             return "";
         }
     }
@@ -71,7 +71,7 @@ public abstract class BaseCLIControllerBW {
     }
 
     protected void pressEnter() {
-        ask("Premi INVIO per continuare...");
+        ask("Click ENTER to continue...");
     }
 }
 

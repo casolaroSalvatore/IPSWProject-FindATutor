@@ -1,17 +1,14 @@
 package logic.control.graphiccontrol.bw;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
-import logic.bean.AvailabilityBean;
-import logic.bean.TutorBean;
-import logic.bean.TutorSearchCriteriaBean;
-import logic.bean.TutoringSessionBean;
+
+import logic.bean.*;
 import logic.control.logiccontrol.BookingTutoringSessionController;
 import logic.exception.NoTutorFoundException;
 
@@ -20,8 +17,11 @@ public class BookingSessionGraphicControllerBW extends BaseCLIControllerBW {
 
     private UUID sessionId;
 
+    private BookingTutoringSessionController logic;
+
     public BookingSessionGraphicControllerBW(UUID sessionId) {
         this.sessionId = sessionId;
+        this.logic = new BookingTutoringSessionController(sessionId);
     }
 
     private static final Logger LOGGER = Logger.getLogger(BookingSessionGraphicControllerBW.class.getName());
@@ -36,8 +36,6 @@ public class BookingSessionGraphicControllerBW extends BaseCLIControllerBW {
         LOGGER.setLevel(Level.INFO);
     }
 
-    private final BookingTutoringSessionController logic = new BookingTutoringSessionController();
-
     // Avvia il processo di prenotazione
     public void start() throws NoTutorFoundException {
         LOGGER.log(Level.INFO, "\n=== BOOK A TUTORING SESSION ===");
@@ -48,9 +46,13 @@ public class BookingSessionGraphicControllerBW extends BaseCLIControllerBW {
         LocalDate startDate = askDate("Start Date:");
         LocalDate endDate = askDate("End Date:");
 
+        String daysInput = ask("Days of week (ex: MON,TUE – empty = all):");
+        List<DayOfWeek> days = parseDays(daysInput);
+
         AvailabilityBean av = new AvailabilityBean();
         av.setStartDate(startDate);
         av.setEndDate(endDate);
+        av.setDays(days);
 
         TutorSearchCriteriaBean criteria = new TutorSearchCriteriaBean.Builder()
                 .subject(subject)
@@ -77,9 +79,28 @@ public class BookingSessionGraphicControllerBW extends BaseCLIControllerBW {
         LOGGER.info("\nAvailable Tutors:");
         IntStream.range(0, tutors.size()).forEach(i -> {
             TutorBean t = tutors.get(i);
-            String tutorInfo = String.format("%2d) %s %s – Subject: %s – Hourly Rate: €%.2f – Rating: %.1f",
+
+            // Calcola i giorni prenotabili tra quelli richiesti e quelli del tutor
+            List<DayBookingBean> availableDays = logic.computeDayBookingsForTutor(
+                    t.getAccountId(), criteria.getAvailability());
+
+            // Crea stringa dei giorni (es: MON, TUE)
+            String daysStr = "N/A";
+            if (!availableDays.isEmpty()) {
+                StringBuilder sb = new StringBuilder();
+                for (DayBookingBean d : availableDays) {
+                    if (!sb.isEmpty()) sb.append(",");
+                    sb.append(d.getDate());
+                }
+                daysStr = sb.toString();
+            }
+
+            String tutorInfo = String.format(
+                    "%2d) %s %s – Subject: %s – Hourly Rate: €%.2f – Rating: %.1f – Available Days: %s",
                     i + 1, t.getName(), t.getSurname(),
-                    Optional.ofNullable(t.getSubject()).orElse("N/A"), t.getHourlyRate(), t.getRating());
+                    Optional.ofNullable(t.getSubject()).orElse("N/A"),
+                    t.getHourlyRate(), t.getRating(), daysStr
+            );
             LOGGER.log(Level.INFO, tutorInfo);
         });
 
@@ -136,6 +157,42 @@ public class BookingSessionGraphicControllerBW extends BaseCLIControllerBW {
         }
 
         pressEnter();
+    }
+
+    // Supporta sia abbreviazioni (MON, TUE) che nomi completi (MONDAY, TUESDAY)
+    private static final Map<String, DayOfWeek> DAY_ALIASES = Map.ofEntries(
+            Map.entry("MON", DayOfWeek.MONDAY),
+            Map.entry("TUE", DayOfWeek.TUESDAY),
+            Map.entry("WED", DayOfWeek.WEDNESDAY),
+            Map.entry("THU", DayOfWeek.THURSDAY),
+            Map.entry("FRI", DayOfWeek.FRIDAY),
+            Map.entry("SAT", DayOfWeek.SATURDAY),
+            Map.entry("SUN", DayOfWeek.SUNDAY)
+    );
+
+    // Converte una stringa tipo "MON,TUE" in una lista di DayOfWeek.
+    private List<DayOfWeek> parseDays(String input) {
+        List<DayOfWeek> result = new ArrayList<>();
+        if (input == null || input.isBlank()) return result;
+
+        String[] parts = input.split(",");
+        for (String part : parts) {
+            String token = part.trim().toUpperCase();
+            if (token.isEmpty()) continue;
+
+            DayOfWeek day;
+            if (DAY_ALIASES.containsKey(token)) {
+                day = DAY_ALIASES.get(token);
+            } else {
+                try {
+                    day = DayOfWeek.valueOf(token);
+                } catch (IllegalArgumentException e) {
+                    throw new IllegalArgumentException("Invalid day of week: '" + token + "'. Valid values: MON, TUE, ..., SUNDAY");
+                }
+            }
+            result.add(day);
+        }
+        return result;
     }
 }
 

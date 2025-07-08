@@ -142,6 +142,9 @@ public class BookingTutoringSessionController {
 
         // ri‑usa la logica esistente basata su DayBookingBean
         DayBookingBean row = new DayBookingBean(date);
+        row.setStartTime(start.toString());
+        row.setEndTime(end.toString());
+        row.setComment(comment);
 
         // Controlli sintattici offerti dal DayBookingBean
         row.checkSyntax();
@@ -318,22 +321,30 @@ public class BookingTutoringSessionController {
 
         Availability av = tutor.getAvailability();
 
-        /* Range di date */
-        if (req.getStartDate() != null && av.getStartDate() != null &&
-                av.getStartDate().isAfter(req.getStartDate())) return false;
-        if (req.getEndDate() != null && av.getEndDate() != null &&
-                av.getEndDate().isBefore(req.getEndDate())) return false;
+        // Calcolo dell'intervallo di sovrapposizione
+        LocalDate userStart = req.getStartDate() != null ? req.getStartDate() : LocalDate.now();
+        LocalDate userEnd   = req.getEndDate() != null ? req.getEndDate() : LocalDate.now();
+        LocalDate tutorStart = av.getStartDate() != null ? av.getStartDate() : LocalDate.now();
+        LocalDate tutorEnd   = av.getEndDate() != null ? av.getEndDate() : LocalDate.now();
 
-        /* Giorni — basta 1 giorno in comune se l’utente ne ha scelti */
-        List<DayOfWeek> days = req.getDays();
-        if (days == null || days.isEmpty()) {
-            return true;
-        }
-        for (DayOfWeek d : days) {
-            if (av.getDaysOfWeek().contains(d)) {
-                return true;
+        LocalDate rangeStart = userStart.isAfter(tutorStart) ? userStart : tutorStart;
+        LocalDate rangeEnd   = userEnd.isBefore(tutorEnd) ? userEnd : tutorEnd;
+
+        // Se non c'è sovrapposizione temporale, il tutor non è disponibile
+        if (rangeEnd.isBefore(rangeStart)) return false;
+
+        // Se non ci sono giorni richiesti, considera disponibile
+        List<DayOfWeek> requestedDays = req.getDays();
+        if (requestedDays == null || requestedDays.isEmpty()) return true;
+
+        // Cerchiamo almeno un giorno valido in comune tra utente e tutor nel range
+        for (LocalDate date = rangeStart; !date.isAfter(rangeEnd); date = date.plusDays(1)) {
+            DayOfWeek day = date.getDayOfWeek();
+            if (requestedDays.contains(day) && av.getDaysOfWeek().contains(day)) {
+                return true; // almeno un giorno corrisponde nel range
             }
         }
+
         return false;
     }
 
