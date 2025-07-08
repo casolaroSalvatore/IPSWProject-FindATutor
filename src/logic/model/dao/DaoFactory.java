@@ -4,7 +4,6 @@ import logic.exception.NoImplementationForPersistenceProviderException;
 
 import java.lang.reflect.InvocationTargetException;
 
-@SuppressWarnings("java:S7027")
 // Factory astratta per fornire le DAO in base al PersistenceProvider scelto
 public abstract class DaoFactory {
 
