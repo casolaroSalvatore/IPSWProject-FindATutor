@@ -25,8 +25,7 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
 import logic.exception.NoTutorFoundException;
-import logic.model.domain.state.TutoringSessionStatus;
-
+import logic.bean.TutoringSessionBean.TutoringSessionStatusBean;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -533,7 +532,7 @@ public class BookingSessionGraphicControllerColored implements NavigableControll
 
         dateColumn.setCellValueFactory(cd -> {
             TutoringSessionBean s = cd.getValue();
-            if (s.getStatus() == TutoringSessionStatus.MOD_REQUESTED && s.getProposedDate() != null) {
+            if (s.getStatus() == TutoringSessionStatusBean.MOD_REQUESTED && s.getProposedDate() != null) {
                 return new SimpleStringProperty(s.getProposedDate().toString());
             } else if (s.getDate() != null) {
                 return new SimpleStringProperty(s.getDate().toString());
@@ -544,7 +543,7 @@ public class BookingSessionGraphicControllerColored implements NavigableControll
 
         timeColumn.setCellValueFactory(cd -> {
             TutoringSessionBean s = cd.getValue();
-            if (s.getStatus() == TutoringSessionStatus.MOD_REQUESTED
+            if (s.getStatus() == TutoringSessionStatusBean.MOD_REQUESTED
                     && s.getProposedStartTime() != null && s.getProposedEndTime() != null) {
                 return new SimpleStringProperty(
                         s.getProposedStartTime() + " - " + s.getProposedEndTime()
@@ -645,7 +644,7 @@ public class BookingSessionGraphicControllerColored implements NavigableControll
                     return;
                 }
 
-                if (getTableView().getItems().get(getIndex()).getStatus() == TutoringSessionStatus.PENDING) {
+                if (getTableView().getItems().get(getIndex()).getStatus() == TutoringSessionStatusBean.PENDING) {
                     setGraphic(new HBox(5, acceptBtn, refuseBtn));
                 } else {
                     setGraphic(null);

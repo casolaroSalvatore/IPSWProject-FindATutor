@@ -60,10 +60,7 @@ public class LoginController {
     // Restituisce UserBean per l'utente loggato associato alla sessione
     public UserBean getLoggedUser(UUID sid) {
         Session session = SessionManager.getInstance().getSession(sid);
-        if (session == null || session.getUser() == null) {
-            return null;
-        }
-        return new UserBean(session.getUser());  // CORRETTO: conversione Domain -> Bean
+        return (session == null) ? null : toUserBean(session.getUser());
     }
 
     // Effettua il logout, invalidando la sessione nel SessionManager
@@ -81,6 +78,37 @@ public class LoginController {
     public User getUserFromSession(UUID sessionId) {
         Session s = SessionManager.getInstance().getSession(sessionId);
         return (s != null) ? s.getUser() : null;
+    }
+
+    // Helper di mapping User-UserBean
+    private static UserBean toUserBean(User u) {
+        if (u == null) return null;
+
+        UserBean b = new UserBean();
+        b.setEmail(u.getEmail());
+        b.setUsername(u.getUsername());
+
+        for (Account acc : u.getAccounts()) {
+            b.addAccount(toAccountBean(acc));
+        }
+        return b;
+    }
+
+    // Helper di mapping Account-AccountBean
+    private static AccountBean toAccountBean(Account a) {
+        if (a == null) return null;
+
+        AccountBean b = new AccountBean();
+        b.setAccountId(a.getAccountId());
+        b.setRole(a.getRole());
+        b.setPassword(a.getPassword());
+        b.setName(a.getName());
+        b.setSurname(a.getSurname());
+        b.setBirthday(a.getBirthday());
+        b.setProfilePicturePath(a.getProfilePicturePath());
+        b.setProfileComment(a.getProfileComment());
+        /* copia gli altri campi che ti servono … */
+        return b;
     }
 }
 

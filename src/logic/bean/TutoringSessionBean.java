@@ -1,7 +1,5 @@
 package logic.bean;
 
-import logic.model.domain.state.TutoringSessionStatus;
-
 import java.time.LocalDate;
 import java.time.LocalTime;
 
@@ -20,7 +18,19 @@ public class TutoringSessionBean {
     private String comment;
     private String modificationReason;
     private String cancellationReason;
-    private TutoringSessionStatus status;
+
+    // Necessaria per separare il Bean dal Model
+    public enum TutoringSessionStatusBean {
+        DRAFT,
+        PENDING,
+        ACCEPTED,
+        REFUSED,
+        MOD_REQUESTED,
+        CANCEL_REQUESTED,
+        CANCELLED
+    }
+
+    private TutoringSessionStatusBean status;
 
     private LocalDate proposedDate;
     private LocalTime proposedStartTime;
@@ -102,11 +112,11 @@ public class TutoringSessionBean {
         this.comment = comment;
     }
 
-    public TutoringSessionStatus getStatus() {
+    public TutoringSessionStatusBean getStatus() {
         return status;
     }
 
-    public void setStatus(TutoringSessionStatus status) {
+    public void setStatus(TutoringSessionStatusBean status) {
         this.status = status;
     }
 

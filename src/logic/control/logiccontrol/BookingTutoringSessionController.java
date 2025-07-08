@@ -205,7 +205,8 @@ public class BookingTutoringSessionController {
         b.setLocation(s.getLocation());
         b.setSubject(s.getSubject());
         b.setComment(s.getComment());
-        b.setStatus(s.getStatus());
+        // Conversione esplicita dell'enum
+        b.setStatus(TutoringSessionBean.TutoringSessionStatusBean.valueOf(s.getStatus().name()));
         b.setProposedDate(s.getProposedDate());
         b.setProposedStartTime(s.getProposedStartTime());
         b.setProposedEndTime(s.getProposedEndTime());

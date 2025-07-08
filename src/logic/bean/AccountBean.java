@@ -1,7 +1,5 @@
 package logic.bean;
 
-import logic.model.domain.Account;
-
 import java.time.LocalDate;
 
 // AccountBean è un Bean che trasporta i dati di un Account tra i Controller e View
@@ -32,17 +30,6 @@ public class AccountBean {
     private boolean firstLessonFree;
 
     public AccountBean() {
-    }
-
-    public AccountBean(Account account) {
-        this.accountId = account.getAccountId();
-        this.role = account.getRole();
-        this.password = account.getPassword();
-        this.name = account.getName();
-        this.surname = account.getSurname();
-        this.birthday = account.getBirthday();
-        this.profilePicturePath = account.getProfilePicturePath();
-        this.profileComment = account.getProfileComment();
     }
 
     public String getAccountId() {

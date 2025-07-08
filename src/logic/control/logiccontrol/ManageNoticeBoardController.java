@@ -9,6 +9,7 @@ import logic.model.dao.TutoringSessionDAO;
 import logic.model.domain.Account;
 import logic.model.domain.User;
 import logic.model.domain.state.TutoringSession;
+import logic.bean.TutoringSessionBean.TutoringSessionStatusBean;
 import logic.model.domain.state.TutoringSessionStatus;
 
 import java.time.LocalDate;
@@ -83,11 +84,10 @@ public class ManageNoticeBoardController {
     // Metodo per colorare o meno la cella del calendario a seconda
     // della presenza o meno di una sessione accettata
     public boolean hasAcceptedSessionsOn(LocalDate date) {
-        // Carica TUTTE le sessioni per l'utente (Tutor o Studente)
         List<TutoringSessionBean> sessions = loadSessionsForLoggedUser();
 
         for (TutoringSessionBean s : sessions) {
-            if (s.getStatus() == TutoringSessionStatus.ACCEPTED && date.equals(s.getDate())) {
+            if (s.getStatus() == TutoringSessionStatusBean.ACCEPTED && date.equals(s.getDate())) {
                 return true;
             }
         }
@@ -96,15 +96,14 @@ public class ManageNoticeBoardController {
 
     // Verifica se ci sono sessioni in attesa/modifica/cancellazione nel giorno specificato
     public boolean hasWaitingSessionsOn(LocalDate date) {
-        // Carichiamo TUTTE le sessioni per l’utente loggato
         List<TutoringSessionBean> sessions = loadSessionsForLoggedUser();
 
         for (TutoringSessionBean s : sessions) {
             if (s.getDate() != null
                     && s.getDate().equals(date)
-                    && (s.getStatus() == TutoringSessionStatus.PENDING
-                    || s.getStatus() == TutoringSessionStatus.MOD_REQUESTED
-                    || s.getStatus() == TutoringSessionStatus.CANCEL_REQUESTED)) {
+                    && (s.getStatus() == TutoringSessionStatusBean.PENDING
+                    || s.getStatus() == TutoringSessionStatusBean.MOD_REQUESTED
+                    || s.getStatus() == TutoringSessionStatusBean.CANCEL_REQUESTED)) {
                 return true;
             }
         }

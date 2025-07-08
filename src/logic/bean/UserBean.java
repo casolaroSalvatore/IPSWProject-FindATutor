@@ -1,8 +1,5 @@
 package logic.bean;
 
-import logic.model.domain.Account;
-import logic.model.domain.User;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -20,14 +17,6 @@ public class UserBean {
     private static final Pattern USERNAME_PATTERN = Pattern.compile("^[A-Za-z\\d_]{3,}$");
 
     public UserBean() {}
-
-    public UserBean(User user) {
-        this.email = user.getEmail();
-        this.username = user.getUsername();
-        for (Account acc : user.getAccounts()) {
-            this.accounts.add(new AccountBean(acc));
-        }
-    }
 
     public String getEmail() {
         return email;

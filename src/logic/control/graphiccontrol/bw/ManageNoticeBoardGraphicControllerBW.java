@@ -10,7 +10,7 @@ import java.util.stream.IntStream;
 import logic.bean.TutoringSessionBean;
 import logic.bean.AccountBean;
 import logic.control.logiccontrol.ManageNoticeBoardController;
-import logic.model.domain.state.TutoringSessionStatus;
+import logic.bean.TutoringSessionBean.TutoringSessionStatusBean;
 
 // Controller BW per la gestione della bacheca delle prenotazioni e delle richieste associate.
 public class ManageNoticeBoardGraphicControllerBW extends BaseCLIControllerBW {
@@ -100,7 +100,7 @@ public class ManageNoticeBoardGraphicControllerBW extends BaseCLIControllerBW {
 
         List<TutoringSessionBean> pending = new ArrayList<>();
         for (TutoringSessionBean s : sessions) {
-            if (s.getStatus() == TutoringSessionStatus.PENDING) {
+            if (s.getStatus() == TutoringSessionStatusBean.PENDING) {
                 pending.add(s);
             }
         }
@@ -139,7 +139,7 @@ public class ManageNoticeBoardGraphicControllerBW extends BaseCLIControllerBW {
         if (idx < 0 || idx >= sessions.size()) return;
 
         TutoringSessionBean sel = sessions.get(idx);
-        if (sel.getStatus() != TutoringSessionStatus.ACCEPTED) {
+        if (sel.getStatus() != TutoringSessionStatusBean.ACCEPTED) {
             LOGGER.warning("Only ACCEPTED sessions can be modified or cancelled.");
             pressEnter();
             return;
@@ -174,8 +174,8 @@ public class ManageNoticeBoardGraphicControllerBW extends BaseCLIControllerBW {
 
         List<TutoringSessionBean> incoming = sessions.stream()
                 .filter(s ->
-                        (s.getStatus() == TutoringSessionStatus.MOD_REQUESTED ||
-                                s.getStatus() == TutoringSessionStatus.CANCEL_REQUESTED)
+                        (s.getStatus() == TutoringSessionStatusBean.MOD_REQUESTED ||
+                                s.getStatus() == TutoringSessionStatusBean.CANCEL_REQUESTED)
                                 && (finalMyId.equals(s.getModifiedTo()) || s.getModifiedTo() == null))
                 .toList();
 
@@ -211,7 +211,7 @@ public class ManageNoticeBoardGraphicControllerBW extends BaseCLIControllerBW {
     // Gestisce la decisione su richiesta di modifica o cancellazione
     private void manageModOrCancDecision(TutoringSessionBean s) {
 
-        if (s.getStatus() == TutoringSessionStatus.MOD_REQUESTED) {
+        if (s.getStatus() == TutoringSessionStatusBean.MOD_REQUESTED) {
             LOGGER.info("[1] Accept modification  [2] Refuse modification  [Enter] Back");
             String choice = ask(LABEL_CHOICE);
             if ("1".equals(choice)) {
@@ -221,7 +221,7 @@ public class ManageNoticeBoardGraphicControllerBW extends BaseCLIControllerBW {
                 manageController.refuseModification(s);
                 LOGGER.info("Modification refused.");
             }
-        } else if (s.getStatus() == TutoringSessionStatus.CANCEL_REQUESTED) {
+        } else if (s.getStatus() == TutoringSessionStatusBean.CANCEL_REQUESTED) {
             LOGGER.info("[1] Accept cancellation  [2] Refuse cancellation  [Enter] Back");
             String choice = ask(LABEL_CHOICE);
             if ("1".equals(choice)) {
@@ -249,7 +249,7 @@ public class ManageNoticeBoardGraphicControllerBW extends BaseCLIControllerBW {
         }
 
         TutoringSessionBean sel = all.get(idx);
-        if (sel.getStatus() == TutoringSessionStatus.MOD_REQUESTED || sel.getStatus() == TutoringSessionStatus.CANCEL_REQUESTED) {
+        if (sel.getStatus() == TutoringSessionStatusBean.MOD_REQUESTED || sel.getStatus() == TutoringSessionStatusBean.CANCEL_REQUESTED) {
             manageModOrCancDecision(sel);
         }
     }

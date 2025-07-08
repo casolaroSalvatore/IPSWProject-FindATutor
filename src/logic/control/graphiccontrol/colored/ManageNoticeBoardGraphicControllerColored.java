@@ -22,7 +22,7 @@ import logic.bean.TutoringSessionBean;
 import logic.bean.UserBean;
 import logic.control.logiccontrol.LoginController;
 import logic.control.logiccontrol.ManageNoticeBoardController;
-import logic.model.domain.state.TutoringSessionStatus;
+import logic.bean.TutoringSessionBean.TutoringSessionStatusBean;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -316,7 +316,7 @@ public class ManageNoticeBoardGraphicControllerColored implements NavigableContr
         for (TutoringSessionBean s : allSessions) {
             if (s.getDate() != null
                     && s.getDate().equals(date)
-                    && s.getStatus() == TutoringSessionStatus.ACCEPTED) {
+                    && s.getStatus() != TutoringSessionStatusBean.ACCEPTED) {
                 filtered.add(s);
             }
         }
@@ -356,7 +356,7 @@ public class ManageNoticeBoardGraphicControllerColored implements NavigableContr
             showAlert(ERROR, "No session selected!");
             return;
         }
-        if (s.getStatus() != TutoringSessionStatus.ACCEPTED) {
+        if (s.getStatus() != TutoringSessionStatusBean.ACCEPTED) {
             showAlert(ERROR, "You can only request a modification on an ACCEPTED session!");
             return;
         }
@@ -389,7 +389,7 @@ public class ManageNoticeBoardGraphicControllerColored implements NavigableContr
             showAlert(ERROR, "No session selected");
             return;
         }
-        if (selected.getStatus() != TutoringSessionStatus.ACCEPTED) {
+        if (selected.getStatus() != TutoringSessionStatusBean.ACCEPTED) {
             showAlert(ERROR, "You can only request a cancellation on an ACCEPTED session");
             return;
         }
@@ -471,13 +471,13 @@ public class ManageNoticeBoardGraphicControllerColored implements NavigableContr
     usato all'interno della classe anonima per gestire l'azione sui pulsanti */
     // Gestisce la logica quando si accetta o rifiuta una richiesta
     private void handleSessionAction(TutoringSessionBean session, boolean accepted) {
-        if (session.getStatus() == TutoringSessionStatus.MOD_REQUESTED) {
+        if (session.getStatus() == TutoringSessionStatusBean.MOD_REQUESTED) {
             if (accepted) {
                 manageController.acceptModification(session);
             } else {
                 manageController.refuseModification(session);
             }
-        } else if (session.getStatus() == TutoringSessionStatus.CANCEL_REQUESTED) {
+        } else if (session.getStatus() == TutoringSessionStatusBean.CANCEL_REQUESTED) {
             if (accepted) {
                 manageController.acceptCancellation(session);
             } else {
