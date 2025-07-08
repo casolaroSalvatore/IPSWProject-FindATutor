@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.IntStream;
 import logic.bean.TutoringSessionBean;
 import logic.bean.AccountBean;
 import logic.control.logiccontrol.ManageNoticeBoardController;

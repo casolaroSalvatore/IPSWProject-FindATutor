@@ -6,7 +6,6 @@ import java.time.LocalTime;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.IntStream;
 
 import logic.bean.*;
 import logic.control.logiccontrol.BookingTutoringSessionController;
@@ -41,7 +40,7 @@ public class BookingSessionGraphicControllerBW extends BaseCLIControllerBW {
 
         LOGGER.info("\n=== BOOK A TUTORING SESSION ===");
 
-        /* ---- ① input di ricerca ------------------------------------- */
+        /* ---- input di ricerca ------------------------------------- */
         String subject  = ask("Subject (leave empty to search all):");
         String location = ask("Location (leave empty to search all):");
         LocalDate start = askDate("Start Date:");
@@ -102,16 +101,18 @@ public class BookingSessionGraphicControllerBW extends BaseCLIControllerBW {
 
             StringBuilder sb = new StringBuilder();
             for (DayBookingBean d : days) {
-                if (sb.length() > 0) sb.append(",");
-                sb.append(d.getDate());                  // es. 2025-07-09
+                if (!sb.isEmpty()) sb.append(",");
+                sb.append(d.getDate());
             }
             String daysStr = sb.isEmpty() ? "N/A" : sb.toString();
 
-            LOGGER.log(Level.INFO,
-                    String.format("%2d) %s %s – Subject: %s – €%.2f/h – ★%.1f – Days: %s",
-                            i + 1, t.getName(), t.getSurname(),
-                            Optional.ofNullable(t.getSubject()).orElse("N/A"),
-                            t.getHourlyRate(), t.getRating(), daysStr));
+            if (LOGGER.isLoggable(Level.INFO)) {
+                LOGGER.log(Level.INFO, String.format(
+                        "%2d) %s %s – Subject: %s – €%.2f/h – ★%.1f – Days: %s",
+                        i + 1, t.getName(), t.getSurname(),
+                        Optional.ofNullable(t.getSubject()).orElse("N/A"),
+                        t.getHourlyRate(), t.getRating(), daysStr));
+            }
         }
     }
 
