@@ -55,7 +55,7 @@ public class HomeGraphicControllerBW extends BaseCLIControllerBW {
     }
 
     // Mostra il menu per utenti non loggati e gestisce le scelte
-    private boolean showNotLoggedMenu() throws NoTutorFoundException {
+    private boolean showNotLoggedMenu() {
         LOGGER.info("1) Log In");
         LOGGER.info("2) Sign Up");
         LOGGER.info("0) Exit");
