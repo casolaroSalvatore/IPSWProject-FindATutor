@@ -1,56 +1,39 @@
-# .github/workflows/sonar.yml
-name: Build & Analyze - SonarCloud
-
+name: SonarQube
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
   pull_request:
-    types: [ opened, synchronize, reopened ]
-
+    types: [opened, synchronize, reopened]
 jobs:
   build:
-    name: Build and analyze on SonarCloud
+    name: Build and analyze
     runs-on: ubuntu-latest
-
     steps:
-      # 1. Sorgente completo per la rilevanza del blame
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
-
-      # 2. Java 17 (necessario agli scanner moderni)
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          distribution: temurin            # puoi lasciare zulu se preferisci
           java-version: 17
-
-      # 3. Cache Maven
-      - name: Cache Maven packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
-
-      # 4. Cache SonarCloud
-      - name: Cache SonarCloud packages
+          distribution: 'zulu' # Alternative distribution options are available.
+      - name: Cache SonarQube packages
         uses: actions/cache@v4
         with:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
-
-      # 5. Build & analisi
-      - name: SonarCloud Scan
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # serve per decorare la PR
-          SONAR_TOKEN:  ${{ secrets.SONAR_TOKEN }}   # creato su SonarCloud → My Account → Security
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+      - name: Build and analyze
+            env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          mvn -B verify -DskipTests \
-            org.sonarsource.scanner.maven:sonar-maven-plugin:5.1.0.4751:sonar \
-            -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.organization=casolaroSalvatore \
-            -Dsonar.projectKey=casolaroSalvatore_IPSWProject-FindATutor \
-            -Dsonar.projectName=IPSWProject-FindATutor
+            mvn -B verify -DskipTests \
+            org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+            -Dsonar.projectKey=casolaroSalvatore_IPSWProject-FindATutor
