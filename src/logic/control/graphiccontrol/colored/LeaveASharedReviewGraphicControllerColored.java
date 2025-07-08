@@ -205,7 +205,7 @@ public class LeaveASharedReviewGraphicControllerColored implements NavigableCont
     // Configura le colonne della tabella dello studente
     private void configureStudentTableColumns() {
 
-        tutorInfoColumnStudent.setCellValueFactory(cd ->               /// info già calcolata nel bean
+        tutorInfoColumnStudent.setCellValueFactory(cd ->
                 new SimpleStringProperty(cd.getValue().getCounterpartyInfo()));
 
         tutorSubjectColumnStudent.setCellValueFactory(cd ->
@@ -424,16 +424,6 @@ public class LeaveASharedReviewGraphicControllerColored implements NavigableCont
         List<ImageView> stars = List.of(star1, star2, star3, star4, star5);
         for (int i = 0; i < 5; i++) {
             stars.get(i).setImage(i < selectedStars ? fullStar : emptyStar);
-        }
-    }
-
-    private void displayStars(HBox box, int count) {
-        box.getChildren().clear();
-        for (int i = 0; i < 5; i++) {
-            ImageView iv = new ImageView(i < count ? fullStar : emptyStar);
-            iv.setFitWidth(24);
-            iv.setFitHeight(24);
-            box.getChildren().add(iv);
         }
     }
 
