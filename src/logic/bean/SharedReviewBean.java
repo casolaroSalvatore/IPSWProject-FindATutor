@@ -36,6 +36,7 @@ public class SharedReviewBean {
     public enum ReviewStatus { NOT_STARTED, PENDING, COMPLETE }
 
     public SharedReviewBean() {
+        // Costruttore dello SharedReviewBean (per eliminare l'errore su SonarQube)
     }
 
     public String getReviewId() {

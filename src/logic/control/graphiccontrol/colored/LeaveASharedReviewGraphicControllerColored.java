@@ -20,14 +20,12 @@ import javafx.stage.Stage;
 import logic.bean.SharedReviewBean;
 import logic.bean.UserBean;
 import logic.control.logiccontrol.LeaveASharedReviewController;
-import logic.model.domain.ReviewStatus;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.IntStream;
 
 public class LeaveASharedReviewGraphicControllerColored implements NavigableController {
 
@@ -330,39 +328,23 @@ public class LeaveASharedReviewGraphicControllerColored implements NavigableCont
         studentTable.refresh();
 
         // Se COMPLETA => nascondo form, mostro "studentCompletedBox"
-        if (ReviewStatus.COMPLETE.equals(sr.getStatus())) {
-            studentReviewForm.setVisible(false);
-            studentReviewForm.setManaged(false);
+        // NOT_STARTED o PENDING
+        studentCompletedBox.setVisible(false);
+        studentCompletedBox.setManaged(false);
 
-            // Riempi i campi
-            studentCompletedTitle.setText(sr.getStudentTitle());
-            displayStars(studentCompletedStarsBox, sr.getStudentStars());
-            studentCompletedComment.setText(sr.getStudentComment());
+        // Se lo studente non ha ancora inviato => form compilabile
+        if (!sr.isStudentSubmitted()) {
+            studentReviewForm.setVisible(true);
+            studentReviewForm.setManaged(true);
 
-            studentCompletedTutorTitle.setText(sr.getTutorTitle());
-            studentCompletedTutorComment.setText(sr.getTutorComment());
-
-            studentCompletedBox.setVisible(true);
-            studentCompletedBox.setManaged(true);
+            studentReviewTitle.setText(sr.getStudentTitle());
+            updateStarDisplay();
+            studentReviewComment.setText(sr.getStudentComment());
         } else {
-            // NOT_STARTED o PENDING
-            studentCompletedBox.setVisible(false);
-            studentCompletedBox.setManaged(false);
-
-            // Se lo studente non ha ancora inviato => form compilabile
-            if (!sr.isStudentSubmitted()) {
-                studentReviewForm.setVisible(true);
-                studentReviewForm.setManaged(true);
-
-                studentReviewTitle.setText(sr.getStudentTitle());
-                updateStarDisplay();
-                studentReviewComment.setText(sr.getStudentComment());
-            } else {
-                // Studente ha già inviato => disabiliti form
-                studentReviewTitle.setDisable(true);
-                starContainer.setDisable(true);
-                studentReviewComment.setDisable(true);
-            }
+            // Studente ha già inviato => disabiliti form
+            studentReviewTitle.setDisable(true);
+            starContainer.setDisable(true);
+            studentReviewComment.setDisable(true);
         }
     }
 
@@ -378,34 +360,18 @@ public class LeaveASharedReviewGraphicControllerColored implements NavigableCont
 
         tutorTable.refresh();
 
-        if (ReviewStatus.COMPLETE.equals(sr.getStatus())) {
-            tutorReviewForm.setVisible(false);
-            tutorReviewForm.setManaged(false);
+        tutorCompletedBox.setVisible(false);
+        tutorCompletedBox.setManaged(false);
 
-            // Riempi i campi
-            tutorCompletedTitle.setText(sr.getTutorTitle());
-            tutorCompletedComment.setText(sr.getTutorComment());
+        if (!sr.isTutorSubmitted()) {
+            tutorReviewForm.setVisible(true);
+            tutorReviewForm.setManaged(true);
 
-            tutorCompletedStudentTitle.setText(sr.getStudentTitle());
-            displayStars(tutorCompletedStudentStarsBox, sr.getStudentStars());
-            tutorCompletedStudentComment.setText(sr.getStudentComment());
-
-            tutorCompletedBox.setVisible(true);
-            tutorCompletedBox.setManaged(true);
+            tutorReviewTitle.setText(sr.getTutorTitle());
+            tutorReviewComment.setText(sr.getTutorComment());
         } else {
-            tutorCompletedBox.setVisible(false);
-            tutorCompletedBox.setManaged(false);
-
-            if (!sr.isTutorSubmitted()) {
-                tutorReviewForm.setVisible(true);
-                tutorReviewForm.setManaged(true);
-
-                tutorReviewTitle.setText(sr.getTutorTitle());
-                tutorReviewComment.setText(sr.getTutorComment());
-            } else {
-                tutorReviewTitle.setDisable(true);
-                tutorReviewComment.setDisable(true);
-            }
+            tutorReviewTitle.setDisable(true);
+            tutorReviewComment.setDisable(true);
         }
     }
 

@@ -450,18 +450,10 @@ public class BookingSessionGraphicControllerColored implements NavigableControll
 
         String orderKey = orderComboBox.getValue();
         switch (orderKey) {
-            case "Hourly Rate (asc)" -> {
-                tutors.sort(Comparator.comparingDouble(TutorBean::getHourlyRate));
-            }
-            case "Hourly Rate (desc)" -> {
-                tutors.sort(Comparator.comparingDouble(TutorBean::getHourlyRate).reversed());
-            }
-            case "Rating (asc)" -> {
-                tutors.sort(Comparator.comparingDouble(TutorBean::getRating));
-            }
-            case "Rating (desc)" -> {
-                tutors.sort(Comparator.comparingDouble(TutorBean::getRating).reversed());
-            }
+            case "Hourly Rate (asc)" -> tutors.sort(Comparator.comparingDouble(TutorBean::getHourlyRate));
+            case "Hourly Rate (desc)" -> tutors.sort(Comparator.comparingDouble(TutorBean::getHourlyRate).reversed());
+            case "Rating (asc)" -> tutors.sort(Comparator.comparingDouble(TutorBean::getRating));
+            case "Rating (desc)" -> tutors.sort(Comparator.comparingDouble(TutorBean::getRating).reversed());
             default -> {
                 // Nessun ordinamento specifico selezionato
             }
