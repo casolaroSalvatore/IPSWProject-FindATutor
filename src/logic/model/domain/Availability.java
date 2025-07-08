@@ -15,6 +15,10 @@ public class Availability {
         this.daysOfWeek = days;
     }
 
+    public Availability() {
+
+    }
+
     public LocalDate getStartDate() {
         return startDate;
     }
