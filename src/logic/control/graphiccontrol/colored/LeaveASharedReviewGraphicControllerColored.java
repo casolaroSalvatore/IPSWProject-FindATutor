@@ -327,6 +327,11 @@ public class LeaveASharedReviewGraphicControllerColored implements NavigableCont
         selectedStudentReview = sr;
         studentTable.refresh();
 
+        if (sr.isCompleted()) {
+            showStudentCompleted();
+            return;
+        }
+
         // Se COMPLETA => nascondo form, mostro "studentCompletedBox"
         // NOT_STARTED o PENDING
         studentCompletedBox.setVisible(false);
@@ -348,6 +353,53 @@ public class LeaveASharedReviewGraphicControllerColored implements NavigableCont
         }
     }
 
+    private void showStudentCompleted() {
+
+        /* --- lato studente (mio) --- */
+        studentCompletedTitle.setText(selectedStudentReview.getStudentTitle());
+        studentCompletedComment.setText(selectedStudentReview.getStudentComment());
+
+        studentCompletedStarsBox.getChildren().clear();
+        for (int i = 0; i < selectedStudentReview.getStudentStars(); i++) {
+            studentCompletedStarsBox.getChildren().add(createFullStar());
+        }
+
+        /* --- lato tutor (controparte) --- */
+        studentCompletedTutorTitle.setText(selectedStudentReview.getTutorTitle());
+        studentCompletedTutorComment.setText(selectedStudentReview.getTutorComment());
+
+        /* --- switch visibilità --- */
+        studentReviewForm.setVisible(false);   studentReviewForm.setManaged(false);
+        studentCompletedBox.setVisible(true);  studentCompletedBox.setManaged(true);
+    }
+
+    private void showTutorCompleted() {
+
+        /* --- lato tutor (mio) --- */
+        tutorCompletedTitle.setText(selectedTutorReview.getTutorTitle());
+        tutorCompletedComment.setText(selectedTutorReview.getTutorComment());
+
+        /* --- lato studente (controparte) --- */
+        tutorCompletedStudentTitle.setText(selectedTutorReview.getStudentTitle());
+        tutorCompletedStudentComment.setText(selectedTutorReview.getStudentComment());
+
+        tutorCompletedStudentStarsBox.getChildren().clear();
+        for (int i = 0; i < selectedTutorReview.getStudentStars(); i++) {
+            tutorCompletedStudentStarsBox.getChildren().add(createFullStar());
+        }
+
+        /* --- switch visibilità --- */
+        tutorReviewForm.setVisible(false);    tutorReviewForm.setManaged(false);
+        tutorCompletedBox.setVisible(true);   tutorCompletedBox.setManaged(true);
+    }
+
+    private ImageView createFullStar() {
+        ImageView iv = new ImageView(fullStar);
+        iv.setFitWidth(16);
+        iv.setFitHeight(16);
+        return iv;
+    }
+
     // Gestisce il clic su una riga della tabella tutor e aggiorna il form
     @FXML
     public void handleTutorTableClick(MouseEvent event) {
@@ -359,6 +411,11 @@ public class LeaveASharedReviewGraphicControllerColored implements NavigableCont
         selectedTutorReview = sr;
 
         tutorTable.refresh();
+
+        if (sr.isCompleted()) {
+            showStudentCompleted();
+            return;
+        }
 
         tutorCompletedBox.setVisible(false);
         tutorCompletedBox.setManaged(false);
@@ -383,25 +440,33 @@ public class LeaveASharedReviewGraphicControllerColored implements NavigableCont
             showAlert("No review selected", "Select a row first.");
             return;
         }
-        try {
-            int stars = selectedStars;
-            String title = studentReviewTitle.getText();
-            String comment = studentReviewComment.getText();
 
-            // Imposta i nuovi dati dentro il bean
-            selectedStudentReview.setStudentStars(stars);
-            selectedStudentReview.setStudentTitle(title);
-            selectedStudentReview.setStudentComment(comment);
-            selectedStudentReview.setSenderRole(SharedReviewBean.SenderRole.STUDENT); // importantissimo
+        selectedStudentReview.setStudentStars(selectedStars);
+        selectedStudentReview.setStudentTitle(studentReviewTitle.getText());
+        selectedStudentReview.setStudentComment(studentReviewComment.getText());
+        selectedStudentReview.setSenderRole(SharedReviewBean.SenderRole.STUDENT);
 
-            // Chiamo il nuovo metodo generico
-            leaveASharedReviewController.submitReview(selectedStudentReview);
+        leaveASharedReviewController.submitReview(selectedStudentReview);
 
-            studentTable.refresh();
-            showAlert("Review sent", "Your student-side review has been submitted!");
-        } catch (NumberFormatException e) {
-            showAlert("Invalid input", "Stars must be an integer.");
+        // ricarica lo stato aggiornato
+        selectedStudentReview = leaveASharedReviewController
+                .findOrCreateSharedReviewBean(selectedStudentReview.getStudentId(),
+                        selectedStudentReview.getTutorId());
+
+        studentTable.refresh();
+
+        if (selectedStudentReview.isCompleted()) {
+            showStudentCompleted();                // ora vedo entrambe le parti
+        } else {
+            lockStudentForm();
+            showAlert("Pending", "Waiting for the tutor’s review.");
         }
+    }
+    /* helper */
+    private void lockStudentForm() {
+        studentReviewTitle.setDisable(true);
+        starContainer.setDisable(true);
+        studentReviewComment.setDisable(true);
     }
 
     // Inizializza le stelle cliccabili per lo studente
@@ -435,19 +500,29 @@ public class LeaveASharedReviewGraphicControllerColored implements NavigableCont
             return;
         }
 
-        String title = tutorReviewTitle.getText();
-        String comment = tutorReviewComment.getText();
+        selectedTutorReview.setTutorTitle(tutorReviewTitle.getText());
+        selectedTutorReview.setTutorComment(tutorReviewComment.getText());
+        selectedTutorReview.setSenderRole(SharedReviewBean.SenderRole.TUTOR);
 
-        // Imposta i nuovi dati dentro il bean
-        selectedTutorReview.setTutorTitle(title);
-        selectedTutorReview.setTutorComment(comment);
-        selectedTutorReview.setSenderRole(SharedReviewBean.SenderRole.TUTOR); // importantissimo
-
-        // Chiamo il nuovo metodo generico
         leaveASharedReviewController.submitReview(selectedTutorReview);
 
+        selectedTutorReview = leaveASharedReviewController
+                .findOrCreateSharedReviewBean(selectedTutorReview.getStudentId(),
+                        selectedTutorReview.getTutorId());
+
         tutorTable.refresh();
-        showAlert("Review sent", "Tutor-side review has been submitted!");
+
+        if (selectedTutorReview.isCompleted()) {
+            showTutorCompleted();
+        } else {
+            lockTutorForm();
+            showAlert("Pending", "Waiting for the student’s review.");
+        }
+    }
+    /* helper */
+    private void lockTutorForm() {
+        tutorReviewTitle.setDisable(true);
+        tutorReviewComment.setDisable(true);
     }
 
     // Mostra il profilo del tutor selezionato

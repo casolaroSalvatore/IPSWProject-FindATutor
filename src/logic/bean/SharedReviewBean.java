@@ -159,6 +159,9 @@ public class SharedReviewBean {
         this.tutorComment = tutorComment;
     }
 
+    public boolean isCompleted() {
+        return studentSubmitted && tutorSubmitted;
+    }
 
     // Effettua i controlli sintattici in base al ruolo del mittente della recensione
     public void checkSyntax() {

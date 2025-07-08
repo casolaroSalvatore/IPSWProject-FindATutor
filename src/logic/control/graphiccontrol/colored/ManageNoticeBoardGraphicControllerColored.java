@@ -316,7 +316,7 @@ public class ManageNoticeBoardGraphicControllerColored implements NavigableContr
         for (TutoringSessionBean s : allSessions) {
             if (s.getDate() != null
                     && s.getDate().equals(date)
-                    && s.getStatus() != TutoringSessionStatusBean.ACCEPTED) {
+                    && s.getStatus() == TutoringSessionStatusBean.ACCEPTED) {
                 filtered.add(s);
             }
         }
