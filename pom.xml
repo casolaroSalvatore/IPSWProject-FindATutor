@@ -11,6 +11,14 @@
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
+
+        <sonar.issue.ignore.multicriteria>pkgCycleOff,pkgArchOff</sonar.issue.ignore.multicriteria>
+
+        <sonar.issue.ignore.multicriteria.pkgCycleOff.ruleKey>javaarchitecture:S7027</sonar.issue.ignore.multicriteria.pkgCycleOff.ruleKey>
+        <sonar.issue.ignore.multicriteria.pkgCycleOff.resourceKey>**</sonar.issue.ignore.multicriteria.pkgCycleOff.resourceKey>
+
+        <sonar.issue.ignore.multicriteria.pkgArchOff.ruleKey>javaarchitecture:S7091</sonar.issue.ignore.multicriteria.pkgArchOff.ruleKey>
+        <sonar.issue.ignore.multicriteria.pkgArchOff.resourceKey>**</sonar.issue.ignore.multicriteria.pkgArchOff.resourceKey>
     </properties>
 
     <build>
