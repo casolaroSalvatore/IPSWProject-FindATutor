@@ -4,9 +4,7 @@ import logic.bean.AccountBean;
 import logic.bean.AuthResultBean;
 import logic.bean.UserBean;
 import logic.control.logiccontrol.LoginController;
-import logic.exception.NoTutorFoundException;
 
-import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -14,6 +12,7 @@ import java.util.logging.Logger;
 public class LoginGraphicControllerBW extends BaseCLIControllerBW {
 
     private static final Logger LOGGER = Logger.getLogger(LoginGraphicControllerBW.class.getName());
+    private final LoginController logic = new LoginController();
 
     static {
         SystemOutConsoleHandler handler = new SystemOutConsoleHandler();
@@ -24,11 +23,7 @@ public class LoginGraphicControllerBW extends BaseCLIControllerBW {
         LOGGER.setLevel(Level.INFO);
     }
 
-    private final LoginController logic = new LoginController();
-
-    // Avvia il processo di login
-    public void start() throws NoTutorFoundException {
-
+    public AuthResultBean start() {
         LOGGER.info("\n=== LOGIN ===");
         String email = ask("Email:");
         String password = ask("Password:");
@@ -41,31 +36,27 @@ public class LoginGraphicControllerBW extends BaseCLIControllerBW {
         acc.setRole(role);
         acc.setPassword(password);
 
-        // Verifica sintassi email e password
         try {
             userBean.checkEmailSyntax();
             acc.checkPasswordSyntax();
         } catch (IllegalArgumentException ex) {
             LOGGER.warning(ex.getMessage());
             pressEnter();
-            return;
+            return null;
         }
+
         userBean.addAccount(acc);
+        AuthResultBean result = logic.login(userBean);
 
-        // Tenta il login
-        AuthResultBean authResultBean = logic.login(userBean);
-
-        if (authResultBean == null) {
+        if (result == null) {
             LOGGER.info("Incorrect credentials or role mismatch.");
             pressEnter();
-            return;
+            return null;
         }
 
-        // Login riuscito: avvia la home
-        UUID sid = authResultBean.getSessionId();
         LOGGER.info("Login successful!");
         pressEnter();
-        HomeGraphicControllerBW homeGraphicControllerBW = new HomeGraphicControllerBW(sid);
-        homeGraphicControllerBW.start();
+        return result;
     }
 }
+

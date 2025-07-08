@@ -5,7 +5,6 @@ import logic.bean.AvailabilityBean;
 import logic.bean.AccountBean;
 import logic.bean.UserBean;
 import logic.control.logiccontrol.SignUpController;
-import logic.exception.NoTutorFoundException;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -18,6 +17,7 @@ import java.util.logging.Logger;
 public class SignUpGraphicControllerBW extends BaseCLIControllerBW {
 
     private static final Logger LOGGER = Logger.getLogger(SignUpGraphicControllerBW.class.getName());
+    private final SignUpController logic = new SignUpController();
 
     static {
         SystemOutConsoleHandler handler = new SystemOutConsoleHandler();
@@ -28,11 +28,7 @@ public class SignUpGraphicControllerBW extends BaseCLIControllerBW {
         LOGGER.setLevel(Level.INFO);
     }
 
-    private final SignUpController logic = new SignUpController();
-
-    // Avvia la registrazione utente
-    public void start() throws NoTutorFoundException {
-
+    public AuthResultBean start() {
         LOGGER.info("\n=== SIGN UP ===");
         String role = ask("Role (Student/Tutor):");
         String email = ask("Email:");
@@ -51,7 +47,6 @@ public class SignUpGraphicControllerBW extends BaseCLIControllerBW {
         accountBean.setName(name);
         accountBean.setSurname(surname);
         accountBean.setBirthday(birthday);
-
 
         if ("Student".equalsIgnoreCase(role)) {
             accountBean.setInstitute(ask("Institute:"));
@@ -78,7 +73,7 @@ public class SignUpGraphicControllerBW extends BaseCLIControllerBW {
             try {
                 availabilityBean.checkSyntax();
             } catch (IllegalArgumentException ex) {
-                return;
+                return null;
             }
 
             accountBean.setAvailabilityBean(availabilityBean);
@@ -87,7 +82,6 @@ public class SignUpGraphicControllerBW extends BaseCLIControllerBW {
         accountBean.setPassword(password);
         accountBean.setConfirmPassword(password);
 
-        // Verifica sintassi dei dati inseriti
         try {
             userBean.checkEmailSyntax();
             userBean.checkUsernameSyntax();
@@ -101,21 +95,21 @@ public class SignUpGraphicControllerBW extends BaseCLIControllerBW {
         } catch (IllegalArgumentException ex) {
             LOGGER.warning(ex.getMessage());
             pressEnter();
-            return;
+            return null;
         }
-        // Aggiungo l'account al UserBean
-        userBean.addAccount(accountBean);
 
-        // Esegue la registrazione tramite il controller logico
-        AuthResultBean authResultBean = logic.registerUser(userBean);
-        if (authResultBean != null) {
-            LOGGER.info("Sign-Up completed! Logged-in as " + authResultBean.getUser().getUsername());
-            new HomeGraphicControllerBW(authResultBean.getSessionId()).start();
+        userBean.addAccount(accountBean);
+        AuthResultBean result = logic.registerUser(userBean);
+
+        if (result != null) {
+            LOGGER.info("Sign-Up completed! Logged-in as " + result.getUser().getUsername());
+            pressEnter();
+            return result;
         } else {
             LOGGER.warning("Account already exists.");
+            pressEnter();
+            return null;
         }
-        pressEnter();
     }
 }
-
 

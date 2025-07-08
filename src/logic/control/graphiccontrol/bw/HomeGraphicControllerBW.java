@@ -6,6 +6,7 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import logic.bean.AuthResultBean;
 import logic.bean.UserBean;
 import logic.control.logiccontrol.HomeController;
 import logic.exception.NoTutorFoundException;
@@ -60,11 +61,19 @@ public class HomeGraphicControllerBW extends BaseCLIControllerBW {
         LOGGER.info("0) Exit");
 
         switch (askInt("Choice:")) {
-            case 1 -> new LoginGraphicControllerBW().start();
-            case 2 -> new SignUpGraphicControllerBW().start();
+            case 1 -> {
+                LoginGraphicControllerBW login = new LoginGraphicControllerBW();
+                AuthResultBean result = login.start();
+                if (result != null) this.sessionId = result.getSessionId();
+            }
+            case 2 -> {
+                SignUpGraphicControllerBW signup = new SignUpGraphicControllerBW();
+                AuthResultBean result = signup.start();
+                if (result != null) this.sessionId = result.getSessionId();
+            }
             case 0 -> {
                 LOGGER.info("Exiting application.");
-                return false;  // ferma il ciclo
+                return false;
             }
             default -> LOGGER.warning("Invalid choice. Please try again.");
         }

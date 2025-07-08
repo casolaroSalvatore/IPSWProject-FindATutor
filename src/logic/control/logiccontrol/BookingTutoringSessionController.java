@@ -3,7 +3,7 @@ package logic.control.logiccontrol;
 import logic.bean.*;
 import logic.exception.NoTutorFoundException;
 import logic.model.dao.AccountDAO;
-import logic.model.dao.DaoFactory;
+import logic.infrastructure.DaoFactory;
 import logic.model.dao.TutoringSessionDAO;
 import logic.model.domain.*;
 import logic.model.domain.state.TutoringSession;

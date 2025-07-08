@@ -4,7 +4,7 @@ import logic.bean.AccountBean;
 import logic.bean.TutoringSessionBean;
 import logic.bean.UserBean;
 import logic.model.dao.AccountDAO;
-import logic.model.dao.DaoFactory;
+import logic.infrastructure.DaoFactory;
 import logic.model.dao.TutoringSessionDAO;
 import logic.model.domain.Account;
 import logic.model.domain.User;
