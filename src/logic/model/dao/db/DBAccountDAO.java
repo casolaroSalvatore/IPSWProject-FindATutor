@@ -238,17 +238,47 @@ public class DBAccountDAO extends DBDAO<String, Account> implements AccountDAO {
 
     // Ricostruisce un oggetto Availability a partire dai campi del ResultSet.
     private static Availability buildAvailability(ResultSet rs) throws SQLException {
-        LocalDate s = toLocal(rs.getDate("availability_start_date"));
-        LocalDate e = toLocal(rs.getDate("availability_end_date"));
-        String dws = rs.getString("availability_days_of_week");
-        if (s == null || e == null || dws == null) return null;
+        LocalDate start = toLocal(rs.getDate("availability_start_date"));
+        LocalDate end = toLocal(rs.getDate("availability_end_date"));
+        String rawDays = rs.getString("availability_days_of_week");
 
-        List<DayOfWeek> days = Arrays.stream(dws.split(","))
-                .map(String::trim)
-                .map(String::toUpperCase)
-                .map(DayOfWeek::valueOf)
-                .toList();
-        return new Availability(s, e, days);
+        if (start == null || end == null || rawDays == null) return null;
+
+        List<DayOfWeek> days = parseDaysFromDb(rawDays);
+        return new Availability(start, end, days);
+    }
+
+    // Converte una stringa tipo "MONDAY,WEDNESDAY" o "MON,WED" in lista DayOfWeek
+    private static List<DayOfWeek> parseDaysFromDb(String raw) {
+        if (raw == null || raw.isBlank()) return List.of();
+
+        Map<String, DayOfWeek> aliases = Map.ofEntries(
+                Map.entry("MON", DayOfWeek.MONDAY),
+                Map.entry("TUE", DayOfWeek.TUESDAY),
+                Map.entry("WED", DayOfWeek.WEDNESDAY),
+                Map.entry("THU", DayOfWeek.THURSDAY),
+                Map.entry("FRI", DayOfWeek.FRIDAY),
+                Map.entry("SAT", DayOfWeek.SATURDAY),
+                Map.entry("SUN", DayOfWeek.SUNDAY)
+        );
+
+        List<DayOfWeek> result = new ArrayList<>();
+        for (String token : raw.split(",")) {
+            String normalized = token.trim().toUpperCase();
+            if (normalized.isEmpty()) continue;
+
+            if (aliases.containsKey(normalized)) {
+                result.add(aliases.get(normalized));
+            } else {
+                try {
+                    result.add(DayOfWeek.valueOf(normalized));
+                } catch (IllegalArgumentException e) {
+                    System.err.println("Warning: invalid day in DB → '" + normalized + "'");
+                }
+            }
+        }
+
+        return result;
     }
 
     // Crea e popola un oggetto Tutor a partire dai dati presenti nel ResultSet.

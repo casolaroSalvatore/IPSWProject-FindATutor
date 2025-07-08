@@ -146,8 +146,31 @@ public class FileSystemAccountDAO extends FileSystemDAO<String,Account> implemen
         LocalDate start=arr[0].isBlank()?null:LocalDate.parse(arr[0]);
         LocalDate end  =arr[1].isBlank()?null:LocalDate.parse(arr[1]);
         List<DayOfWeek> days=new ArrayList<>();
-        if (arr.length==3 && !arr[2].isBlank()){
-            for (String d:arr[2].split("\\|")) days.add(DayOfWeek.valueOf(d));
+        if (arr.length == 3 && !arr[2].isBlank()) {
+            Map<String, DayOfWeek> aliases = Map.ofEntries(
+                    Map.entry("MON", DayOfWeek.MONDAY),
+                    Map.entry("TUE", DayOfWeek.TUESDAY),
+                    Map.entry("WED", DayOfWeek.WEDNESDAY),
+                    Map.entry("THU", DayOfWeek.THURSDAY),
+                    Map.entry("FRI", DayOfWeek.FRIDAY),
+                    Map.entry("SAT", DayOfWeek.SATURDAY),
+                    Map.entry("SUN", DayOfWeek.SUNDAY)
+            );
+
+            for (String d : arr[2].split("\\|")) {
+                String norm = d.trim().toUpperCase();
+                if (norm.isBlank()) continue;
+
+                if (aliases.containsKey(norm)) {
+                    days.add(aliases.get(norm));
+                } else {
+                    try {
+                        days.add(DayOfWeek.valueOf(norm));
+                    } catch (IllegalArgumentException e) {
+                        System.err.println("Invalid day in FileSystem data: " + norm);
+                    }
+                }
+            }
         }
         return new Availability(start,end,days);
     }
