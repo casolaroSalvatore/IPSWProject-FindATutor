@@ -2,7 +2,7 @@ package logic.view;
 
 import logic.model.dao.DaoFactory;
 import logic.model.domain.InterfaceProvider;
-import logic.model.domain.PersistenceProvider;
+import logic.model.dao.PersistenceProvider;
 
 import java.util.Scanner;
 
